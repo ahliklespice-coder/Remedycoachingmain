@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remedy Coaching — The Professional Network for Sports Coaches</title>
+<link rel="canonical" href="https://remedycoachinggroup.com/">
+<meta name="description" content="Remedy Coaching is the professional network and consulting marketplace for sports coaches — build your profile, showcase accomplishments, and get hired.">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<meta property="og:title" content="Remedy Coaching — The Professional Network for Sports Coaches">
+<meta property="og:description" content="Build your profile, showcase your accomplishments, and get hired for coaching consulting work.">
+<meta property="og:url" content="https://remedycoachinggroup.com/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://remedycoachinggroup.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --field:#16342A;
+    --field-light:#20493A;
+    --turf:#2F6B4F;
+    --chalk:#F5F3EA;
+    --chalk-dim:#E7E2D3;
+    --ink:#1C1B18;
+    --gold:#D4A72C;
+    --gold-dim:#E9C868;
+    --line: rgba(245,243,234,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--chalk);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{display:block; max-width:100%;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:0.96;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--turf);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:16px;
+  }
+  .eyebrow::before{content:""; width:22px; height:2px; background:var(--gold); display:inline-block;}
+  section{position:relative;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(22,52,42,0.96);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px; max-width:1180px; margin:0 auto;
+  }
+  .logo{
+    display:flex; align-items:center; gap:11px;
+    color:var(--chalk); font-family:'Anton',sans-serif; font-size:18px; letter-spacing:0.01em;
+    white-space:nowrap;
+  }
+  .logo-mark{width:38px; height:38px; flex-shrink:0;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:460px){ .logo-word{display:none;} }
+  .nav-links{display:flex; gap:32px; font-size:14.5px; font-weight:500;}
+  .nav-links a{color:var(--chalk-dim); transition:color .15s;}
+  .nav-links a:hover{color:var(--gold);}
+  .nav-cta{display:flex; gap:12px; align-items:center;}
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:14px;
+    padding:11px 20px; border-radius:6px; border:1.5px solid transparent;
+    cursor:pointer; transition:transform .12s ease, background .15s, border-color .15s;
+    display:inline-block;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-ghost{border-color:rgba(245,243,234,0.35); color:var(--chalk);}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-dark{background:var(--field); color:var(--chalk);}
+  .btn-dark:hover{background:var(--field-light);}
+  @media (max-width:860px){ .nav-links{display:none;} }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:var(--field);
+    color:var(--chalk);
+    overflow:hidden;
+    padding:88px 0 64px;
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center;
+  }
+  .hero h1{
+    font-size:clamp(44px, 6vw, 76px);
+    color:var(--chalk);
+  }
+  .hero h1 span{color:var(--gold);}
+  .hero p.lede{
+    margin-top:22px; font-size:18px; color:var(--chalk-dim); max-width:480px;
+  }
+  .hero-actions{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap;}
+  .hero-stats{display:flex; gap:34px; margin-top:46px; flex-wrap:wrap;}
+  .hero-stats div .num{font-family:'IBM Plex Mono',monospace; font-size:26px; color:var(--gold); font-weight:600;}
+  .hero-stats div .lbl{font-size:12.5px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;}
+
+  .board{
+    background:#0F241C;
+    border:1px solid rgba(245,243,234,0.14);
+    border-radius:14px;
+    padding:20px;
+    position:relative;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.55);
+  }
+  .board-label{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--chalk-dim);
+    text-transform:uppercase; letter-spacing:0.1em; margin-bottom:10px;
+  }
+  .board-label .rec{width:8px; height:8px; border-radius:50%; background:#e0554f; animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+  svg#play{width:100%; height:auto;}
+  .play-line{
+    fill:none; stroke:var(--chalk-dim); stroke-width:2.5; stroke-linecap:round;
+    stroke-dasharray:400; stroke-dashoffset:400;
+    animation:draw 2.4s ease forwards;
+  }
+  .play-line.gold{stroke:var(--gold);}
+  .play-line.d2{animation-delay:.3s;}
+  .play-line.d3{animation-delay:.6s;}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+  .play-node{opacity:0; animation:pop .4s ease forwards;}
+  .play-node.n1{animation-delay:.1s;}
+  .play-node.n2{animation-delay:1.4s;}
+  .play-node.n3{animation-delay:1.7s;}
+  .play-node.n4{animation-delay:2.0s;}
+  @keyframes pop{from{opacity:0; transform:scale(.4);} to{opacity:1; transform:scale(1);}}
+  @media (prefers-reduced-motion: reduce){
+    .play-line{stroke-dashoffset:0; animation:none;}
+    .play-node{opacity:1; animation:none;}
+    .rec{animation:none;}
+  }
+  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} }
+
+  /* ---------- SEARCH BY SPORT ---------- */
+  .sports{padding:76px 0; background:var(--chalk);}
+  .section-head{display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:36px; flex-wrap:wrap;}
+  .section-head h2{font-size:clamp(30px,4vw,42px);}
+  .sport-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px;
+  }
+  .sport-tile{
+    background:var(--chalk-dim); border:1px solid rgba(28,27,24,0.08);
+    border-radius:var(--radius); padding:18px 16px; cursor:pointer;
+    transition:border-color .15s, transform .15s, background .15s;
+  }
+  .sport-tile:hover{border-color:var(--turf); background:#DDE7DD; transform:translateY(-2px);}
+  .sport-tile .ico{font-size:22px; margin-bottom:10px;}
+  .sport-tile .name{font-weight:700; font-size:15px;}
+  .sport-tile .count{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--turf); margin-top:4px;}
+
+  /* ---------- FEATURED COACHES ---------- */
+  .coaches{padding:76px 0; background:var(--field); color:var(--chalk);}
+  .coaches .section-head h2{color:var(--chalk);}
+  .coaches .eyebrow{color:var(--gold-dim);}
+  .card-row{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .coach-card{
+    background:#0F241C; border:1px solid rgba(245,243,234,0.12); border-radius:14px;
+    padding:22px; transition:border-color .15s, transform .15s;
+  }
+  .coach-card:hover{border-color:var(--gold); transform:translateY(-4px);}
+  .coach-top{display:flex; gap:14px; align-items:center;}
+  .avatar{
+    width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,var(--turf),var(--field-light));
+    display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:18px; color:var(--chalk); flex-shrink:0;
+  }
+  .coach-name{font-weight:700; font-size:16.5px;}
+  .coach-role{font-size:13px; color:var(--chalk-dim); margin-top:2px;}
+  .badge-verified{
+    display:inline-flex; align-items:center; gap:5px; margin-top:10px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--gold);
+    border:1px solid rgba(212,167,44,0.4); padding:3px 8px; border-radius:20px;
+  }
+  .stat-line{display:flex; gap:18px; margin-top:16px; padding-top:16px; border-top:1px solid rgba(245,243,234,0.1);}
+  .stat-line div .n{font-family:'IBM Plex Mono',monospace; font-size:17px; color:var(--gold-dim); font-weight:600;}
+  .stat-line div .l{font-size:10.5px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:.06em;}
+  .tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;}
+  .tag{font-size:11.5px; background:rgba(245,243,234,0.08); padding:4px 9px; border-radius:20px; color:var(--chalk-dim);}
+  @media (max-width:900px){ .card-row{grid-template-columns:1fr;} }
+
+  /* ---------- OPPORTUNITIES ---------- */
+  .opps{padding:76px 0; background:var(--chalk);}
+  .opp-list{display:flex; flex-direction:column; gap:12px;}
+  .opp-row{
+    display:grid; grid-template-columns:auto 1fr auto auto; gap:18px; align-items:center;
+    background:#fff; border:1px solid rgba(28,27,24,0.08); border-radius:10px; padding:18px 20px;
+    transition:border-color .15s;
+  }
+  .opp-row:hover{border-color:var(--turf);}
+  .opp-sport{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    background:var(--chalk-dim); color:var(--field); padding:6px 10px; border-radius:6px; white-space:nowrap;
+  }
+  .opp-title{font-weight:700; font-size:15.5px;}
+  .opp-meta{font-size:13px; color:#6b6a63; margin-top:3px;}
+  .opp-budget{font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--turf); white-space:nowrap;}
+  @media (max-width:760px){
+    .opp-row{grid-template-columns:1fr; text-align:left;}
+  }
+
+  /* ---------- HOW IT WORKS ---------- */
+  .how{padding:76px 0; background:var(--field); color:var(--chalk);}
+  .how .eyebrow{color:var(--gold-dim);}
+  .how h2{color:var(--chalk);}
+  .steps{display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-top:40px; counter-reset:step;}
+  .step{position:relative; padding-top:6px;}
+  .step .num{
+    font-family:'Anton',sans-serif; font-size:44px; color:var(--turf); -webkit-text-stroke:1px var(--gold-dim);
+    color:transparent; margin-bottom:14px;
+  }
+  .step h3{font-size:16px; margin-bottom:8px; color:var(--chalk);}
+  .step p{font-size:13.5px; color:var(--chalk-dim);}
+  .step:not(:last-child)::after{
+    content:""; position:absolute; top:26px; left:calc(100% - 6px); width:32px; height:1px;
+    background:rgba(245,243,234,0.25); display:none;
+  }
+  @media (min-width:900px){ .step:not(:last-child)::after{display:block;} }
+  @media (max-width:900px){ .steps{grid-template-columns:1fr 1fr;} }
+  @media (max-width:560px){ .steps{grid-template-columns:1fr;} }
+
+  /* ---------- ACHIEVEMENTS / SUCCESS ---------- */
+  .wins{padding:76px 0; background:var(--chalk);}
+  .win-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+  .win-card{
+    background:var(--field); color:var(--chalk); border-radius:12px; padding:24px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .win-card .n{font-family:'Anton',sans-serif; font-size:38px; color:var(--gold);}
+  .win-card .l{font-size:13px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:.05em;}
+  @media (max-width:900px){ .win-grid{grid-template-columns:1fr 1fr;} }
+
+  /* ---------- PRICING ---------- */
+  .pricing{padding:76px 0; background:#fff;}
+  .price-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .plan{
+    border:1.5px solid rgba(28,27,24,0.1); border-radius:14px; padding:28px 24px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .plan.featured{border-color:var(--gold); background:var(--field); color:var(--chalk); position:relative;}
+  .plan.featured .plan-tag{
+    position:absolute; top:-13px; right:20px; background:var(--gold); color:var(--ink);
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    padding:4px 10px; border-radius:20px; font-weight:600;
+  }
+  .plan h3{font-size:20px;}
+  .plan .price{font-family:'Anton',sans-serif; font-size:36px;}
+  .plan .price span{font-family:'Inter',sans-serif; font-size:13px; font-weight:500; text-transform:none; color:#8a8878;}
+  .plan.featured .price span{color:var(--chalk-dim);}
+  .plan ul{display:flex; flex-direction:column; gap:10px; font-size:14px;}
+  .plan ul li{display:flex; gap:8px; align-items:flex-start;}
+  .plan ul li::before{content:"✓"; color:var(--turf); font-weight:700; flex-shrink:0;}
+  .plan.featured ul li::before{color:var(--gold);}
+  @media (max-width:900px){ .price-grid{grid-template-columns:1fr;} }
+
+  /* ---------- TESTIMONIALS ---------- */
+  .testi{padding:76px 0; background:var(--chalk-dim);}
+  .testi-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .testi-card{background:#fff; border-radius:12px; padding:24px; border:1px solid rgba(28,27,24,0.07);}
+  .testi-card p{font-size:14.5px; margin-bottom:16px;}
+  .testi-who{display:flex; gap:10px; align-items:center;}
+  .testi-who .avatar{width:38px; height:38px; font-size:13px;}
+  .testi-who .n{font-weight:700; font-size:13.5px;}
+  .testi-who .r{font-size:12px; color:#8a8878;}
+  @media (max-width:900px){ .testi-grid{grid-template-columns:1fr;} }
+
+  /* ---------- CTA ---------- */
+  .cta{padding:90px 0; background:var(--field); color:var(--chalk); text-align:center;}
+  .cta h2{font-size:clamp(32px,5vw,52px); max-width:700px; margin:0 auto;}
+  .cta p{color:var(--chalk-dim); margin:18px auto 0; max-width:480px;}
+  .cta-actions{display:flex; gap:14px; justify-content:center; margin-top:32px; flex-wrap:wrap;}
+
+  footer{background:#0F241C; color:var(--chalk-dim); padding:44px 0 28px; font-size:13.5px;}
+  .foot-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:24px; border-bottom:1px solid rgba(245,243,234,0.1); padding-bottom:28px;}
+  .foot-cols{display:flex; gap:56px; flex-wrap:wrap;}
+  .foot-cols h4{color:var(--chalk); font-size:12.5px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:12px;}
+  .foot-cols li{margin-bottom:8px;}
+  .foot-cols a:hover{color:var(--gold);}
+  .foot-bottom{display:flex; justify-content:space-between; padding-top:20px; flex-wrap:wrap; gap:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </div>
+    <nav class="nav-links">
+      <a href="#sports">Find a Coach</a>
+      <a href="#opportunities">Opportunities</a>
+      <a href="#how">How it Works</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-ghost">Log In</a>
+      <a href="#" class="btn btn-gold">Join as Coach</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">The Network for Coaches</div>
+      <h1 class="display">Your coaching experience has <span>value.</span></h1>
+      <p class="lede">Build a professional profile, showcase your championships and certifications, and get hired for consulting work — from film review to full program builds.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-gold">Join as a Coach</a>
+        <a href="#opportunities" class="btn btn-ghost">Find a Coach →</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="num">14</div><div class="lbl">Sports covered</div></div>
+        <div><div class="num">$2.4M+</div><div class="lbl">Paid to coaches</div></div>
+        <div><div class="num">3,100+</div><div class="lbl">Verified coaches</div></div>
+      </div>
+    </div>
+
+    <div class="board">
+      <div class="board-label"><span><span class="rec"></span> LIVE PLAY DIAGRAM</span><span>4TH &amp; GOAL</span></div>
+      <svg id="play" viewBox="0 0 420 300">
+        <path class="play-line" d="M60,220 L60,120" />
+        <path class="play-line gold d2" d="M60,120 C60,80 100,60 150,60" />
+        <path class="play-line d3" d="M210,230 C260,230 300,180 330,90" />
+        <circle class="play-node n1" cx="60" cy="230" r="12" fill="#F5F3EA"/>
+        <text class="play-node n1" x="60" y="234" font-family="IBM Plex Mono" font-size="11" fill="#16342A" text-anchor="middle">C</text>
+        <circle class="play-node n2" cx="150" cy="60" r="12" fill="#D4A72C"/>
+        <text class="play-node n2" x="150" y="64" font-family="IBM Plex Mono" font-size="11" fill="#16342A" text-anchor="middle">X</text>
+        <circle class="play-node n3" cx="210" cy="230" r="12" fill="#F5F3EA"/>
+        <text class="play-node n3" x="210" y="234" font-family="IBM Plex Mono" font-size="11" fill="#16342A" text-anchor="middle">Q</text>
+        <circle class="play-node n4" cx="330" cy="90" r="12" fill="#D4A72C"/>
+        <text class="play-node n4" x="330" y="94" font-family="IBM Plex Mono" font-size="11" fill="#16342A" text-anchor="middle">Z</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="sports" id="sports">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Search by Sport</div>
+        <h2 class="display">Every sport. One roster.</h2>
+      </div>
+    </div>
+    <div class="sport-grid">
+      <div class="sport-tile"><div class="ico">🏈</div><div class="name">Football</div><div class="count">612 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🏀</div><div class="name">Basketball</div><div class="count">548 coaches</div></div>
+      <div class="sport-tile"><div class="ico">⚾</div><div class="name">Baseball</div><div class="count">401 coaches</div></div>
+      <div class="sport-tile"><div class="ico">⚽</div><div class="name">Soccer</div><div class="count">389 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🤼</div><div class="name">Wrestling</div><div class="count">210 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🏃</div><div class="name">Track &amp; Field</div><div class="count">177 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🏐</div><div class="name">Volleyball</div><div class="count">203 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🥍</div><div class="name">Lacrosse</div><div class="count">98 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🎾</div><div class="name">Tennis</div><div class="count">156 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🏊</div><div class="name">Swimming</div><div class="count">132 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🏒</div><div class="name">Hockey</div><div class="count">144 coaches</div></div>
+      <div class="sport-tile"><div class="ico">🏋️</div><div class="name">Strength &amp; Conditioning</div><div class="count">267 coaches</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="coaches">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Featured Coaches</div>
+        <h2 class="display">Verified. Accomplished. Available.</h2>
+      </div>
+      <a href="#" class="btn btn-ghost">Browse all coaches →</a>
+    </div>
+    <div class="card-row">
+      <div class="coach-card">
+        <div class="coach-top">
+          <div class="avatar">MR</div>
+          <div>
+            <div class="coach-name">Marcus Reyes</div>
+            <div class="coach-role">Offensive Coordinator · Football</div>
+          </div>
+        </div>
+        <div class="badge-verified">✓ Verified Credentials</div>
+        <div class="stat-line">
+          <div><div class="n">3x</div><div class="l">League Titles</div></div>
+          <div><div class="n">12 yrs</div><div class="l">Experience</div></div>
+          <div><div class="n">4.9</div><div class="l">Rating</div></div>
+        </div>
+        <div class="tags"><span class="tag">Play Design</span><span class="tag">Film Analysis</span><span class="tag">Recruiting</span></div>
+      </div>
+      <div class="coach-card">
+        <div class="coach-top">
+          <div class="avatar">JT</div>
+          <div>
+            <div class="coach-name">Jordan Tran</div>
+            <div class="coach-role">Youth Development · Basketball</div>
+          </div>
+        </div>
+        <div class="badge-verified">✓ Verified Credentials</div>
+        <div class="stat-line">
+          <div><div class="n">40+</div><div class="l">Athletes to College</div></div>
+          <div><div class="n">8 yrs</div><div class="l">Experience</div></div>
+          <div><div class="n">4.8</div><div class="l">Rating</div></div>
+        </div>
+        <div class="tags"><span class="tag">Player Development</span><span class="tag">Program Building</span></div>
+      </div>
+      <div class="coach-card">
+        <div class="coach-top">
+          <div class="avatar">AK</div>
+          <div>
+            <div class="coach-name">Aisha Kessler</div>
+            <div class="coach-role">Head Coach · Track &amp; Field</div>
+          </div>
+        </div>
+        <div class="badge-verified">✓ Verified Credentials</div>
+        <div class="stat-line">
+          <div><div class="n">2x</div><div class="l">Coach of the Year</div></div>
+          <div><div class="n">15 yrs</div><div class="l">Experience</div></div>
+          <div><div class="n">5.0</div><div class="l">Rating</div></div>
+        </div>
+        <div class="tags"><span class="tag">Sprint Mechanics</span><span class="tag">Mental Performance</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="opps" id="opportunities">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Coaching Opportunities</div>
+        <h2 class="display">Open jobs on the board.</h2>
+      </div>
+      <a href="#" class="btn btn-dark">Post an Opportunity</a>
+    </div>
+    <div class="opp-list">
+      <div class="opp-row">
+        <span class="opp-sport">Wrestling</span>
+        <div><div class="opp-title">Takedown consultant for HS varsity program</div><div class="opp-meta">Virtual · 6 week project · Posted 2 days ago</div></div>
+        <span class="opp-budget">$800–$1,200</span>
+        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
+      </div>
+      <div class="opp-row">
+        <span class="opp-sport">Football</span>
+        <div><div class="opp-title">Offensive coordinator to consult on play design</div><div class="opp-meta">In-person · Season-long · Posted 4 days ago</div></div>
+        <span class="opp-budget">$3,500+</span>
+        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
+      </div>
+      <div class="opp-row">
+        <span class="opp-sport">Basketball</span>
+        <div><div class="opp-title">Youth program development for rec league</div><div class="opp-meta">Hybrid · 3 month project · Posted 1 week ago</div></div>
+        <span class="opp-budget">$1,500–$2,000</span>
+        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
+      </div>
+      <div class="opp-row">
+        <span class="opp-sport">Swimming</span>
+        <div><div class="opp-title">Stroke technique clinic for age-group swimmers</div><div class="opp-meta">In-person · One-time clinic · Posted 1 week ago</div></div>
+        <span class="opp-budget">$600</span>
+        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="eyebrow">How It Works</div>
+    <h2 class="display">Five steps from film room to paycheck.</h2>
+    <div class="steps">
+      <div class="step"><div class="num">01</div><h3>Build your profile</h3><p>Showcase experience, certifications, and championships.</p></div>
+      <div class="step"><div class="num">02</div><h3>Build your reputation</h3><p>Collect endorsements and recommendations from peers.</p></div>
+      <div class="step"><div class="num">03</div><h3>Find opportunities</h3><p>Browse projects matched to your sport and expertise.</p></div>
+      <div class="step"><div class="num">04</div><h3>Apply and get hired</h3><p>Submit a proposal and connect directly with the client.</p></div>
+      <div class="step"><div class="num">05</div><h3>Earn and grow</h3><p>Get paid securely and expand your consulting career.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="wins">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Track Record</div>
+        <h2 class="display">What the network has produced.</h2>
+      </div>
+    </div>
+    <div class="win-grid">
+      <div class="win-card"><div class="n">$2.4M+</div><div class="l">Paid out to coaches</div></div>
+      <div class="win-card"><div class="n">1,900+</div><div class="l">Projects completed</div></div>
+      <div class="win-card"><div class="n">560+</div><div class="l">Athletes recruited to college</div></div>
+      <div class="win-card"><div class="n">14</div><div class="l">Sports represented</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Subscription Plans</div>
+        <h2 class="display">Pick your level of play.</h2>
+      </div>
+    </div>
+    <div class="price-grid">
+      <div class="plan">
+        <h3>Free Agent</h3>
+        <div class="price">$0<span> /mo</span></div>
+        <ul>
+          <li>Basic profile</li>
+          <li>Limited networking</li>
+          <li>Browse open opportunities</li>
+          <li>2 applications / month</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2); text-align:center;">Start Free</a>
+      </div>
+      <div class="plan featured">
+        <span class="plan-tag">Most Popular</span>
+        <h3>Professional</h3>
+        <div class="price">$29<span> /mo</span></div>
+        <ul>
+          <li>Full professional profile</li>
+          <li>Unlimited opportunity access</li>
+          <li>Direct client messaging</li>
+          <li>Profile analytics</li>
+        </ul>
+        <a href="#" class="btn btn-gold" style="text-align:center;">Go Professional</a>
+      </div>
+      <div class="plan">
+        <h3>Elite</h3>
+        <div class="price">$79<span> /mo</span></div>
+        <ul>
+          <li>Featured, priority placement</li>
+          <li>Verified professional badge</li>
+          <li>Early access to opportunities</li>
+          <li>Sell clinics &amp; digital resources</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2); text-align:center;">Go Elite</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="testi">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">From the Network</div>
+        <h2 class="display">Coaches and clients on the record.</h2>
+      </div>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <p>"I picked up three consulting projects in my first month — all from programs I never would have found on my own."</p>
+        <div class="testi-who"><div class="avatar">DP</div><div><div class="n">Dana Petrov</div><div class="r">Volleyball Coach</div></div></div>
+      </div>
+      <div class="testi-card">
+        <p>"We needed a wrestling technique specialist for six weeks. Found one, vetted their record, and had them running practice by Friday."</p>
+        <div class="testi-who"><div class="avatar">RH</div><div><div class="n">Ray Holloway</div><div class="r">Athletic Director</div></div></div>
+      </div>
+      <div class="testi-card">
+        <p>"The profile makes my whole coaching résumé feel legitimate for the first time — championships, certifications, all in one place."</p>
+        <div class="testi-who"><div class="avatar">SL</div><div><div class="n">Sam Liu</div><div class="r">Strength Coach</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2 class="display">Your next opportunity is on the board.</h2>
+    <p>Join the network built for coaches — free to start, no long-term commitment.</p>
+    <div class="cta-actions">
+      <a href="#" class="btn btn-gold">Join as a Coach</a>
+      <a href="#" class="btn btn-ghost">Post an Opportunity</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="logo" style="font-size:17px;">
+        <svg class="logo-mark" style="width:34px; height:34px;" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+          <circle cx="30" cy="30" r="28" fill="#16342A" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+          <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+          <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+        </svg>
+        <span class="logo-word">REMEDY <b>COACHING</b></span>
+      </div>
+      <div class="foot-cols">
+        <ul><h4>Coaches</h4>
+          <li><a href="#">Create Profile</a></li>
+          <li><a href="#">Find Opportunities</a></li>
+          <li><a href="#">Pricing</a></li>
+        </ul>
+        <ul><h4>Clients</h4>
+          <li><a href="#">Find a Coach</a></li>
+          <li><a href="#">Post an Opportunity</a></li>
+          <li><a href="#">How Hiring Works</a></li>
+        </ul>
+        <ul><h4>Company</h4>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Trust &amp; Verification</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Remedy Coaching. All rights reserved.</span>
+      <span>Built for coaches, by coaches.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
