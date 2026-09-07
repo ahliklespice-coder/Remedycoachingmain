@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community — Remedy Coaching</title>
+<link rel="canonical" href="https://remedycoachinggroup.com/community.html">
+<meta name="description" content="Create your coaching profile and share updates with the Remedy Coaching community.">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --field:#16342A;
+    --field-light:#20493A;
+    --turf:#2F6B4F;
+    --chalk:#F5F3EA;
+    --chalk-dim:#E7E2D3;
+    --ink:#1C1B18;
+    --gold:#D4A72C;
+    --gold-dim:#E9C868;
+    --line: rgba(245,243,234,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:0.96;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(22,52,42,0.96); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1180px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:11px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:18px; white-space:nowrap;}
+  .logo-mark{width:38px; height:38px; flex-shrink:0;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:460px){ .logo-word{display:none;} }
+  .nav-links{display:flex; gap:32px; font-size:14.5px; font-weight:500;}
+  .nav-links a{color:var(--chalk-dim); transition:color .15s;}
+  .nav-links a:hover, .nav-links a.active{color:var(--gold);}
+  @media (max-width:760px){ .nav-links{display:none;} }
+  .btn{font-weight:700; font-size:14px; padding:10px 18px; border-radius:6px; border:1.5px solid transparent; transition:transform .12s, background .15s;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-gold:disabled{opacity:.5; cursor:not-allowed; transform:none;}
+  .btn-ghost{border-color:rgba(245,243,234,.35); color:var(--chalk); background:none;}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-outline-dark{border-color:rgba(28,27,24,.2); color:var(--ink); background:none;}
+  .btn-outline-dark:hover{border-color:var(--turf); color:var(--turf);}
+  .btn-danger{background:none; color:#b5453f; border-color:rgba(181,69,63,.3); font-size:12.5px; padding:6px 10px;}
+  .btn-danger:hover{background:rgba(181,69,63,.08);}
+
+  .pagehead{background:var(--field); color:var(--chalk); padding:52px 0 40px;}
+  .pagehead .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-dim); display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .pagehead .eyebrow::before{content:""; width:22px; height:2px; background:var(--gold);}
+  .pagehead h1{font-size:clamp(30px,4vw,44px);}
+  .pagehead p{color:var(--chalk-dim); margin-top:10px; max-width:520px;}
+
+  main{padding:44px 0 90px;}
+  .layout{display:grid; grid-template-columns:320px 1fr; gap:28px; align-items:start;}
+  @media (max-width:880px){ .layout{grid-template-columns:1fr;} }
+
+  .card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:24px;}
+  .sticky{position:sticky; top:96px;}
+
+  .avatar{width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--turf),var(--field-light)); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:19px; color:var(--chalk); flex-shrink:0;}
+  .profile-top{display:flex; gap:14px; align-items:center;}
+  .profile-name{font-weight:700; font-size:17px;}
+  .profile-role{font-size:13px; color:#8a8878; margin-top:2px;}
+  .profile-bio{font-size:13.5px; color:#4a4940; margin-top:16px; line-height:1.55;}
+  .profile-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;}
+  .tag{font-size:11.5px; background:var(--chalk-dim); padding:4px 9px; border-radius:20px; color:var(--field);}
+  .profile-actions{display:flex; gap:8px; margin-top:18px;}
+
+  label{display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin-bottom:6px; margin-top:16px;}
+  label:first-of-type{margin-top:0;}
+  input, select, textarea{
+    width:100%; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:10px 12px;
+    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:#fdfcf9;
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--turf);}
+  textarea{resize:vertical; min-height:70px;}
+  .field-hint{font-size:11.5px; color:#a8a596; margin-top:4px;}
+  .form-submit{margin-top:20px; width:100%; text-align:center;}
+
+  .composer textarea{min-height:80px;}
+  .composer-foot{display:flex; justify-content:space-between; align-items:center; margin-top:12px;}
+  .composer-hint{font-size:12.5px; color:#a8a596;}
+  .locked-note{display:flex; gap:10px; align-items:flex-start; background:var(--chalk-dim); border-radius:10px; padding:14px 16px; font-size:13.5px; color:var(--field);}
+
+  .feed{display:flex; flex-direction:column; gap:14px; margin-top:22px;}
+  .post{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px;}
+  .post-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
+  .post-who{display:flex; gap:12px; align-items:center;}
+  .post-avatar{width:42px; height:42px; font-size:14px;}
+  .post-name{font-weight:700; font-size:14.5px;}
+  .post-meta{font-size:12px; color:#a8a596; margin-top:2px;}
+  .post-body{font-size:14.5px; color:#2a2921; margin-top:14px; line-height:1.6; white-space:pre-wrap;}
+  .empty-state{text-align:center; padding:50px 20px; color:#a8a596;}
+  .empty-state .display{font-size:20px; color:var(--field); margin-bottom:8px;}
+  .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0;
+    background:var(--field); color:var(--chalk); padding:12px 22px; border-radius:30px; font-size:14px;
+    box-shadow:0 12px 30px rgba(0,0,0,.25); transition:opacity .25s, transform .25s; z-index:100; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .setup-warning{background:#b5453f; color:#fff; text-align:center; padding:10px 16px; font-size:13.5px; font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+
+<div class="setup-warning" id="setup-warning" style="display:none;">
+  ⚠️ Supabase isn't configured yet — edit SUPABASE_URL and SUPABASE_ANON_KEY near the bottom of this file.
+</div>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html#sports">Find a Coach</a>
+      <a href="index.html#opportunities">Opportunities</a>
+      <a href="community.html" class="active">Community</a>
+      <a href="index.html#pricing">Pricing</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="index.html" class="btn btn-ghost">← Back to Home</a>
+    </div>
+  </div>
+</header>
+
+<section class="pagehead">
+  <div class="wrap">
+    <div class="eyebrow">Community</div>
+    <h1 class="display">Your profile. Your voice.</h1>
+    <p>Create a coaching profile and post updates, wins, and questions — visible to everyone in the network, in real time.</p>
+  </div>
+</section>
+
+<main>
+  <div class="wrap layout">
+    <div class="sticky" id="profile-column">
+      <div class="skeleton">Loading...</div>
+    </div>
+    <div>
+      <div class="card composer" id="composer-column"></div>
+      <div class="feed" id="feed">
+        <div class="skeleton">Loading feed...</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   SUPABASE SETUP — replace these two values with your own
+   project's URL and public "anon" key (Project Settings ->
+   API in the Supabase dashboard). Both are safe to expose
+   in client-side code; row-level security policies (set up
+   via the SQL script) control what each value can actually
+   read or write.
+========================================================= */
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZWVrYmxuYmh4dGNxZGVlc3JhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDQ5MjcsImV4cCI6MjEwNDIyMDkyN30.0e38TYIB7Ua30UREnoMmxDaqPOIuPg-UaB8Wy1hpHQg';
+
+const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.includes('YOUR_');
+if(!isConfigured){ document.getElementById('setup-warning').style.display = 'block'; }
+
+const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Other"];
+
+let currentUser = null;
+let currentProfile = null;
+
+function initials(name){
+  return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('') || '?';
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+function timeAgo(iso){
+  const s = Math.floor((Date.now()-new Date(iso).getTime())/1000);
+  if(s<60) return 'just now';
+  const m = Math.floor(s/60); if(m<60) return m+'m ago';
+  const h = Math.floor(m/60); if(h<24) return h+'h ago';
+  const d = Math.floor(h/24); return d+'d ago';
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ---------------- AUTH ---------------- */
+
+async function renderProfileColumn(){
+  const el = document.getElementById('profile-column');
+
+  if(!isConfigured){
+    el.innerHTML = `<div class="card">Connect Supabase to enable sign-in.</div>`;
+    return;
+  }
+
+  if(!currentUser){
+    el.innerHTML = `
+      <div class="card">
+        <h3 class="display" style="font-size:19px; margin-bottom:4px;">Sign In</h3>
+        <p style="font-size:13px; color:#8a8878;">We'll email you a magic link — no password needed.</p>
+        <form id="signin-form">
+          <label for="signin-email">Email</label>
+          <input id="signin-email" type="email" required placeholder="you@example.com">
+          <button type="submit" class="btn btn-gold form-submit">Send Magic Link</button>
+        </form>
+        <div id="signin-status" style="font-size:12.5px; color:var(--turf); margin-top:12px;"></div>
+      </div>`;
+    document.getElementById('signin-form').addEventListener('submit', async e=>{
+      e.preventDefault();
+      const email = document.getElementById('signin-email').value.trim();
+      const status = document.getElementById('signin-status');
+      status.textContent = 'Sending...';
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
+      });
+      status.textContent = error ? ('Error: ' + error.message) : 'Check your email for the sign-in link.';
+    });
+    return;
+  }
+
+  if(!currentProfile){
+    el.innerHTML = `
+      <div class="card">
+        <h3 class="display" style="font-size:19px; margin-bottom:4px;">Create Your Profile</h3>
+        <p style="font-size:13px; color:#8a8878;">Signed in as ${escapeHtml(currentUser.email)}</p>
+        <form id="profile-form">
+          <label for="pf-name">Full Name</label>
+          <input id="pf-name" required maxlength="60" placeholder="e.g. Jordan Tran">
+
+          <label for="pf-role">I am a...</label>
+          <select id="pf-role">
+            <option value="Coach">Coach</option>
+            <option value="Client">Client / Program</option>
+          </select>
+
+          <label for="pf-sport">Primary Sport</label>
+          <select id="pf-sport">
+            ${SPORTS.map(s=>`<option value="${s}">${s}</option>`).join('')}
+          </select>
+
+          <label for="pf-bio">Short Bio</label>
+          <textarea id="pf-bio" maxlength="220" placeholder="Coaching background, specialties, what you're looking for..."></textarea>
+          <div class="field-hint">Max 220 characters.</div>
+
+          <button type="submit" class="btn btn-gold form-submit">Create Profile</button>
+        </form>
+        <button class="btn btn-outline-dark" id="signout-btn" style="width:100%; margin-top:10px;">Sign Out</button>
+      </div>`;
+    document.getElementById('profile-form').addEventListener('submit', async e=>{
+      e.preventDefault();
+      const name = document.getElementById('pf-name').value.trim();
+      if(!name) return;
+      const payload = {
+        id: currentUser.id,
+        email: currentUser.email,
+        name,
+        role: document.getElementById('pf-role').value,
+        sport: document.getElementById('pf-sport').value,
+        bio: document.getElementById('pf-bio').value.trim()
+      };
+      const { error } = await sb.from('profiles').upsert(payload);
+      if(error){ showToast('Error: ' + error.message); return; }
+      currentProfile = payload;
+      showToast('Profile created');
+      renderProfileColumn();
+      renderComposer();
+    });
+    document.getElementById('signout-btn').addEventListener('click', async ()=>{
+      await sb.auth.signOut();
+    });
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="profile-top">
+        <div class="avatar">${initials(currentProfile.name)}</div>
+        <div>
+          <div class="profile-name">${escapeHtml(currentProfile.name)}</div>
+          <div class="profile-role">${escapeHtml(currentProfile.role)} · ${escapeHtml(currentProfile.sport)}</div>
+        </div>
+      </div>
+      ${currentProfile.bio ? `<div class="profile-bio">${escapeHtml(currentProfile.bio)}</div>` : ''}
+      <div class="profile-tags">
+        <span class="tag">${escapeHtml(currentProfile.sport)}</span>
+        <span class="tag">${escapeHtml(currentProfile.role)}</span>
+      </div>
+      <div class="profile-actions">
+        <button class="btn btn-outline-dark" id="edit-profile-btn" style="flex:1;">Edit Profile</button>
+        <button class="btn btn-danger" id="delete-profile-btn">Delete</button>
+      </div>
+      <button class="btn btn-outline-dark" id="signout-btn" style="width:100%; margin-top:10px;">Sign Out</button>
+    </div>`;
+
+  document.getElementById('delete-profile-btn').addEventListener('click', async ()=>{
+    if(!confirm('Delete your profile? Your posts will remain.')) return;
+    const { error } = await sb.from('profiles').delete().eq('id', currentUser.id);
+    if(error){ showToast('Error: ' + error.message); return; }
+    currentProfile = null;
+    showToast('Profile deleted');
+    renderProfileColumn();
+    renderComposer();
+  });
+  document.getElementById('edit-profile-btn').addEventListener('click', ()=>{
+    const saved = currentProfile;
+    currentProfile = null;
+    renderProfileColumn();
+    document.getElementById('pf-name').value = saved.name;
+    document.getElementById('pf-role').value = saved.role;
+    document.getElementById('pf-sport').value = saved.sport;
+    document.getElementById('pf-bio').value = saved.bio || '';
+    currentProfile = saved; // restore so submit does an upsert, not a stale-empty create
+  });
+  document.getElementById('signout-btn').addEventListener('click', async ()=>{
+    await sb.auth.signOut();
+  });
+}
+
+/* ---------------- COMPOSER ---------------- */
+
+function renderComposer(){
+  const el = document.getElementById('composer-column');
+  if(!isConfigured || !currentUser || !currentProfile){
+    el.innerHTML = `
+      <div class="locked-note">
+        <span>🔒</span>
+        <span>${!isConfigured ? 'Connect Supabase to enable posting.' : 'Sign in and create a profile to start posting.'}</span>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <label for="post-text" style="margin-top:0;">Share an update with the community</label>
+    <textarea id="post-text" maxlength="500" placeholder="A win, a question, a tip for other coaches..."></textarea>
+    <div class="composer-foot">
+      <span class="composer-hint"><span id="char-count">500</span> characters left</span>
+      <button class="btn btn-gold" id="post-submit-btn">Post</button>
+    </div>`;
+
+  const textarea = document.getElementById('post-text');
+  const counter = document.getElementById('char-count');
+  textarea.addEventListener('input', ()=>{ counter.textContent = 500 - textarea.value.length; });
+
+  document.getElementById('post-submit-btn').addEventListener('click', async ()=>{
+    const content = textarea.value.trim();
+    if(!content) return;
+    const { error } = await sb.from('posts').insert({
+      author_id: currentUser.id,
+      author_name: currentProfile.name,
+      role: currentProfile.role,
+      sport: currentProfile.sport,
+      content
+    });
+    if(error){ showToast('Error: ' + error.message); return; }
+    textarea.value = '';
+    counter.textContent = 500;
+    showToast('Posted');
+    // Feed updates automatically via the realtime subscription below.
+  });
+}
+
+/* ---------------- FEED ---------------- */
+
+let postsCache = [];
+
+function renderFeed(){
+  const el = document.getElementById('feed');
+  if(!isConfigured){
+    el.innerHTML = `<div class="skeleton">Connect Supabase to load the feed.</div>`;
+    return;
+  }
+  if(postsCache.length === 0){
+    el.innerHTML = `
+      <div class="card empty-state">
+        <div class="display">No posts yet</div>
+        <div>Be the first to share something with the community.</div>
+      </div>`;
+    return;
+  }
+  el.innerHTML = postsCache.map(post => `
+    <div class="post" data-id="${post.id}">
+      <div class="post-head">
+        <div class="post-who">
+          <div class="avatar post-avatar">${initials(post.author_name)}</div>
+          <div>
+            <div class="post-name">${escapeHtml(post.author_name)}</div>
+            <div class="post-meta">${escapeHtml(post.role||'')} · ${escapeHtml(post.sport||'')} · ${timeAgo(post.created_at)}</div>
+          </div>
+        </div>
+        ${currentUser && currentUser.id === post.author_id ? `<button class="btn btn-danger" data-delete="${post.id}">Delete</button>` : ''}
+      </div>
+      <div class="post-body">${escapeHtml(post.content)}</div>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('[data-delete]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-delete');
+      const { error } = await sb.from('posts').delete().eq('id', id);
+      if(error){ showToast('Error: ' + error.message); return; }
+      showToast('Post deleted');
+      // Feed updates automatically via the realtime subscription below.
+    });
+  });
+}
+
+async function fetchPosts(){
+  const { data, error } = await sb.from('posts').select('*').order('created_at', { ascending: false }).limit(200);
+  if(error){ console.error(error); return; }
+  postsCache = data;
+  renderFeed();
+}
+
+/* ---------------- INIT ---------------- */
+
+async function loadProfileForUser(){
+  if(!currentUser){ currentProfile = null; return; }
+  const { data, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+  if(error){ console.error(error); return; }
+  currentProfile = data;
+}
+
+async function init(){
+  if(!isConfigured){
+    renderProfileColumn();
+    renderComposer();
+    renderFeed();
+    return;
+  }
+
+  const { data: { session } } = await sb.auth.getSession();
+  currentUser = session ? session.user : null;
+  await loadProfileForUser();
+  renderProfileColumn();
+  renderComposer();
+  await fetchPosts();
+
+  sb.auth.onAuthStateChange(async (_event, session)=>{
+    currentUser = session ? session.user : null;
+    await loadProfileForUser();
+    renderProfileColumn();
+    renderComposer();
+  });
+
+  // Live updates: new/deleted posts from any visitor appear without a refresh.
+  sb.channel('public:posts')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => { fetchPosts(); })
+    .subscribe();
+}
+
+init();
+</script>
+
+</body>
+</html>
