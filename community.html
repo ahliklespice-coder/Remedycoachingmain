@@ -178,8 +178,9 @@
    via the SQL script) control what each value can actually
    read or write.
 ========================================================= */
-const SUPABASE_URL = sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs;
-const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZWVrYmxuYmh4dGNxZGVlc3JhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDQ5MjcsImV4cCI6MjEwNDIyMDkyN30.0e38TYIB7Ua30UREnoMmxDaqPOIuPg-UaB8Wy1hpHQg
+const SUPABASE_URL = https://gaeekblnbhxtcqdeesra.supabase.co/rest/v1/;
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZWVrYmxuYmh4dGNxZGVlc3JhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDQ5MjcsImV4cCI6MjEwNDIyMDkyN30.0e38TYIB7Ua30UREnoMmxDaqPOIuPg-UaB8Wy1hpHQg';
+
 const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.includes('YOUR_');
 if(!isConfigured){ document.getElementById('setup-warning').style.display = 'block'; }
 
