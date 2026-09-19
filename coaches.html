@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browse Coaches — Remedy Coaching</title>
+<link rel="canonical" href="https://remedycoachinggroup.com/coaches.html">
+<meta name="description" content="Browse verified sports coaches on Remedy Coaching — filter by sport and view profiles, credentials, and specialties.">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --field:#16342A;
+    --field-light:#20493A;
+    --turf:#2F6B4F;
+    --chalk:#F5F3EA;
+    --chalk-dim:#E7E2D3;
+    --ink:#1C1B18;
+    --gold:#D4A72C;
+    --gold-dim:#E9C868;
+    --line: rgba(245,243,234,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:0.96;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(22,52,42,0.96); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1180px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:11px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:18px; white-space:nowrap;}
+  .logo-mark{width:38px; height:38px; flex-shrink:0;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:460px){ .logo-word{display:none;} }
+  .nav-links{display:flex; gap:32px; font-size:14.5px; font-weight:500;}
+  .nav-links a{color:var(--chalk-dim); transition:color .15s;}
+  .nav-links a:hover, .nav-links a.active{color:var(--gold);}
+  @media (max-width:760px){ .nav-links{display:none;} }
+  .nav-cta{display:flex; gap:12px; align-items:center;}
+
+  .btn{font-weight:700; font-size:14px; padding:10px 18px; border-radius:6px; border:1.5px solid transparent; transition:transform .12s, background .15s;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-ghost{border-color:rgba(245,243,234,.35); color:var(--chalk); background:none;}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-outline-dark{border-color:rgba(28,27,24,.2); color:var(--ink); background:none;}
+  .btn-outline-dark:hover{border-color:var(--turf); color:var(--turf);}
+  .btn-sm{font-size:12.5px; padding:7px 12px;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:""; width:22px; height:2px; background:var(--gold); display:inline-block;}
+
+  .pagehead{background:var(--field); color:var(--chalk); padding:44px 0 36px;}
+  .pagehead .eyebrow{color:var(--gold-dim);}
+  .pagehead h1{font-size:clamp(28px,4vw,42px);}
+  .pagehead p{color:var(--chalk-dim); margin-top:8px; max-width:520px;}
+
+  main{padding:32px 0 90px;}
+
+  /* ---- filters ---- */
+  .filters{display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:28px;}
+  .search-input{
+    flex:1; min-width:220px; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:11px 14px;
+    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:#fff;
+  }
+  .search-input:focus{outline:none; border-color:var(--turf);}
+  .pill-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .pill{
+    font-size:12.5px; font-weight:600; padding:7px 14px; border-radius:20px;
+    border:1.5px solid rgba(28,27,24,.15); background:#fff; color:var(--ink);
+    transition:border-color .15s, background .15s, color .15s;
+  }
+  .pill:hover{border-color:var(--turf);}
+  .pill.active{background:var(--field); border-color:var(--field); color:var(--chalk);}
+
+  .result-count{font-size:13px; color:#8a8878; margin-bottom:18px;}
+
+  /* ---- coach grid ---- */
+  .coach-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(270px,1fr)); gap:18px;}
+  .coach-tile{
+    background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:22px;
+    display:flex; flex-direction:column; transition:border-color .15s, transform .15s;
+  }
+  .coach-tile:hover{border-color:var(--turf); transform:translateY(-3px);}
+  .avatar{width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,var(--turf),var(--field-light)); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:17px; color:var(--chalk); flex-shrink:0;}
+  .coach-top{display:flex; gap:13px; align-items:center;}
+  .coach-name{font-weight:700; font-size:16px;}
+  .coach-role{font-size:12.5px; color:#8a8878; margin-top:2px;}
+  .badge-verified{
+    display:inline-flex; align-items:center; gap:5px; margin-top:12px; width:fit-content;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--turf);
+    border:1px solid rgba(47,107,79,0.3); background:rgba(47,107,79,0.07); padding:3px 9px; border-radius:20px;
+  }
+  .coach-bio{font-size:13px; color:#4a4940; margin-top:12px; line-height:1.5; flex:1;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;}
+  .tag{font-size:11px; background:var(--chalk-dim); padding:4px 9px; border-radius:20px; color:var(--field);}
+  .view-link{margin-top:16px; font-size:13px; font-weight:700; color:var(--turf);}
+
+  .empty-state{text-align:center; padding:60px 20px; color:#a8a596;}
+  .empty-state .display{font-size:20px; color:var(--field); margin-bottom:8px;}
+  .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
+  .setup-warning{background:#b5453f; color:#fff; text-align:center; padding:10px 16px; font-size:13.5px; font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+
+<div class="setup-warning" id="setup-warning" style="display:none;">⚠️ Supabase isn't configured yet — edit SUPABASE_URL and SUPABASE_ANON_KEY near the bottom of this file.</div>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </a>
+    <nav class="nav-links">
+      <a href="coaches.html" class="active">Find a Coach</a>
+      <a href="index.html#opportunities">Opportunities</a>
+      <a href="community.html">Community</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="login.html" class="btn btn-ghost">Log In</a>
+      <a href="login.html" class="btn btn-gold">Join as Coach</a>
+    </div>
+  </div>
+</header>
+
+<section class="pagehead">
+  <div class="wrap">
+    <div class="eyebrow">Find a Coach</div>
+    <h1 class="display">Every sport. Every level. All verified.</h1>
+    <p>Search the roster, filter by sport, and open a profile to see credentials, experience, and specialties.</p>
+  </div>
+</section>
+
+<main>
+  <div class="wrap">
+    <div class="filters">
+      <input class="search-input" id="search-input" type="text" placeholder="Search by name or bio…">
+    </div>
+    <div class="pill-row" id="sport-pills"></div>
+    <div class="result-count" id="result-count" style="margin-top:18px;"></div>
+    <div id="coach-grid">
+      <div class="skeleton">Loading coaches…</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
+
+const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.includes('YOUR_');
+if(!isConfigured){ document.getElementById('setup-warning').style.display = 'block'; }
+const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Other"];
+
+let allCoaches = [];
+let activeSport = 'All';
+let searchTerm = '';
+
+function initials(name){
+  return (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('') || '?';
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : str;
+  return d.innerHTML;
+}
+
+function renderPills(){
+  const el = document.getElementById('sport-pills');
+  const options = ['All', ...SPORTS];
+  el.innerHTML = options.map(s => `
+    <button class="pill ${s===activeSport?'active':''}" data-sport="${escapeHtml(s)}">${escapeHtml(s)}</button>
+  `).join('');
+  el.querySelectorAll('.pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      activeSport = btn.dataset.sport;
+      renderPills();
+      renderGrid();
+    });
+  });
+}
+
+function coachTileHtml(c){
+  return `
+    <a class="coach-tile" href="profile.html?id=${encodeURIComponent(c.id)}">
+      <div class="coach-top">
+        <div class="avatar">${initials(c.name)}</div>
+        <div>
+          <div class="coach-name">${escapeHtml(c.name)}</div>
+          <div class="coach-role">${escapeHtml(c.sport)}</div>
+        </div>
+      </div>
+      ${c.verified ? `<div class="badge-verified">✓ Verified Credentials</div>` : ''}
+      ${c.bio ? `<div class="coach-bio">${escapeHtml(c.bio)}</div>` : `<div class="coach-bio" style="color:#c7c4b6;">No bio yet.</div>`}
+      <div class="tags"><span class="tag">${escapeHtml(c.sport)}</span></div>
+      <div class="view-link">View Profile →</div>
+    </a>`;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('coach-grid');
+  const countEl = document.getElementById('result-count');
+
+  let filtered = allCoaches;
+  if(activeSport !== 'All'){
+    filtered = filtered.filter(c => c.sport === activeSport);
+  }
+  if(searchTerm.trim()){
+    const q = searchTerm.trim().toLowerCase();
+    filtered = filtered.filter(c =>
+      (c.name||'').toLowerCase().includes(q) || (c.bio||'').toLowerCase().includes(q)
+    );
+  }
+
+  countEl.textContent = `${filtered.length} coach${filtered.length===1?'':'es'} found`;
+
+  if(filtered.length === 0){
+    grid.innerHTML = `<div class="empty-state"><div class="display">No coaches match yet</div><div>Try a different sport or search term.</div></div>`;
+    return;
+  }
+  grid.innerHTML = `<div class="coach-grid">${filtered.map(coachTileHtml).join('')}</div>`;
+}
+
+async function loadCoaches(){
+  if(!isConfigured){
+    document.getElementById('coach-grid').innerHTML = `<div class="empty-state"><div class="display">Not connected</div><div>Connect Supabase to load the coach directory.</div></div>`;
+    return;
+  }
+  const { data, error } = await sb.from('profiles')
+    .select('*')
+    .eq('role', 'Coach')
+    .order('verified', { ascending: false })
+    .order('created_at', { ascending: false });
+  if(error){
+    document.getElementById('coach-grid').innerHTML = `<div class="empty-state"><div class="display">Couldn't load coaches</div><div>${escapeHtml(error.message)}</div></div>`;
+    return;
+  }
+  allCoaches = data;
+  renderGrid();
+}
+
+document.getElementById('search-input').addEventListener('input', (e)=>{
+  searchTerm = e.target.value;
+  renderGrid();
+});
+
+/* Pre-select a sport from a link like coaches.html?sport=Wrestling */
+const params = new URLSearchParams(window.location.search);
+const presetSport = params.get('sport');
+if(presetSport && SPORTS.includes(presetSport)){ activeSport = presetSport; }
+
+renderPills();
+loadCoaches();
+</script>
+
+</body>
+</html>

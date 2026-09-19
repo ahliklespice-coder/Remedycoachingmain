@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coach Profile — Remedy Coaching</title>
+<link rel="canonical" href="https://remedycoachinggroup.com/profile.html">
+<meta name="description" content="View a coach's profile, credentials, and specialties on Remedy Coaching.">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --field:#16342A;
+    --field-light:#20493A;
+    --turf:#2F6B4F;
+    --chalk:#F5F3EA;
+    --chalk-dim:#E7E2D3;
+    --ink:#1C1B18;
+    --gold:#D4A72C;
+    --gold-dim:#E9C868;
+    --line: rgba(245,243,234,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(22,52,42,0.96); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1180px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:11px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:18px; white-space:nowrap;}
+  .logo-mark{width:38px; height:38px; flex-shrink:0;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:460px){ .logo-word{display:none;} }
+  .nav-links{display:flex; gap:32px; font-size:14.5px; font-weight:500;}
+  .nav-links a{color:var(--chalk-dim); transition:color .15s;}
+  .nav-links a:hover{color:var(--gold);}
+  @media (max-width:760px){ .nav-links{display:none;} }
+
+  .btn{font-weight:700; font-size:14px; padding:10px 18px; border-radius:6px; border:1.5px solid transparent; transition:transform .12s, background .15s; display:inline-block;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-ghost{border-color:rgba(245,243,234,.35); color:var(--chalk); background:none;}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-outline-dark{border-color:rgba(28,27,24,.2); color:var(--ink); background:none;}
+  .btn-outline-dark:hover{border-color:var(--turf); color:var(--turf);}
+
+  .wrap{max-width:840px; margin:0 auto; padding:0 28px;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:0.98;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:""; width:22px; height:2px; background:var(--gold); display:inline-block;}
+
+  .profile-hero{background:var(--field); color:var(--chalk); padding:52px 0 44px;}
+  .back-link{font-size:13px; color:var(--chalk-dim); margin-bottom:22px; display:inline-flex; align-items:center; gap:6px;}
+  .back-link:hover{color:var(--gold);}
+
+  .hero-top{display:flex; gap:22px; align-items:center; flex-wrap:wrap;}
+  .avatar{width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,var(--turf),var(--field-light)); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:26px; color:var(--chalk); flex-shrink:0;}
+  .hero-name{font-size:clamp(26px,4vw,36px);}
+  .hero-role{color:var(--chalk-dim); font-size:15px; margin-top:4px;}
+  .badge-verified{
+    display:inline-flex; align-items:center; gap:6px; margin-top:12px;
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--gold);
+    border:1px solid rgba(212,167,44,0.4); padding:4px 10px; border-radius:20px;
+  }
+  .badge-pending{
+    display:inline-flex; align-items:center; gap:6px; margin-top:12px;
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--chalk-dim);
+    border:1px solid rgba(245,243,234,.25); padding:4px 10px; border-radius:20px;
+  }
+
+  main{padding:40px 0 90px;}
+  .card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:24px; margin-bottom:20px;}
+  .card h2{font-family:'Anton',sans-serif; text-transform:uppercase; font-size:16px; color:var(--field); margin-bottom:14px;}
+  .bio-text{font-size:14.5px; color:#3a3930; line-height:1.65;}
+  .tags{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;}
+  .tag{font-size:12px; background:var(--chalk-dim); padding:5px 11px; border-radius:20px; color:var(--field);}
+
+  .cred-list{display:flex; flex-direction:column; gap:10px;}
+  .cred-row{display:flex; justify-content:space-between; align-items:center; gap:12px; background:var(--chalk); border-radius:10px; padding:12px 16px;}
+  .cred-title{font-weight:700; font-size:13.5px;}
+  .cred-issuer{font-size:12px; color:#8a8878; margin-top:2px;}
+  .cred-check{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--turf); white-space:nowrap;}
+
+  .empty-state{text-align:center; padding:70px 20px; color:#a8a596;}
+  .empty-state .display{font-size:22px; color:var(--field); margin-bottom:8px;}
+  .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
+  .setup-warning{background:#b5453f; color:#fff; text-align:center; padding:10px 16px; font-size:13.5px; font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+
+<div class="setup-warning" id="setup-warning" style="display:none;">⚠️ Supabase isn't configured yet — edit SUPABASE_URL and SUPABASE_ANON_KEY near the bottom of this file.</div>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </a>
+    <nav class="nav-links">
+      <a href="coaches.html">Find a Coach</a>
+      <a href="index.html#opportunities">Opportunities</a>
+      <a href="community.html">Community</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<div id="page-content">
+  <div class="wrap" style="padding-top:40px;">
+    <div class="skeleton">Loading profile…</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
+
+const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.includes('YOUR_');
+if(!isConfigured){ document.getElementById('setup-warning').style.display = 'block'; }
+const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+function initials(name){
+  return (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('') || '?';
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : str;
+  return d.innerHTML;
+}
+
+function renderNotFound(message){
+  document.getElementById('page-content').innerHTML = `
+    <div class="wrap" style="padding-top:60px;">
+      <div class="card empty-state">
+        <div class="display">Profile not found</div>
+        <div>${escapeHtml(message || "This coach's profile doesn't exist or was removed.")}</div>
+        <a href="coaches.html" class="btn btn-outline-dark" style="margin-top:20px; display:inline-block;">← Back to directory</a>
+      </div>
+    </div>`;
+}
+
+function renderProfile(profile, credentials){
+  const verifiedBadge = profile.verified
+    ? `<div class="badge-verified">✓ Verified Credentials</div>`
+    : `<div class="badge-pending">Not yet verified</div>`;
+
+  const credsHtml = credentials.length
+    ? `<div class="cred-list">${credentials.map(c => `
+        <div class="cred-row">
+          <div>
+            <div class="cred-title">${escapeHtml(c.title)}</div>
+            ${c.issuer ? `<div class="cred-issuer">${escapeHtml(c.issuer)}</div>` : ''}
+          </div>
+          <div class="cred-check">✓ Approved</div>
+        </div>
+      `).join('')}</div>`
+    : `<p style="font-size:13.5px; color:#a8a596;">No approved credentials on file yet.</p>`;
+
+  document.getElementById('page-content').innerHTML = `
+    <section class="profile-hero">
+      <div class="wrap">
+        <a href="coaches.html" class="back-link">← Back to directory</a>
+        <div class="hero-top">
+          <div class="avatar">${initials(profile.name)}</div>
+          <div>
+            <div class="display hero-name">${escapeHtml(profile.name)}</div>
+            <div class="hero-role">${escapeHtml(profile.role)} · ${escapeHtml(profile.sport)}</div>
+            ${verifiedBadge}
+          </div>
+        </div>
+      </div>
+    </section>
+    <main>
+      <div class="wrap">
+        <div class="card">
+          <h2>About</h2>
+          <div class="bio-text">${profile.bio ? escapeHtml(profile.bio) : 'This coach hasn’t added a bio yet.'}</div>
+          <div class="tags"><span class="tag">${escapeHtml(profile.sport)}</span><span class="tag">${escapeHtml(profile.role)}</span></div>
+        </div>
+        <div class="card">
+          <h2>Credentials</h2>
+          ${credsHtml}
+        </div>
+      </div>
+    </main>`;
+}
+
+async function init(){
+  if(!isConfigured){
+    renderNotFound('Connect Supabase to load profiles.');
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if(!id){
+    renderNotFound('No coach was specified.');
+    return;
+  }
+
+  const { data: profile, error: profileError } = await sb.from('profiles')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if(profileError || !profile){
+    renderNotFound();
+    return;
+  }
+
+  document.title = `${profile.name} — Remedy Coaching`;
+
+  let credentials = [];
+  const { data: credData, error: credError } = await sb.from('credentials')
+    .select('*')
+    .eq('coach_id', id)
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false });
+  if(!credError){ credentials = credData; }
+  // If the credentials table hasn't been set up yet (see
+  // supabase-setup-verification.sql), credError will be set — the page
+  // still renders fine with an empty credentials list.
+
+  renderProfile(profile, credentials);
+}
+
+init();
+</script>
+
+</body>
+</html>
