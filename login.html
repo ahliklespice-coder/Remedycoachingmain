@@ -179,7 +179,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e)=>{
   btn.disabled = true;
   btn.textContent = 'Sending…';
 
-  const redirectTo = window.location.href.replace(/login\.html.*$/, 'dashboard.html');
+  const redirectTo = new URL('dashboard.html', window.location.href).href;
   const { error } = await sb.auth.signInWithOtp({
     email,
     options: {
