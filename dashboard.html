@@ -275,6 +275,9 @@ let applications = [];       // rows from public.applications for the current us
 let applicationsTableMissing = false;
 let credentials = [];        // rows from public.credentials for the current user
 let credentialsSetupMissing = false; // true if the table/bucket from supabase-setup-verification.sql isn't set up yet
+let currentPlan = 'free';    // from public.subscriptions, kept in sync by the Stripe webhook
+
+const PLAN_LABELS = { free: 'Free Agent', professional: 'Professional', elite: 'Elite' };
 
 function initials(name){
   return (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('') || '?';
@@ -432,7 +435,9 @@ function profileCardHtml(){
       <div class="profile-tags">
         <span class="tag">${escapeHtml(currentProfile.sport)}</span>
         <span class="tag">${escapeHtml(currentProfile.role)}</span>
+        <span class="tag" style="background:var(--gold-dim); color:var(--ink); font-weight:700;">${PLAN_LABELS[currentPlan] || currentPlan} Plan</span>
       </div>
+      ${currentPlan === 'free' ? `<a href="index.html#pricing" class="btn btn-gold" style="width:100%; margin-top:12px; text-align:center;">Upgrade Plan</a>` : ''}
       <div class="profile-actions">
         <button class="btn btn-outline-dark" id="edit-profile-btn" style="flex:1;">Edit Profile</button>
         <button class="btn btn-danger" id="delete-profile-btn">Delete</button>
@@ -928,6 +933,15 @@ async function refreshCredentials(){
   credentials = data;
 }
 
+/* ---------------- BILLING ---------------- */
+
+async function refreshSubscription(){
+  if(!currentUser){ currentPlan = 'free'; return; }
+  const { data, error } = await sb.from('subscriptions').select('plan,status').eq('user_id', currentUser.id).maybeSingle();
+  if(error){ console.error(error); currentPlan = 'free'; return; }
+  currentPlan = (data && data.status === 'active') ? data.plan : 'free';
+}
+
 /* ---------------- INIT / AUTH GUARD ---------------- */
 
 async function loadProfileForUser(){
@@ -948,7 +962,13 @@ async function init(){
   currentUser = session.user;
   document.getElementById('signout-btn').style.display = 'inline-block';
 
+  if(new URLSearchParams(window.location.search).get('billing') === 'success'){
+    showToast('Payment successful — updating your plan…');
+    history.replaceState(null, '', window.location.pathname);
+  }
+
   await loadProfileForUser();
+  await refreshSubscription();
   await refreshApplications();
   if(currentProfile && currentProfile.role === 'Coach'){
     await refreshCredentials();
