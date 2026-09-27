@@ -15,6 +15,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --field:#16342A;
@@ -341,8 +342,8 @@
       </div>
       <div class="hero-stats">
         <div><div class="num">14</div><div class="lbl">Sports covered</div></div>
-        <div><div class="num">$2.4M+</div><div class="lbl">Paid to coaches</div></div>
-        <div><div class="num">3,100+</div><div class="lbl">Verified coaches</div></div>
+        <div><div class="num" id="stat-paid">$0</div><div class="lbl">Paid to coaches</div></div>
+        <div><div class="num" id="stat-coaches">0</div><div class="lbl">Verified coaches</div></div>
       </div>
     </div>
 
@@ -374,18 +375,18 @@
       </div>
     </div>
     <div class="sport-grid">
-      <a class="sport-tile" href="coaches.html?sport=Football"><div class="ico">🏈</div><div class="name">Football</div><div class="count">612 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Basketball"><div class="ico">🏀</div><div class="name">Basketball</div><div class="count">548 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Baseball"><div class="ico">⚾</div><div class="name">Baseball</div><div class="count">401 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Soccer"><div class="ico">⚽</div><div class="name">Soccer</div><div class="count">389 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Wrestling"><div class="ico">🤼</div><div class="name">Wrestling</div><div class="count">210 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Track+%26+Field"><div class="ico">🏃</div><div class="name">Track &amp; Field</div><div class="count">177 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Volleyball"><div class="ico">🏐</div><div class="name">Volleyball</div><div class="count">203 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Lacrosse"><div class="ico">🥍</div><div class="name">Lacrosse</div><div class="count">98 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Tennis"><div class="ico">🎾</div><div class="name">Tennis</div><div class="count">156 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Swimming"><div class="ico">🏊</div><div class="name">Swimming</div><div class="count">132 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Hockey"><div class="ico">🏒</div><div class="name">Hockey</div><div class="count">144 coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Strength+%26+Conditioning"><div class="ico">🏋️</div><div class="name">Strength &amp; Conditioning</div><div class="count">267 coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Football"><div class="ico">🏈</div><div class="name">Football</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Basketball"><div class="ico">🏀</div><div class="name">Basketball</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Baseball"><div class="ico">⚾</div><div class="name">Baseball</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Soccer"><div class="ico">⚽</div><div class="name">Soccer</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Wrestling"><div class="ico">🤼</div><div class="name">Wrestling</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Track+%26+Field"><div class="ico">🏃</div><div class="name">Track &amp; Field</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Volleyball"><div class="ico">🏐</div><div class="name">Volleyball</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Lacrosse"><div class="ico">🥍</div><div class="name">Lacrosse</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Tennis"><div class="ico">🎾</div><div class="name">Tennis</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Swimming"><div class="ico">🏊</div><div class="name">Swimming</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Hockey"><div class="ico">🏒</div><div class="name">Hockey</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Strength+%26+Conditioning"><div class="ico">🏋️</div><div class="name">Strength &amp; Conditioning</div><div class="count">— coaches</div></a>
     </div>
   </div>
 </section>
@@ -399,55 +400,8 @@
       </div>
       <a href="coaches.html" class="btn btn-ghost">Browse all coaches →</a>
     </div>
-    <div class="card-row">
-      <div class="coach-card">
-        <div class="coach-top">
-          <div class="avatar">MR</div>
-          <div>
-            <div class="coach-name">Marcus Reyes</div>
-            <div class="coach-role">Offensive Coordinator · Football</div>
-          </div>
-        </div>
-        <div class="badge-verified">✓ Verified Credentials</div>
-        <div class="stat-line">
-          <div><div class="n">3x</div><div class="l">League Titles</div></div>
-          <div><div class="n">12 yrs</div><div class="l">Experience</div></div>
-          <div><div class="n">4.9</div><div class="l">Rating</div></div>
-        </div>
-        <div class="tags"><span class="tag">Play Design</span><span class="tag">Film Analysis</span><span class="tag">Recruiting</span></div>
-      </div>
-      <div class="coach-card">
-        <div class="coach-top">
-          <div class="avatar">JT</div>
-          <div>
-            <div class="coach-name">Jordan Tran</div>
-            <div class="coach-role">Youth Development · Basketball</div>
-          </div>
-        </div>
-        <div class="badge-verified">✓ Verified Credentials</div>
-        <div class="stat-line">
-          <div><div class="n">40+</div><div class="l">Athletes to College</div></div>
-          <div><div class="n">8 yrs</div><div class="l">Experience</div></div>
-          <div><div class="n">4.8</div><div class="l">Rating</div></div>
-        </div>
-        <div class="tags"><span class="tag">Player Development</span><span class="tag">Program Building</span></div>
-      </div>
-      <div class="coach-card">
-        <div class="coach-top">
-          <div class="avatar">AK</div>
-          <div>
-            <div class="coach-name">Aisha Kessler</div>
-            <div class="coach-role">Head Coach · Track &amp; Field</div>
-          </div>
-        </div>
-        <div class="badge-verified">✓ Verified Credentials</div>
-        <div class="stat-line">
-          <div><div class="n">2x</div><div class="l">Coach of the Year</div></div>
-          <div><div class="n">15 yrs</div><div class="l">Experience</div></div>
-          <div><div class="n">5.0</div><div class="l">Rating</div></div>
-        </div>
-        <div class="tags"><span class="tag">Sprint Mechanics</span><span class="tag">Mental Performance</span></div>
-      </div>
+    <div class="card-row" id="featured-coaches">
+      <div class="coach-card"><div class="coach-name">Loading…</div></div>
     </div>
   </div>
 </section>
@@ -513,9 +467,9 @@
       </div>
     </div>
     <div class="win-grid">
-      <div class="win-card"><div class="n">$2.4M+</div><div class="l">Paid out to coaches</div></div>
-      <div class="win-card"><div class="n">1,900+</div><div class="l">Projects completed</div></div>
-      <div class="win-card"><div class="n">560+</div><div class="l">Athletes recruited to college</div></div>
+      <div class="win-card"><div class="n" id="win-paid">$0</div><div class="l">Paid out to coaches</div></div>
+      <div class="win-card"><div class="n" id="win-projects">0</div><div class="l">Projects completed</div></div>
+      <div class="win-card"><div class="n" id="win-athletes">0</div><div class="l">Athletes recruited to college</div></div>
       <div class="win-card"><div class="n">14</div><div class="l">Sports represented</div></div>
     </div>
   </div>
@@ -568,31 +522,6 @@
   </div>
 </section>
 
-<section class="testi">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <div class="eyebrow">From the Network</div>
-        <h2 class="display">Coaches and clients on the record.</h2>
-      </div>
-    </div>
-    <div class="testi-grid">
-      <div class="testi-card">
-        <p>"I picked up three consulting projects in my first month — all from programs I never would have found on my own."</p>
-        <div class="testi-who"><div class="avatar">DP</div><div><div class="n">Dana Petrov</div><div class="r">Volleyball Coach</div></div></div>
-      </div>
-      <div class="testi-card">
-        <p>"We needed a wrestling technique specialist for six weeks. Found one, vetted their record, and had them running practice by Friday."</p>
-        <div class="testi-who"><div class="avatar">RH</div><div><div class="n">Ray Holloway</div><div class="r">Athletic Director</div></div></div>
-      </div>
-      <div class="testi-card">
-        <p>"The profile makes my whole coaching résumé feel legitimate for the first time — championships, certifications, all in one place."</p>
-        <div class="testi-who"><div class="avatar">SL</div><div><div class="n">Sam Liu</div><div class="r">Strength Coach</div></div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section class="cta">
   <div class="wrap">
     <h2 class="display">Your next opportunity is on the board.</h2>
@@ -639,6 +568,83 @@
     </div>
   </div>
 </footer>
+
+<script>
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function esc(s){
+  const d = document.createElement('div');
+  d.textContent = s ?? '';
+  return d.innerHTML;
+}
+
+function fmtMoney(cents){
+  const dollars = cents / 100;
+  if (dollars >= 1000000) return '$' + (dollars/1000000).toFixed(1).replace(/\.0$/,'') + 'M+';
+  if (dollars >= 1000) return '$' + (dollars/1000).toFixed(1).replace(/\.0$/,'') + 'K+';
+  return '$' + dollars.toLocaleString();
+}
+
+(async function loadLiveStats(){
+  try {
+    const { data: sportCounts } = await sb.from('sport_counts').select('*');
+    const counts = Object.fromEntries((sportCounts || []).map(r => [r.sport, r.coach_count]));
+    document.querySelectorAll('.sport-tile').forEach(tile => {
+      const url = new URL(tile.href);
+      const sport = decodeURIComponent((url.searchParams.get('sport') || '').replace(/\+/g, ' '));
+      const n = counts[sport] || 0;
+      tile.querySelector('.count').textContent = n + (n === 1 ? ' coach' : ' coaches');
+    });
+  } catch (e) { console.error('sport_counts load failed', e); }
+
+  try {
+    const { data: stats } = await sb.from('network_stats').select('*').single();
+    if (stats) {
+      document.getElementById('stat-paid').textContent = fmtMoney(stats.total_paid_cents);
+      document.getElementById('stat-coaches').textContent = stats.verified_coaches.toLocaleString() + '+';
+      document.getElementById('win-paid').textContent = fmtMoney(stats.total_paid_cents);
+      document.getElementById('win-projects').textContent = stats.projects_completed.toLocaleString();
+      document.getElementById('win-athletes').textContent = stats.athletes_recruited.toLocaleString();
+    }
+  } catch (e) { console.error('network_stats load failed', e); }
+
+  try {
+    const { data: coaches } = await sb
+      .from('profiles')
+      .select('id, name, role, sport, bio')
+      .eq('verified', true)
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    const row = document.getElementById('featured-coaches');
+    if (coaches && coaches.length) {
+      row.innerHTML = coaches.map(c => {
+        const initials = esc((c.name || '?').split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase());
+        const roleLine = c.role ? `${esc(c.role)} · ${esc(c.sport)}` : esc(c.sport);
+        return `<div class="coach-card">
+          <div class="coach-top">
+            <div class="avatar">${initials}</div>
+            <div>
+              <div class="coach-name">${esc(c.name)}</div>
+              <div class="coach-role">${roleLine}</div>
+            </div>
+          </div>
+          <div class="badge-verified">✓ Verified Credentials</div>
+          ${c.bio ? `<p style="margin-top:14px; font-size:13.5px; color:var(--chalk-dim);">${esc(c.bio)}</p>` : ''}
+        </div>`;
+      }).join('');
+    } else {
+      row.innerHTML = `<div class="coach-card" style="grid-column:1/-1; text-align:center; padding:40px 22px;">
+        <div class="coach-name" style="font-size:19px; margin-bottom:8px;">Be the first Featured Coach.</div>
+        <p style="color:var(--chalk-dim); font-size:14px; margin-bottom:18px;">No verified coaches yet — join now and claim one of the first spots on the network.</p>
+        <a href="login.html" class="btn btn-gold">Join as a Coach</a>
+      </div>`;
+    }
+  } catch (e) { console.error('featured coaches load failed', e); }
+})();
+</script>
 
 </body>
 </html>
