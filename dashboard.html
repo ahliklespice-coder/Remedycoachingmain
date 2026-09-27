@@ -241,16 +241,31 @@ const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Other"];
 
-/* Mirrors the static opportunities board on index.html. In production this
-   would come from its own Supabase table; kept as a shared constant here so
-   applying against it doesn't require standing up a full opportunities
-   backend just to ship the dashboard UI. */
-const OPPORTUNITIES = [
-  { id:'wrestling-takedown', sport:'Wrestling',   title:'Takedown consultant for HS varsity program', meta:'Virtual · 6 week project',      budget:'$800–$1,200',  value:1000 },
-  { id:'football-oc',        sport:'Football',    title:'Offensive coordinator to consult on play design', meta:'In-person · Season-long',  budget:'$3,500+',      value:3500 },
-  { id:'basketball-youth',   sport:'Basketball',  title:'Youth program development for rec league', meta:'Hybrid · 3 month project',        budget:'$1,500–$2,000', value:1750 },
-  { id:'swim-clinic',        sport:'Swimming',    title:'Stroke technique clinic for age-group swimmers', meta:'In-person · One-time clinic', budget:'$600',        value:600 },
-];
+const LOCATION_LABELS = { virtual:'Virtual', in_person:'In-person', hybrid:'Hybrid' };
+
+let OPPORTUNITIES = [];          // rows from public.opportunities (status = 'open'), mapped for display
+let opportunitiesTableMissing = false;
+let myPostings = [];             // rows from public.opportunities where client_id = current user
+
+function budgetLabel(minCents, maxCents){
+  const min = minCents ? minCents / 100 : null;
+  const max = maxCents ? maxCents / 100 : null;
+  if (min && max && min !== max) return `$${min.toLocaleString()}–$${max.toLocaleString()}`;
+  if (min && !max) return `$${min.toLocaleString()}+`;
+  if (min) return `$${min.toLocaleString()}`;
+  return 'Budget TBD';
+}
+
+function mapOpportunity(o){
+  return {
+    id: o.id,
+    sport: o.sport,
+    title: o.title,
+    meta: `${LOCATION_LABELS[o.location_type] || o.location_type}${o.duration_label ? ' · ' + o.duration_label : ''}`,
+    budget: budgetLabel(o.budget_min_cents, o.budget_max_cents),
+    value: o.budget_min_cents ? Math.round(o.budget_min_cents / 100) : 0
+  };
+}
 
 const CREDENTIALS_BUCKET = 'credentials';
 
@@ -308,7 +323,9 @@ function renderRoot(){
   }
 
   document.getElementById('pagehead-title').textContent = `Welcome back, ${currentProfile.name.split(' ')[0]}.`;
-  document.getElementById('pagehead-sub').textContent = "Manage your profile, apply to open opportunities, and track your pipeline.";
+  document.getElementById('pagehead-sub').textContent = currentProfile.role === 'Client'
+    ? "Manage your profile, post opportunities, and track who's applied."
+    : "Manage your profile, apply to open opportunities, and track your pipeline.";
 
   const appliedIds = new Set(applications.map(a => a.opportunity_id));
   const sentCount = applications.length;
@@ -323,6 +340,7 @@ function renderRoot(){
       <div class="sticky" id="profile-column">${profileCardHtml()}</div>
 
       <div>
+        ${currentProfile.role === 'Client' ? '' : `
         <div class="stat-row">
           <div class="stat-tile"><div class="n">${sentCount}</div><div class="l">Applications Sent</div></div>
           <div class="stat-tile"><div class="n">${pendingCount}</div><div class="l">Pending Review</div></div>
@@ -335,7 +353,7 @@ function renderRoot(){
             <h2>My Applications</h2>
           </div>
           <div id="applications-list">${applicationsListHtml(applications)}</div>
-        </div>
+        </div>`}
 
         ${currentProfile.role === 'Coach' ? `
         <div class="section-block">
@@ -345,20 +363,36 @@ function renderRoot(){
           ${verificationSectionHtml()}
         </div>` : ''}
 
+        ${currentProfile.role === 'Client' ? `
+        <div class="section-block">
+          <div class="section-head">
+            <h2>Post an Opportunity</h2>
+          </div>
+          ${postOpportunityFormHtml()}
+        </div>
+        <div class="section-block">
+          <div class="section-head">
+            <h2>My Postings</h2>
+          </div>
+          <div id="my-postings-list">${myPostingsListHtml()}</div>
+        </div>` : `
         <div class="section-block">
           <div class="section-head">
             <h2>Open Opportunities</h2>
             <a href="index.html#opportunities" class="btn btn-outline-dark btn-sm">View on homepage →</a>
           </div>
-          <div class="opp-list">
-            ${OPPORTUNITIES.map(o => opportunityRowHtml(o, appliedIds.has(o.id))).join('')}
-          </div>
-        </div>
+          <div id="open-opportunities-list">${openOpportunitiesListHtml(appliedIds)}</div>
+        </div>`}
       </div>
     </div>`;
 
   bindProfileCard();
-  bindApplyButtons();
+  if(currentProfile.role === 'Client'){
+    bindPostOpportunityForm();
+    bindPostingActionButtons();
+  } else {
+    bindApplyButtons();
+  }
   bindWithdrawButtons();
   if(currentProfile.role === 'Coach'){
     bindCredentialForm();
@@ -459,7 +493,11 @@ function bindProfileForm(){
     currentProfile = { ...currentProfile, ...payload };
     showToast('Profile saved');
     await refreshApplications();
-    if(currentProfile.role === 'Coach'){ await refreshCredentials(); }
+    if(currentProfile.role === 'Coach'){
+      await refreshCredentials();
+      await refreshOpportunities();
+    }
+    if(currentProfile.role === 'Client'){ await refreshMyPostings(); }
     renderRoot();
   });
 }
@@ -480,6 +518,176 @@ function bindProfileCard(){
 }
 
 /* ---------------- OPPORTUNITIES + APPLICATIONS ---------------- */
+
+function openOpportunitiesListHtml(appliedIds){
+  if(opportunitiesTableMissing){
+    return `<div class="card empty-state">
+      <div class="display">Opportunities aren't set up yet</div>
+      <div>Run <code>supabase-setup-opportunities.sql</code> in your Supabase SQL Editor to enable the job board.</div>
+    </div>`;
+  }
+  if(OPPORTUNITIES.length === 0){
+    return `<div class="card empty-state">
+      <div class="display">No open opportunities right now</div>
+      <div>Check back soon — new postings show up here as clients add them.</div>
+    </div>`;
+  }
+  return `<div class="opp-list">${OPPORTUNITIES.map(o => opportunityRowHtml(o, appliedIds.has(o.id))).join('')}</div>`;
+}
+
+function postOpportunityFormHtml(){
+  return `
+    <div class="card">
+      <form id="post-opp-form">
+        <label for="opp-title">Title</label>
+        <input id="opp-title" required maxlength="100" placeholder="e.g. Takedown consultant for HS varsity program">
+
+        <label for="opp-sport">Sport</label>
+        <select id="opp-sport">
+          ${SPORTS.filter(s=>s!=='Other').map(s=>`<option value="${s}">${s}</option>`).join('')}
+        </select>
+
+        <label for="opp-location">Location</label>
+        <select id="opp-location">
+          <option value="virtual">Virtual</option>
+          <option value="in_person">In-person</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
+
+        <label for="opp-duration">Duration (optional)</label>
+        <input id="opp-duration" maxlength="60" placeholder="e.g. 6 week project, Season-long, One-time clinic">
+
+        <label for="opp-budget-min">Budget — Min ($)</label>
+        <input id="opp-budget-min" type="number" min="1" placeholder="e.g. 800">
+
+        <label for="opp-budget-max">Budget — Max ($, optional)</label>
+        <input id="opp-budget-max" type="number" min="1" placeholder="e.g. 1200">
+
+        <label for="opp-description">Description (optional)</label>
+        <textarea id="opp-description" maxlength="600" placeholder="What the role involves, expectations, etc."></textarea>
+
+        <button type="submit" class="btn btn-gold form-submit">Post Opportunity</button>
+      </form>
+    </div>`;
+}
+
+function myPostingsListHtml(){
+  if(opportunitiesTableMissing){
+    return `<div class="card empty-state">
+      <div class="display">Opportunities aren't set up yet</div>
+      <div>Run <code>supabase-setup-opportunities.sql</code> in your Supabase SQL Editor to enable posting.</div>
+    </div>`;
+  }
+  if(myPostings.length === 0){
+    return `<div class="card empty-state" style="padding:24px;"><div>You haven't posted any opportunities yet.</div></div>`;
+  }
+  return `<div class="opp-list">
+    ${myPostings.map(o => `
+      <div class="opp-row">
+        <span class="opp-sport">${escapeHtml(o.sport)}</span>
+        <div><div class="opp-title">${escapeHtml(o.title)}</div><div class="opp-meta">${escapeHtml(LOCATION_LABELS[o.location_type]||o.location_type)}${o.duration_label ? ' · ' + escapeHtml(o.duration_label) : ''} · <span class="status-badge status-${o.status === 'open' ? 'accepted' : 'declined'}">${escapeHtml(o.status)}</span></div></div>
+        <span class="opp-budget">${escapeHtml(budgetLabel(o.budget_min_cents, o.budget_max_cents))}</span>
+        <div style="display:flex; gap:6px;">
+          ${o.status === 'open' ? `<button class="btn btn-outline-dark btn-sm" data-close-posting="${o.id}">Close</button>` : ''}
+          <button class="btn btn-danger btn-sm" data-delete-posting="${o.id}">Delete</button>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function bindPostOpportunityForm(){
+  const form = document.getElementById('post-opp-form');
+  if(!form) return;
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const title = document.getElementById('opp-title').value.trim();
+    const minVal = document.getElementById('opp-budget-min').value;
+    if(!title || !minVal) return;
+
+    const payload = {
+      client_id: currentUser.id,
+      title,
+      sport: document.getElementById('opp-sport').value,
+      location_type: document.getElementById('opp-location').value,
+      duration_label: document.getElementById('opp-duration').value.trim() || null,
+      budget_min_cents: Math.round(parseFloat(minVal) * 100),
+      budget_max_cents: document.getElementById('opp-budget-max').value
+        ? Math.round(parseFloat(document.getElementById('opp-budget-max').value) * 100)
+        : null,
+      description: document.getElementById('opp-description').value.trim() || null,
+      status: 'open'
+    };
+
+    const { error } = await sb.from('opportunities').insert(payload);
+    if(error){
+      if(error.code === '42P01'){
+        opportunitiesTableMissing = true;
+        showToast('Opportunities table not set up yet — see note below.');
+      } else {
+        showToast('Error: ' + error.message);
+      }
+      renderRoot();
+      return;
+    }
+    showToast('Opportunity posted');
+    await refreshMyPostings();
+    renderRoot();
+  });
+}
+
+function bindPostingActionButtons(){
+  document.querySelectorAll('[data-close-posting]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const { error } = await sb.from('opportunities').update({ status:'closed' }).eq('id', btn.dataset.closePosting);
+      if(error){ showToast('Error: ' + error.message); return; }
+      showToast('Opportunity closed');
+      await refreshMyPostings();
+      renderRoot();
+    });
+  });
+  document.querySelectorAll('[data-delete-posting]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Delete this posting? This cannot be undone.')) return;
+      const { error } = await sb.from('opportunities').delete().eq('id', btn.dataset.deletePosting);
+      if(error){ showToast('Error: ' + error.message); return; }
+      showToast('Opportunity deleted');
+      await refreshMyPostings();
+      renderRoot();
+    });
+  });
+}
+
+async function refreshOpportunities(){
+  const { data, error } = await sb.from('opportunities')
+    .select('*')
+    .eq('status', 'open')
+    .order('created_at', { ascending:false });
+  if(error){
+    if(error.code === '42P01'){ opportunitiesTableMissing = true; }
+    else { console.error(error); }
+    OPPORTUNITIES = [];
+    return;
+  }
+  opportunitiesTableMissing = false;
+  OPPORTUNITIES = (data||[]).map(mapOpportunity);
+}
+
+async function refreshMyPostings(){
+  if(!currentUser){ myPostings = []; return; }
+  const { data, error } = await sb.from('opportunities')
+    .select('*')
+    .eq('client_id', currentUser.id)
+    .order('created_at', { ascending:false });
+  if(error){
+    if(error.code === '42P01'){ opportunitiesTableMissing = true; }
+    else { console.error(error); }
+    myPostings = [];
+    return;
+  }
+  opportunitiesTableMissing = false;
+  myPostings = data;
+}
 
 function opportunityRowHtml(o, alreadyApplied){
   return `
@@ -742,7 +950,13 @@ async function init(){
 
   await loadProfileForUser();
   await refreshApplications();
-  if(currentProfile && currentProfile.role === 'Coach'){ await refreshCredentials(); }
+  if(currentProfile && currentProfile.role === 'Coach'){
+    await refreshCredentials();
+    await refreshOpportunities();
+  }
+  if(currentProfile && currentProfile.role === 'Client'){
+    await refreshMyPostings();
+  }
   renderRoot();
 
   sb.auth.onAuthStateChange((_event, session)=>{
