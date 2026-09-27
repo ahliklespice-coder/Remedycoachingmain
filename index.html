@@ -470,7 +470,7 @@
           <li>Browse open opportunities</li>
           <li>2 applications / month</li>
         </ul>
-        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2); text-align:center;">Start Free</a>
+        <a href="login.html" data-plan="free" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2); text-align:center;">Start Free</a>
       </div>
       <div class="plan featured">
         <span class="plan-tag">Most Popular</span>
@@ -482,7 +482,7 @@
           <li>Direct client messaging</li>
           <li>Profile analytics</li>
         </ul>
-        <a href="#" class="btn btn-gold" style="text-align:center;">Go Professional</a>
+        <a href="login.html" data-plan="professional" class="btn btn-gold" style="text-align:center;">Go Professional</a>
       </div>
       <div class="plan">
         <h3>Elite</h3>
@@ -493,7 +493,7 @@
           <li>Early access to opportunities</li>
           <li>Sell clinics &amp; digital resources</li>
         </ul>
-        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2); text-align:center;">Go Elite</a>
+        <a href="login.html" data-plan="elite" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2); text-align:center;">Go Elite</a>
       </div>
     </div>
   </div>
@@ -664,6 +664,41 @@ function fmtMoney(cents){
     }
   } catch (e) { console.error('opportunities load failed', e); }
 })();
+
+document.querySelectorAll('[data-plan]').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    const plan = btn.dataset.plan;
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return; // not signed in — let the default href (login.html) proceed
+
+    e.preventDefault();
+    if (plan === 'free') {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    const originalText = btn.textContent;
+    btn.textContent = 'Redirecting…';
+    try {
+      const resp = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, userId: session.user.id, email: session.user.email })
+      });
+      const data = await resp.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Something went wrong starting checkout.');
+        btn.textContent = originalText;
+      }
+    } catch (err) {
+      console.error('checkout redirect failed', err);
+      alert('Something went wrong starting checkout.');
+      btn.textContent = originalText;
+    }
+  });
+});
 </script>
 
 </body>
