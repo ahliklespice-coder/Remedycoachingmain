@@ -1,0 +1,8 @@
+{
+  "name": "remedy-coaching-group",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "stripe": "^17.4.0"
+  }
+}
