@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Remedy Coaching</title>
+<link rel="canonical" href="https://remedycoachinggroup.com/dashboard.html">
+<meta name="description" content="Your Remedy Coaching dashboard — manage your profile, track applications, and see your opportunity pipeline.">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --field:#16342A;
+    --field-light:#20493A;
+    --turf:#2F6B4F;
+    --chalk:#F5F3EA;
+    --chalk-dim:#E7E2D3;
+    --ink:#1C1B18;
+    --gold:#D4A72C;
+    --gold-dim:#E9C868;
+    --line: rgba(245,243,234,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:0.96;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(22,52,42,0.96); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1180px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:11px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:18px; white-space:nowrap;}
+  .logo-mark{width:38px; height:38px; flex-shrink:0;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:460px){ .logo-word{display:none;} }
+  .nav-links{display:flex; gap:32px; font-size:14.5px; font-weight:500;}
+  .nav-links a{color:var(--chalk-dim); transition:color .15s;}
+  .nav-links a:hover, .nav-links a.active{color:var(--gold);}
+  @media (max-width:760px){ .nav-links{display:none;} }
+  .nav-cta{display:flex; gap:12px; align-items:center;}
+
+  .btn{font-weight:700; font-size:14px; padding:10px 18px; border-radius:6px; border:1.5px solid transparent; transition:transform .12s, background .15s;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn:disabled{opacity:.5; cursor:not-allowed; transform:none;}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-ghost{border-color:rgba(245,243,234,.35); color:var(--chalk); background:none;}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-outline-dark{border-color:rgba(28,27,24,.2); color:var(--ink); background:none;}
+  .btn-outline-dark:hover{border-color:var(--turf); color:var(--turf);}
+  .btn-danger{background:none; color:#b5453f; border-color:rgba(181,69,63,.3); font-size:12.5px; padding:6px 10px;}
+  .btn-danger:hover{background:rgba(181,69,63,.08);}
+  .btn-sm{font-size:12.5px; padding:7px 12px;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:""; width:22px; height:2px; background:var(--gold); display:inline-block;}
+
+  .pagehead{background:var(--field); color:var(--chalk); padding:44px 0 36px;}
+  .pagehead .eyebrow{color:var(--gold-dim);}
+  .pagehead h1{font-size:clamp(28px,4vw,40px);}
+  .pagehead p{color:var(--chalk-dim); margin-top:8px; max-width:520px;}
+
+  main{padding:36px 0 90px;}
+  .layout{display:grid; grid-template-columns:300px 1fr; gap:24px; align-items:start;}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+  .sticky{position:sticky; top:88px;}
+
+  .card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:22px;}
+  .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
+
+  /* ---- profile card ---- */
+  .avatar{width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,var(--turf),var(--field-light)); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:18px; color:var(--chalk); flex-shrink:0;}
+  .profile-top{display:flex; gap:14px; align-items:center;}
+  .profile-name{font-weight:700; font-size:16.5px;}
+  .profile-role{font-size:13px; color:#8a8878; margin-top:2px;}
+  .profile-bio{font-size:13.5px; color:#4a4940; margin-top:16px; line-height:1.55;}
+  .profile-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;}
+  .tag{font-size:11.5px; background:var(--chalk-dim); padding:4px 9px; border-radius:20px; color:var(--field);}
+  .profile-actions{display:flex; gap:8px; margin-top:18px;}
+
+  label{display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin-bottom:6px; margin-top:16px;}
+  label:first-of-type{margin-top:0;}
+  input, select, textarea{
+    width:100%; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:10px 12px;
+    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:#fdfcf9;
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--turf);}
+  textarea{resize:vertical; min-height:70px;}
+  .field-hint{font-size:11.5px; color:#a8a596; margin-top:4px;}
+  .form-submit{margin-top:20px; width:100%; text-align:center;}
+
+  /* ---- stat tiles ---- */
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px;}
+  .stat-tile{background:var(--field); color:var(--chalk); border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:6px;}
+  .stat-tile .n{font-family:'Anton',sans-serif; font-size:32px; color:var(--gold);}
+  .stat-tile .l{font-size:12px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:.05em;}
+  @media (max-width:760px){ .stat-row{grid-template-columns:1fr 1fr;} }
+
+  /* ---- section heads ---- */
+  .section-head{display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:16px; flex-wrap:wrap;}
+  .section-head h2{font-size:20px; font-family:'Anton',sans-serif; text-transform:uppercase; color:var(--field);}
+  .section-block{margin-bottom:36px;}
+
+  /* ---- opportunity rows (reused from homepage) ---- */
+  .opp-list{display:flex; flex-direction:column; gap:12px;}
+  .opp-row{
+    display:grid; grid-template-columns:auto 1fr auto auto; gap:16px; align-items:center;
+    background:#fff; border:1px solid rgba(28,27,24,0.08); border-radius:10px; padding:16px 18px;
+    transition:border-color .15s;
+  }
+  .opp-row:hover{border-color:var(--turf);}
+  .opp-sport{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    background:var(--chalk-dim); color:var(--field); padding:6px 10px; border-radius:6px; white-space:nowrap;
+  }
+  .opp-title{font-weight:700; font-size:15px;}
+  .opp-meta{font-size:12.5px; color:#6b6a63; margin-top:3px;}
+  .opp-budget{font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--turf); white-space:nowrap;}
+  @media (max-width:680px){ .opp-row{grid-template-columns:1fr; text-align:left;} }
+
+  /* ---- applications ---- */
+  .app-row{
+    display:grid; grid-template-columns:auto 1fr auto auto; gap:16px; align-items:center;
+    background:#fff; border:1px solid rgba(28,27,24,0.08); border-radius:10px; padding:16px 18px;
+  }
+  @media (max-width:680px){ .app-row{grid-template-columns:1fr; text-align:left;} }
+  .status-badge{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+    padding:4px 10px; border-radius:20px; white-space:nowrap; font-weight:600;
+  }
+  .status-pending{background:rgba(212,167,44,0.15); color:#8a6a10;}
+  .status-accepted, .status-approved{background:rgba(47,107,79,0.15); color:var(--turf);}
+  .status-declined, .status-rejected{background:rgba(181,69,63,0.12); color:#b5453f;}
+
+  /* ---- verification ---- */
+  .badge-verified{
+    display:inline-flex; align-items:center; gap:6px; margin-top:10px; width:fit-content;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--turf);
+    border:1px solid rgba(47,107,79,0.3); background:rgba(47,107,79,0.07); padding:4px 10px; border-radius:20px;
+  }
+  .badge-pending{
+    display:inline-flex; align-items:center; gap:6px; margin-top:10px; width:fit-content;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8a6a10;
+    border:1px solid rgba(212,167,44,0.3); background:rgba(212,167,44,0.08); padding:4px 10px; border-radius:20px;
+    text-transform:capitalize;
+  }
+  .badge-rejected{
+    display:inline-flex; align-items:center; gap:6px; margin-top:10px; width:fit-content;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:#b5453f;
+    border:1px solid rgba(181,69,63,0.3); background:rgba(181,69,63,0.08); padding:4px 10px; border-radius:20px;
+  }
+  .verify-note{font-size:13px; color:#6b6a63; margin-bottom:18px; line-height:1.5;}
+  input[type="file"]{
+    width:100%; border:1.5px dashed rgba(28,27,24,.2); border-radius:8px; padding:14px 12px;
+    font-family:'Inter',sans-serif; font-size:13px; color:#4a4940; background:#fdfcf9;
+  }
+  .cred-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center;
+    background:#fff; border:1px solid rgba(28,27,24,0.08); border-radius:10px; padding:14px 18px;
+  }
+  @media (max-width:680px){ .cred-row{grid-template-columns:1fr; text-align:left;} }
+  .cred-title{font-weight:700; font-size:14px;}
+  .cred-issuer{font-size:12.5px; color:#8a8878; margin-top:2px;}
+
+  .empty-state{text-align:center; padding:40px 20px; color:#a8a596;}
+  .empty-state .display{font-size:18px; color:var(--field); margin-bottom:6px;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0;
+    background:var(--field); color:var(--chalk); padding:12px 22px; border-radius:30px; font-size:14px;
+    box-shadow:0 12px 30px rgba(0,0,0,.25); transition:opacity .25s, transform .25s; z-index:100; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .setup-warning{background:#b5453f; color:#fff; text-align:center; padding:10px 16px; font-size:13.5px; font-family:'IBM Plex Mono',monospace;}
+  .setup-warning a{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="setup-warning" id="setup-warning" style="display:none;"></div>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </a>
+    <nav class="nav-links">
+      <a href="coaches.html">Find a Coach</a>
+      <a href="index.html#opportunities">Opportunities</a>
+      <a href="community.html">Community</a>
+      <a href="dashboard.html" class="active">Dashboard</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="btn btn-ghost" id="signout-btn" style="display:none;">Sign Out</button>
+    </div>
+  </div>
+</header>
+
+<section class="pagehead">
+  <div class="wrap">
+    <div class="eyebrow">Your Dashboard</div>
+    <h1 class="display" id="pagehead-title">Your next opportunity starts here.</h1>
+    <p id="pagehead-sub">Manage your profile, apply to open opportunities, and track your pipeline.</p>
+  </div>
+</section>
+
+<main>
+  <div class="wrap">
+    <div id="dashboard-root">
+      <div class="skeleton">Loading your dashboard…</div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* Same Supabase project as community.html / login.html — keep these in sync. */
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
+
+const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.includes('YOUR_');
+const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Other"];
+
+/* Mirrors the static opportunities board on index.html. In production this
+   would come from its own Supabase table; kept as a shared constant here so
+   applying against it doesn't require standing up a full opportunities
+   backend just to ship the dashboard UI. */
+const OPPORTUNITIES = [
+  { id:'wrestling-takedown', sport:'Wrestling',   title:'Takedown consultant for HS varsity program', meta:'Virtual · 6 week project',      budget:'$800–$1,200',  value:1000 },
+  { id:'football-oc',        sport:'Football',    title:'Offensive coordinator to consult on play design', meta:'In-person · Season-long',  budget:'$3,500+',      value:3500 },
+  { id:'basketball-youth',   sport:'Basketball',  title:'Youth program development for rec league', meta:'Hybrid · 3 month project',        budget:'$1,500–$2,000', value:1750 },
+  { id:'swim-clinic',        sport:'Swimming',    title:'Stroke technique clinic for age-group swimmers', meta:'In-person · One-time clinic', budget:'$600',        value:600 },
+];
+
+const CREDENTIALS_BUCKET = 'credentials';
+
+let currentUser = null;
+let currentProfile = null;
+let applications = [];       // rows from public.applications for the current user
+let applicationsTableMissing = false;
+let credentials = [];        // rows from public.credentials for the current user
+let credentialsSetupMissing = false; // true if the table/bucket from supabase-setup-verification.sql isn't set up yet
+
+function initials(name){
+  return (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('') || '?';
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : str;
+  return d.innerHTML;
+}
+function fmtMoney(n){
+  return '$' + n.toLocaleString('en-US');
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ---------------- ROOT RENDER ---------------- */
+
+function renderRoot(){
+  const root = document.getElementById('dashboard-root');
+
+  if(!isConfigured){
+    root.innerHTML = `<div class="card">Connect Supabase (see SUPABASE_URL / SUPABASE_ANON_KEY at the bottom of this file) to enable the dashboard.</div>`;
+    return;
+  }
+
+  if(!currentProfile){
+    root.innerHTML = `
+      <div class="layout">
+        <div class="sticky">${profileFormHtml()}</div>
+        <div class="card">
+          <div class="empty-state">
+            <div class="display">Set up your profile</div>
+            <div>Add your name, sport, and a short bio to unlock applications and your pipeline stats.</div>
+          </div>
+        </div>
+      </div>`;
+    bindProfileForm();
+    document.getElementById('pagehead-title').textContent = "One more step.";
+    document.getElementById('pagehead-sub').textContent = "Complete your profile to start applying to opportunities.";
+    return;
+  }
+
+  document.getElementById('pagehead-title').textContent = `Welcome back, ${currentProfile.name.split(' ')[0]}.`;
+  document.getElementById('pagehead-sub').textContent = "Manage your profile, apply to open opportunities, and track your pipeline.";
+
+  const appliedIds = new Set(applications.map(a => a.opportunity_id));
+  const sentCount = applications.length;
+  const pendingCount = applications.filter(a => a.status === 'pending').length;
+  const acceptedCount = applications.filter(a => a.status === 'accepted').length;
+  const pipelineValue = applications
+    .filter(a => a.status !== 'declined')
+    .reduce((sum, a) => sum + (OPPORTUNITIES.find(o => o.id === a.opportunity_id)?.value || 0), 0);
+
+  root.innerHTML = `
+    <div class="layout">
+      <div class="sticky" id="profile-column">${profileCardHtml()}</div>
+
+      <div>
+        <div class="stat-row">
+          <div class="stat-tile"><div class="n">${sentCount}</div><div class="l">Applications Sent</div></div>
+          <div class="stat-tile"><div class="n">${pendingCount}</div><div class="l">Pending Review</div></div>
+          <div class="stat-tile"><div class="n">${acceptedCount}</div><div class="l">Accepted</div></div>
+          <div class="stat-tile"><div class="n">${fmtMoney(pipelineValue)}</div><div class="l">Pipeline Value</div></div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-head">
+            <h2>My Applications</h2>
+          </div>
+          <div id="applications-list">${applicationsListHtml(applications)}</div>
+        </div>
+
+        ${currentProfile.role === 'Coach' ? `
+        <div class="section-block">
+          <div class="section-head">
+            <h2>Verification</h2>
+          </div>
+          ${verificationSectionHtml()}
+        </div>` : ''}
+
+        <div class="section-block">
+          <div class="section-head">
+            <h2>Open Opportunities</h2>
+            <a href="index.html#opportunities" class="btn btn-outline-dark btn-sm">View on homepage →</a>
+          </div>
+          <div class="opp-list">
+            ${OPPORTUNITIES.map(o => opportunityRowHtml(o, appliedIds.has(o.id))).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  bindProfileCard();
+  bindApplyButtons();
+  bindWithdrawButtons();
+  if(currentProfile.role === 'Coach'){
+    bindCredentialForm();
+    bindWithdrawCredentialButtons();
+  }
+}
+
+/* ---------------- PROFILE ---------------- */
+
+function verificationBadgeHtml(){
+  if(currentProfile.role !== 'Coach') return '';
+  if(currentProfile.verified){
+    return `<div class="badge-verified">✓ Verified Credentials</div>`;
+  }
+  const status = currentProfile.verification_status || 'unverified';
+  if(status === 'rejected'){
+    return `<div class="badge-rejected">Verification rejected</div>`;
+  }
+  if(status === 'pending'){
+    return `<div class="badge-pending">Verification pending</div>`;
+  }
+  return `<div class="badge-pending">Not yet verified</div>`;
+}
+
+function profileCardHtml(){
+  return `
+    <div class="card">
+      <div class="profile-top">
+        <div class="avatar">${initials(currentProfile.name)}</div>
+        <div>
+          <div class="profile-name">${escapeHtml(currentProfile.name)}</div>
+          <div class="profile-role">${escapeHtml(currentProfile.role)} · ${escapeHtml(currentProfile.sport)}</div>
+        </div>
+      </div>
+      ${verificationBadgeHtml()}
+      ${currentProfile.bio ? `<div class="profile-bio">${escapeHtml(currentProfile.bio)}</div>` : ''}
+      <div class="profile-tags">
+        <span class="tag">${escapeHtml(currentProfile.sport)}</span>
+        <span class="tag">${escapeHtml(currentProfile.role)}</span>
+      </div>
+      <div class="profile-actions">
+        <button class="btn btn-outline-dark" id="edit-profile-btn" style="flex:1;">Edit Profile</button>
+        <button class="btn btn-danger" id="delete-profile-btn">Delete</button>
+      </div>
+      <a href="profile.html?id=${encodeURIComponent(currentUser.id)}" target="_blank" class="btn btn-outline-dark" style="width:100%; margin-top:8px; text-align:center;">View Public Profile ↗</a>
+    </div>`;
+}
+
+function profileFormHtml(){
+  const p = currentProfile || {};
+  return `
+    <div class="card">
+      <h3 class="display" style="font-size:19px; margin-bottom:4px;">${p.name ? 'Edit Profile' : 'Create Your Profile'}</h3>
+      <p style="font-size:13px; color:#8a8878;">Signed in as ${escapeHtml(currentUser.email)}</p>
+      <form id="profile-form">
+        <label for="pf-name">Full Name</label>
+        <input id="pf-name" required maxlength="60" placeholder="e.g. Jordan Tran" value="${escapeHtml(p.name||'')}">
+
+        <label for="pf-role">I am a...</label>
+        <select id="pf-role">
+          <option value="Coach" ${p.role==='Coach'?'selected':''}>Coach</option>
+          <option value="Client" ${p.role==='Client'?'selected':''}>Client / Program</option>
+        </select>
+
+        <label for="pf-sport">Primary Sport</label>
+        <select id="pf-sport">
+          ${SPORTS.map(s=>`<option value="${s}" ${p.sport===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+
+        <label for="pf-bio">Short Bio</label>
+        <textarea id="pf-bio" maxlength="220" placeholder="Coaching background, specialties, what you're looking for...">${escapeHtml(p.bio||'')}</textarea>
+        <div class="field-hint">Max 220 characters.</div>
+
+        <button type="submit" class="btn btn-gold form-submit">${p.name ? 'Save Changes' : 'Create Profile'}</button>
+      </form>
+    </div>`;
+}
+
+function bindProfileForm(){
+  document.getElementById('profile-form').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const name = document.getElementById('pf-name').value.trim();
+    if(!name) return;
+    const payload = {
+      id: currentUser.id,
+      email: currentUser.email,
+      name,
+      role: document.getElementById('pf-role').value,
+      sport: document.getElementById('pf-sport').value,
+      bio: document.getElementById('pf-bio').value.trim()
+    };
+    const { error } = await sb.from('profiles').upsert(payload);
+    if(error){ showToast('Error: ' + error.message); return; }
+    // Merge rather than replace: `payload` intentionally omits verified /
+    // verification_status (those are reviewer-controlled, see
+    // supabase-setup-verification.sql), so keep whatever was already
+    // loaded for them instead of wiping them from local state.
+    currentProfile = { ...currentProfile, ...payload };
+    showToast('Profile saved');
+    await refreshApplications();
+    if(currentProfile.role === 'Coach'){ await refreshCredentials(); }
+    renderRoot();
+  });
+}
+
+function bindProfileCard(){
+  document.getElementById('delete-profile-btn').addEventListener('click', async ()=>{
+    if(!confirm('Delete your profile? This cannot be undone.')) return;
+    const { error } = await sb.from('profiles').delete().eq('id', currentUser.id);
+    if(error){ showToast('Error: ' + error.message); return; }
+    currentProfile = null;
+    showToast('Profile deleted');
+    renderRoot();
+  });
+  document.getElementById('edit-profile-btn').addEventListener('click', ()=>{
+    document.getElementById('profile-column').innerHTML = profileFormHtml();
+    bindProfileForm();
+  });
+}
+
+/* ---------------- OPPORTUNITIES + APPLICATIONS ---------------- */
+
+function opportunityRowHtml(o, alreadyApplied){
+  return `
+    <div class="opp-row">
+      <span class="opp-sport">${escapeHtml(o.sport)}</span>
+      <div><div class="opp-title">${escapeHtml(o.title)}</div><div class="opp-meta">${escapeHtml(o.meta)}</div></div>
+      <span class="opp-budget">${escapeHtml(o.budget)}</span>
+      <button
+        class="btn ${alreadyApplied ? 'btn-outline-dark' : 'btn-gold'} btn-sm"
+        data-apply="${o.id}"
+        ${alreadyApplied ? 'disabled' : ''}
+      >${alreadyApplied ? 'Applied ✓' : 'Apply'}</button>
+    </div>`;
+}
+
+function applicationsListHtml(apps){
+  if(applicationsTableMissing){
+    return `<div class="card empty-state">
+      <div class="display">Applications aren't set up yet</div>
+      <div>Run <code>supabase-setup-additions.sql</code> in your Supabase SQL Editor to enable applying to opportunities.</div>
+    </div>`;
+  }
+  if(apps.length === 0){
+    return `<div class="card empty-state">
+      <div class="display">No applications yet</div>
+      <div>Apply to an opportunity below to start tracking it here.</div>
+    </div>`;
+  }
+  return `<div class="opp-list">
+    ${apps.map(a => `
+      <div class="app-row">
+        <span class="opp-sport">${escapeHtml(a.sport||'')}</span>
+        <div><div class="opp-title">${escapeHtml(a.opportunity_title)}</div><div class="opp-meta">Applied ${escapeHtml(new Date(a.created_at).toLocaleDateString())} · ${escapeHtml(a.budget||'')}</div></div>
+        <span class="status-badge status-${escapeHtml(a.status)}">${escapeHtml(a.status)}</span>
+        <button class="btn btn-danger btn-sm" data-withdraw="${a.id}">Withdraw</button>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function bindApplyButtons(){
+  document.querySelectorAll('[data-apply]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const opp = OPPORTUNITIES.find(o => o.id === btn.dataset.apply);
+      if(!opp) return;
+      btn.disabled = true;
+      btn.textContent = 'Applying…';
+      const { error } = await sb.from('applications').insert({
+        coach_id: currentUser.id,
+        opportunity_id: opp.id,
+        opportunity_title: opp.title,
+        sport: opp.sport,
+        budget: opp.budget,
+        status: 'pending'
+      });
+      if(error){
+        if(error.code === '42P01'){
+          applicationsTableMissing = true;
+          showToast('Applications table not set up yet — see note below.');
+        } else {
+          showToast('Error: ' + error.message);
+        }
+        btn.disabled = false;
+        btn.textContent = 'Apply';
+        renderRoot();
+        return;
+      }
+      showToast('Applied to "' + opp.title + '"');
+      await refreshApplications();
+      renderRoot();
+    });
+  });
+}
+
+function bindWithdrawButtons(){
+  document.querySelectorAll('[data-withdraw]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.withdraw;
+      const { error } = await sb.from('applications').delete().eq('id', id);
+      if(error){ showToast('Error: ' + error.message); return; }
+      showToast('Application withdrawn');
+      await refreshApplications();
+      renderRoot();
+    });
+  });
+}
+
+async function refreshApplications(){
+  if(!currentUser){ applications = []; return; }
+  const { data, error } = await sb.from('applications')
+    .select('*')
+    .eq('coach_id', currentUser.id)
+    .order('created_at', { ascending:false });
+  if(error){
+    if(error.code === '42P01'){ applicationsTableMissing = true; }
+    else { console.error(error); }
+    applications = [];
+    return;
+  }
+  applicationsTableMissing = false;
+  applications = data;
+}
+
+/* ---------------- VERIFICATION / CREDENTIALS ---------------- */
+
+function credentialRowHtml(c){
+  return `
+    <div class="cred-row">
+      <div>
+        <div class="cred-title">${escapeHtml(c.title)}</div>
+        <div class="cred-issuer">${escapeHtml(c.issuer||'')}${c.file_name ? ' · ' + escapeHtml(c.file_name) : ''}</div>
+      </div>
+      <span class="status-badge status-${escapeHtml(c.status)}">${escapeHtml(c.status)}</span>
+      ${c.status === 'pending' ? `<button class="btn btn-danger btn-sm" data-withdraw-cred="${c.id}" data-file-path="${escapeHtml(c.file_path)}">Withdraw</button>` : `<span></span>`}
+    </div>`;
+}
+
+function verificationSectionHtml(){
+  if(credentialsSetupMissing){
+    return `<div class="card empty-state">
+      <div class="display">Verification isn't set up yet</div>
+      <div>Run <code>supabase-setup-verification.sql</code> in your Supabase SQL Editor to enable credential uploads.</div>
+    </div>`;
+  }
+
+  const listHtml = credentials.length
+    ? credentials.map(credentialRowHtml).join('')
+    : `<div class="card empty-state" style="padding:24px;"><div>No credentials submitted yet.</div></div>`;
+
+  return `
+    <div class="card" style="margin-bottom:14px;">
+      <p class="verify-note">Upload a certification, championship record, or other document. Our team reviews submissions manually — approved credentials show on your public profile with a verified badge.</p>
+      <form id="credential-form">
+        <label for="cred-title">Credential Title</label>
+        <input id="cred-title" required maxlength="100" placeholder="e.g. USA Wrestling Level 3 Certification">
+
+        <label for="cred-issuer">Issuing Organization (optional)</label>
+        <input id="cred-issuer" maxlength="100" placeholder="e.g. USA Wrestling">
+
+        <label for="cred-file">Document</label>
+        <input id="cred-file" type="file" required accept=".pdf,.jpg,.jpeg,.png">
+        <div class="field-hint">PDF, JPG, or PNG. Kept private — only you and our reviewers can see the file.</div>
+
+        <button type="submit" class="btn btn-gold form-submit" id="cred-submit-btn">Upload Credential</button>
+      </form>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;">${listHtml}</div>`;
+}
+
+function bindCredentialForm(){
+  const form = document.getElementById('credential-form');
+  if(!form) return;
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const title = document.getElementById('cred-title').value.trim();
+    const issuer = document.getElementById('cred-issuer').value.trim();
+    const fileInput = document.getElementById('cred-file');
+    const file = fileInput.files[0];
+    if(!title || !file) return;
+
+    const btn = document.getElementById('cred-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Uploading…';
+
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const filePath = `${currentUser.id}/${Date.now()}-${safeName}`;
+
+    const { error: uploadError } = await sb.storage.from(CREDENTIALS_BUCKET).upload(filePath, file);
+    if(uploadError){
+      if(uploadError.message && /bucket/i.test(uploadError.message)){
+        credentialsSetupMissing = true;
+        showToast('Credential storage not set up yet — see note below.');
+        renderRoot();
+        return;
+      }
+      showToast('Error: ' + uploadError.message);
+      btn.disabled = false;
+      btn.textContent = 'Upload Credential';
+      return;
+    }
+
+    const { error: insertError } = await sb.from('credentials').insert({
+      coach_id: currentUser.id,
+      title,
+      issuer: issuer || null,
+      file_path: filePath,
+      file_name: file.name,
+      status: 'pending'
+    });
+    if(insertError){
+      if(insertError.code === '42P01'){
+        credentialsSetupMissing = true;
+        showToast('Credential tracking not set up yet — see note below.');
+      } else {
+        showToast('Error: ' + insertError.message);
+      }
+      btn.disabled = false;
+      btn.textContent = 'Upload Credential';
+      renderRoot();
+      return;
+    }
+
+    showToast('Credential submitted for review');
+    await refreshCredentials();
+    renderRoot();
+  });
+}
+
+function bindWithdrawCredentialButtons(){
+  document.querySelectorAll('[data-withdraw-cred]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.withdrawCred;
+      const filePath = btn.dataset.filePath;
+      const { error } = await sb.from('credentials').delete().eq('id', id);
+      if(error){ showToast('Error: ' + error.message); return; }
+      // Best-effort: also remove the uploaded file. Not fatal if this fails.
+      if(filePath){ await sb.storage.from(CREDENTIALS_BUCKET).remove([filePath]); }
+      showToast('Credential withdrawn');
+      await refreshCredentials();
+      renderRoot();
+    });
+  });
+}
+
+async function refreshCredentials(){
+  if(!currentUser){ credentials = []; return; }
+  const { data, error } = await sb.from('credentials')
+    .select('*')
+    .eq('coach_id', currentUser.id)
+    .order('created_at', { ascending:false });
+  if(error){
+    if(error.code === '42P01'){ credentialsSetupMissing = true; }
+    else { console.error(error); }
+    credentials = [];
+    return;
+  }
+  credentialsSetupMissing = false;
+  credentials = data;
+}
+
+/* ---------------- INIT / AUTH GUARD ---------------- */
+
+async function loadProfileForUser(){
+  if(!currentUser){ currentProfile = null; return; }
+  const { data, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+  if(error){ console.error(error); return; }
+  currentProfile = data;
+}
+
+async function init(){
+  if(!isConfigured){ renderRoot(); return; }
+
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){
+    window.location.href = 'login.html';
+    return;
+  }
+  currentUser = session.user;
+  document.getElementById('signout-btn').style.display = 'inline-block';
+
+  await loadProfileForUser();
+  await refreshApplications();
+  if(currentProfile && currentProfile.role === 'Coach'){ await refreshCredentials(); }
+  renderRoot();
+
+  sb.auth.onAuthStateChange((_event, session)=>{
+    if(!session){ window.location.href = 'login.html'; }
+  });
+
+  document.getElementById('signout-btn').addEventListener('click', async ()=>{
+    await sb.auth.signOut();
+    window.location.href = 'index.html';
+  });
+}
+
+init();
+</script>
+
+</body>
+</html>
