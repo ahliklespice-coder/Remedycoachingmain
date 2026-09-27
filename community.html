@@ -234,46 +234,9 @@ async function renderProfileColumn(){
         <p style="color:#8a8878;margin-bottom:20px;">
           Connect with coaches, athletes, and programs.
         </p>
-        <form id="signin-form">
-          <label>Email Address</label>
-          <input
-            id="signin-email"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="name@example.com"
-          >
-          <button
-            type="submit"
-            class="btn btn-gold form-submit"
-            id="signin-btn"
-          >
-            Continue
-          </button>
-        </form>
-        <div id="signin-status"
-          style="margin-top:12px;font-size:13px;">
-        </div>
-        <p style="
-          margin-top:18px;
-          font-size:12px;
-          color:#8a8878;
-          text-align:center;">
-          Password-free secure login
-        </p>
+        <a href="login.html" class="btn btn-gold form-submit" style="display:block; text-align:center;">Sign In or Create Account</a>
       </div>
     `;
-    document.getElementById('signin-form').addEventListener('submit', async e=>{
-      e.preventDefault();
-      const email = document.getElementById('signin-email').value.trim();
-      const status = document.getElementById('signin-status');
-      status.textContent = 'Sending...';
-      const { error } = await sb.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
-      });
-      status.textContent = error ? ('Error: ' + error.message) : 'Check your email for the sign-in link.';
-    });
     return;
   }
 

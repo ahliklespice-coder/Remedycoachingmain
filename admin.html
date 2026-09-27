@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credential Review — Remedy Coaching</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --field:#16342A; --field-light:#20493A; --turf:#2F6B4F;
+    --chalk:#F5F3EA; --chalk-dim:#E7E2D3; --ink:#1C1B18;
+    --gold:#D4A72C; --gold-dim:#E9C868; --line: rgba(245,243,234,0.16);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
+  a{color:inherit;}
+  .wrap{max-width:900px; margin:0 auto; padding:0 28px;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase;}
+  header{background:var(--field); color:var(--chalk); padding:28px 0;}
+  header .wrap{display:flex; justify-content:space-between; align-items:center;}
+  main{padding:36px 0 90px;}
+  .card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:22px; margin-bottom:14px;}
+  .cred-title{font-weight:700; font-size:16px;}
+  .cred-meta{font-size:13px; color:#8a8878; margin-top:4px;}
+  .btn{font-weight:700; font-size:13.5px; padding:9px 16px; border-radius:6px; border:1.5px solid transparent; cursor:pointer;}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-danger{background:none; color:#b5453f; border-color:rgba(181,69,63,.3);}
+  .btn-outline{border-color:rgba(28,27,24,.2); background:none; color:var(--ink);}
+  .actions{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; align-items:center;}
+  textarea{flex:1; min-width:200px; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px;}
+  .empty-state{text-align:center; padding:50px 20px; color:#a8a596;}
+  .empty-state .display{font-size:20px; color:var(--field); margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1 class="display" style="font-size:22px;">Credential Review</h1>
+    <a href="dashboard.html" style="font-size:13px; color:var(--chalk-dim);">← Back to Dashboard</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap" id="root">
+    <div class="card">Loading…</div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : str;
+  return d.innerHTML;
+}
+
+function renderList(credentials){
+  const root = document.getElementById('root');
+  if(!credentials.length){
+    root.innerHTML = `<div class="empty-state"><div class="display">All caught up</div><div>No pending credentials to review.</div></div>`;
+    return;
+  }
+  root.innerHTML = credentials.map(c => `
+    <div class="card" data-cred="${c.id}">
+      <div class="cred-title">${escapeHtml(c.title)}</div>
+      <div class="cred-meta">
+        ${escapeHtml(c.coach?.name || 'Unknown coach')} (${escapeHtml(c.coach?.email || c.coach_id)})
+        ${c.issuer ? ' · ' + escapeHtml(c.issuer) : ''}
+        · Submitted ${escapeHtml(new Date(c.created_at).toLocaleDateString())}
+      </div>
+      ${c.file_url ? `<div style="margin-top:8px;"><a href="${c.file_url}" target="_blank" rel="noopener">View uploaded file ↗</a></div>` : '<div style="margin-top:8px; color:#b5453f;">File link unavailable</div>'}
+      <div class="actions">
+        <textarea placeholder="Reviewer note (optional)" data-note></textarea>
+        <button class="btn btn-gold" data-approve>Approve</button>
+        <button class="btn btn-danger" data-reject>Reject</button>
+      </div>
+    </div>
+  `).join('');
+
+  root.querySelectorAll('[data-approve]').forEach(btn => btn.addEventListener('click', () => review(btn, 'approve')));
+  root.querySelectorAll('[data-reject]').forEach(btn => btn.addEventListener('click', () => review(btn, 'reject')));
+}
+
+async function review(btn, action){
+  const card = btn.closest('[data-cred]');
+  const credentialId = card.dataset.cred;
+  const reviewerNote = card.querySelector('[data-note]').value.trim();
+
+  card.querySelectorAll('button').forEach(b => b.disabled = true);
+  btn.textContent = action === 'approve' ? 'Approving…' : 'Rejecting…';
+
+  const { data: { session } } = await sb.auth.getSession();
+  const resp = await fetch('/api/admin-credentials', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ credentialId, action, reviewerNote })
+  });
+
+  if(!resp.ok){
+    alert('Something went wrong. Please try again.');
+    card.querySelectorAll('button').forEach(b => b.disabled = false);
+    btn.textContent = action === 'approve' ? 'Approve' : 'Reject';
+    return;
+  }
+
+  card.remove();
+  if(!document.querySelector('[data-cred]')){
+    renderList([]);
+  }
+}
+
+async function init(){
+  const root = document.getElementById('root');
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){
+    root.innerHTML = `<div class="empty-state"><div class="display">Sign in required</div><div><a href="login.html">Sign in</a> with the admin account to review credentials.</div></div>`;
+    return;
+  }
+
+  const resp = await fetch('/api/admin-credentials', {
+    headers: { Authorization: `Bearer ${session.access_token}` }
+  });
+
+  if(resp.status === 403){
+    root.innerHTML = `<div class="empty-state"><div class="display">Not authorized</div><div>This account doesn't have credential review access.</div></div>`;
+    return;
+  }
+  if(!resp.ok){
+    root.innerHTML = `<div class="empty-state"><div class="display">Something went wrong</div><div>Couldn't load pending credentials. Try refreshing.</div></div>`;
+    return;
+  }
+
+  const { credentials } = await resp.json();
+  renderList(credentials);
+}
+
+init();
+</script>
+
+</body>
+</html>

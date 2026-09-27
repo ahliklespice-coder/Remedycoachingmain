@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Log In or Join — Remedy Coaching</title>
 <link rel="canonical" href="https://remedycoachinggroup.com/login.html">
-<meta name="description" content="Log in or create your Remedy Coaching account with a secure, password-free email link.">
+<meta name="description" content="Log in or create your Remedy Coaching account.">
 <link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -83,23 +83,29 @@
   .role-toggle button.active{background:var(--field); color:var(--chalk);}
 
   form{margin-top:20px;}
-  label{display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin-bottom:6px;}
+  label{display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin-bottom:6px; margin-top:14px;}
+  label:first-of-type{margin-top:0;}
   input{
     width:100%; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:11px 12px;
     font-family:'Inter',sans-serif; font-size:14.5px; color:var(--ink); background:#fdfcf9;
   }
   input:focus{outline:none; border-color:var(--turf);}
-  .form-submit{margin-top:16px; width:100%; text-align:center;}
+  .form-submit{margin-top:18px; width:100%; text-align:center;}
 
   .auth-status{margin-top:14px; font-size:13.5px; min-height:1.2em;}
   .auth-status.error{color:#b5453f;}
   .auth-status.success{color:var(--turf); font-weight:600;}
 
-  .auth-foot{margin-top:22px; padding-top:18px; border-top:1px solid rgba(28,27,24,.08); text-align:center; font-size:12px; color:#8a8878; line-height:1.6;}
+  .auth-foot{margin-top:22px; padding-top:18px; border-top:1px solid rgba(28,27,24,.08); text-align:center; font-size:13px; color:#8a8878; line-height:1.7;}
+  .auth-foot a{color:var(--turf); font-weight:700;}
+  .forgot-link{display:block; text-align:right; margin-top:10px; font-size:12.5px; color:#8a8878;}
+  .forgot-link:hover{color:var(--turf);}
   .config-note{
     margin-top:18px; background:#b5453f; color:#fff; border-radius:8px; padding:12px 14px;
     font-family:'IBM Plex Mono',monospace; font-size:12.5px; display:none;
   }
+  [data-view]{display:none;}
+  [data-view].active{display:block;}
 </style>
 </head>
 <body>
@@ -120,38 +126,84 @@
 
 <div class="authwrap">
   <div class="auth-card">
-    <div class="eyebrow" style="color:var(--turf);">Password-Free Access</div>
-    <h1 class="display">Welcome to the network.</h1>
-    <p class="sub">Sign in or create an account with just your email — no password to remember.</p>
 
-    <div class="role-toggle" role="tablist" aria-label="I am a...">
-      <button type="button" class="active" data-role="Coach" id="role-coach">I'm a Coach</button>
-      <button type="button" data-role="Client" id="role-client">I'm Hiring</button>
+    <!-- ---------------- SIGN IN ---------------- -->
+    <div data-view="signin" class="active">
+      <div class="eyebrow" style="color:var(--turf);">Welcome Back</div>
+      <h1 class="display">Sign in.</h1>
+      <p class="sub">Sign in with your email and password.</p>
+
+      <form id="signin-form">
+        <label for="signin-email">Email address</label>
+        <input id="signin-email" type="email" required autocomplete="email" placeholder="name@example.com">
+        <label for="signin-password">Password</label>
+        <input id="signin-password" type="password" required autocomplete="current-password" placeholder="••••••••">
+        <a href="#" class="forgot-link" data-goto="forgot">Forgot password?</a>
+        <button type="submit" class="btn btn-gold form-submit" id="signin-submit">Sign In</button>
+      </form>
+      <div class="auth-status" id="signin-status"></div>
+      <p class="auth-foot">New here? <a href="#" data-goto="signup">Create an account</a></p>
     </div>
 
-    <form id="auth-form">
-      <label for="auth-email">Email address</label>
-      <input id="auth-email" type="email" required autocomplete="email" placeholder="name@example.com">
-      <button type="submit" class="btn btn-gold form-submit" id="auth-submit">Continue</button>
-    </form>
+    <!-- ---------------- CREATE ACCOUNT ---------------- -->
+    <div data-view="signup">
+      <div class="eyebrow" style="color:var(--turf);">Join The Network</div>
+      <h1 class="display">Create your account.</h1>
+      <p class="sub">Set up your login — you'll build your full profile after confirming your email.</p>
 
-    <div class="auth-status" id="auth-status"></div>
+      <div class="role-toggle" role="tablist" aria-label="I am a...">
+        <button type="button" class="active" data-role="Coach" id="role-coach">I'm a Coach</button>
+        <button type="button" data-role="Client" id="role-client">I'm Hiring</button>
+      </div>
 
-    <p class="auth-foot">By continuing you'll get a one-time secure sign-in link by email.<br>New here? This automatically creates your account.</p>
+      <form id="signup-form">
+        <label for="signup-email">Email address</label>
+        <input id="signup-email" type="email" required autocomplete="email" placeholder="name@example.com">
+        <label for="signup-password">Password</label>
+        <input id="signup-password" type="password" required autocomplete="new-password" minlength="8" placeholder="At least 8 characters">
+        <label for="signup-password-confirm">Confirm password</label>
+        <input id="signup-password-confirm" type="password" required autocomplete="new-password" minlength="8" placeholder="••••••••">
+        <button type="submit" class="btn btn-gold form-submit" id="signup-submit">Create Account</button>
+      </form>
+      <div class="auth-status" id="signup-status"></div>
+      <p class="auth-foot">Already have an account? <a href="#" data-goto="signin">Sign in</a></p>
+    </div>
+
+    <!-- ---------------- FORGOT PASSWORD ---------------- -->
+    <div data-view="forgot">
+      <div class="eyebrow" style="color:var(--turf);">Reset Password</div>
+      <h1 class="display">Forgot password?</h1>
+      <p class="sub">Enter your email and we'll send you a link to set a new password.</p>
+
+      <form id="forgot-form">
+        <label for="forgot-email">Email address</label>
+        <input id="forgot-email" type="email" required autocomplete="email" placeholder="name@example.com">
+        <button type="submit" class="btn btn-gold form-submit" id="forgot-submit">Send Reset Link</button>
+      </form>
+      <div class="auth-status" id="forgot-status"></div>
+      <p class="auth-foot"><a href="#" data-goto="signin">← Back to sign in</a></p>
+    </div>
 
     <div class="config-note" id="config-note">⚠️ Supabase isn't configured yet in this file — set SUPABASE_URL and SUPABASE_ANON_KEY near the bottom of login.html.</div>
   </div>
 </div>
 
 <script>
-/* Same Supabase project as community.html — keep these two values in sync
-   across login.html, community.html and dashboard.html. */
+/* Same Supabase project as community.html, dashboard.html, etc. — keep
+   these two values in sync across every page. */
 const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
 
 const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.includes('YOUR_');
 if(!isConfigured){ document.getElementById('config-note').style.display = 'block'; }
 const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+function showView(name){
+  document.querySelectorAll('[data-view]').forEach(el => el.classList.toggle('active', el.dataset.view === name));
+}
+document.querySelectorAll('[data-goto]').forEach(link => {
+  link.addEventListener('click', (e) => { e.preventDefault(); showView(link.dataset.goto); });
+});
 
 let selectedRole = 'Coach';
 document.getElementById('role-coach').addEventListener('click', ()=>selectRole('Coach'));
@@ -162,26 +214,60 @@ function selectRole(role){
   document.getElementById('role-client').classList.toggle('active', role==='Client');
 }
 
-document.getElementById('auth-form').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const status = document.getElementById('auth-status');
-  const btn = document.getElementById('auth-submit');
-  status.className = 'auth-status';
-  status.textContent = '';
+function setStatus(id, msg, kind){
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'auth-status' + (kind ? ' ' + kind : '');
+}
 
-  if(!isConfigured){
-    status.textContent = 'Supabase is not configured yet — see the note above.';
-    status.className = 'auth-status error';
+/* ---------------- SIGN IN ---------------- */
+document.getElementById('signin-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!isConfigured){ setStatus('signin-status', 'Supabase is not configured yet.', 'error'); return; }
+
+  const btn = document.getElementById('signin-submit');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  setStatus('signin-status', '');
+
+  const email = document.getElementById('signin-email').value.trim();
+  const password = document.getElementById('signin-password').value;
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+
+  btn.disabled = false;
+  btn.textContent = 'Sign In';
+
+  if(error){
+    setStatus('signin-status', error.message, 'error');
+    return;
+  }
+  window.location.href = 'dashboard.html';
+});
+
+/* ---------------- CREATE ACCOUNT ---------------- */
+document.getElementById('signup-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!isConfigured){ setStatus('signup-status', 'Supabase is not configured yet.', 'error'); return; }
+
+  const password = document.getElementById('signup-password').value;
+  const confirm = document.getElementById('signup-password-confirm').value;
+  if(password !== confirm){
+    setStatus('signup-status', "Passwords don't match.", 'error');
     return;
   }
 
-  const email = document.getElementById('auth-email').value.trim();
+  const btn = document.getElementById('signup-submit');
   btn.disabled = true;
-  btn.textContent = 'Sending…';
+  btn.textContent = 'Creating…';
+  setStatus('signup-status', '');
 
+  const email = document.getElementById('signup-email').value.trim();
   const redirectTo = new URL('dashboard.html', window.location.href).href;
-  const { error } = await sb.auth.signInWithOtp({
+
+  const { data, error } = await sb.auth.signUp({
     email,
+    password,
     options: {
       emailRedirectTo: redirectTo,
       data: { intended_role: selectedRole }
@@ -189,15 +275,45 @@ document.getElementById('auth-form').addEventListener('submit', async (e)=>{
   });
 
   btn.disabled = false;
-  btn.textContent = 'Continue';
+  btn.textContent = 'Create Account';
 
   if(error){
-    status.textContent = 'Error: ' + error.message;
-    status.className = 'auth-status error';
+    setStatus('signup-status', error.message, 'error');
     return;
   }
-  status.textContent = 'Check your email — we sent a secure sign-in link.';
-  status.className = 'auth-status success';
+
+  if(data.session){
+    // Email confirmation is off — already signed in.
+    window.location.href = 'dashboard.html';
+    return;
+  }
+
+  setStatus('signup-status', 'Check your email to confirm your account, then sign in.', 'success');
+});
+
+/* ---------------- FORGOT PASSWORD ---------------- */
+document.getElementById('forgot-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!isConfigured){ setStatus('forgot-status', 'Supabase is not configured yet.', 'error'); return; }
+
+  const btn = document.getElementById('forgot-submit');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  setStatus('forgot-status', '');
+
+  const email = document.getElementById('forgot-email').value.trim();
+  const redirectTo = new URL('reset-password.html', window.location.href).href;
+
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+
+  btn.disabled = false;
+  btn.textContent = 'Send Reset Link';
+
+  if(error){
+    setStatus('forgot-status', error.message, 'error');
+    return;
+  }
+  setStatus('forgot-status', 'Check your email for a link to reset your password.', 'success');
 });
 
 /* If already signed in, skip straight to the dashboard. */
