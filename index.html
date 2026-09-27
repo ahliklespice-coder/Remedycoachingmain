@@ -413,33 +413,10 @@
         <div class="eyebrow">Coaching Opportunities</div>
         <h2 class="display">Open jobs on the board.</h2>
       </div>
-      <a href="#" class="btn btn-dark">Post an Opportunity</a>
+      <a href="dashboard.html" class="btn btn-dark">Post an Opportunity</a>
     </div>
-    <div class="opp-list">
-      <div class="opp-row">
-        <span class="opp-sport">Wrestling</span>
-        <div><div class="opp-title">Takedown consultant for HS varsity program</div><div class="opp-meta">Virtual · 6 week project · Posted 2 days ago</div></div>
-        <span class="opp-budget">$800–$1,200</span>
-        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
-      </div>
-      <div class="opp-row">
-        <span class="opp-sport">Football</span>
-        <div><div class="opp-title">Offensive coordinator to consult on play design</div><div class="opp-meta">In-person · Season-long · Posted 4 days ago</div></div>
-        <span class="opp-budget">$3,500+</span>
-        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
-      </div>
-      <div class="opp-row">
-        <span class="opp-sport">Basketball</span>
-        <div><div class="opp-title">Youth program development for rec league</div><div class="opp-meta">Hybrid · 3 month project · Posted 1 week ago</div></div>
-        <span class="opp-budget">$1,500–$2,000</span>
-        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
-      </div>
-      <div class="opp-row">
-        <span class="opp-sport">Swimming</span>
-        <div><div class="opp-title">Stroke technique clinic for age-group swimmers</div><div class="opp-meta">In-person · One-time clinic · Posted 1 week ago</div></div>
-        <span class="opp-budget">$600</span>
-        <a href="#" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
-      </div>
+    <div class="opp-list" id="opp-list">
+      <div class="opp-row"><div class="opp-title">Loading…</div></div>
     </div>
   </div>
 </section>
@@ -528,7 +505,7 @@
     <p>Join the network built for coaches — free to start, no long-term commitment.</p>
     <div class="cta-actions">
       <a href="login.html" class="btn btn-gold">Join as a Coach</a>
-      <a href="#" class="btn btn-ghost">Post an Opportunity</a>
+      <a href="dashboard.html" class="btn btn-ghost">Post an Opportunity</a>
     </div>
   </div>
 </section>
@@ -551,9 +528,9 @@
           <li><a href="#pricing">Pricing</a></li>
         </ul>
         <ul><h4>Clients</h4>
-          <li><a href="#">Find a Coach</a></li>
-          <li><a href="#">Post an Opportunity</a></li>
-          <li><a href="#">How Hiring Works</a></li>
+          <li><a href="coaches.html">Find a Coach</a></li>
+          <li><a href="dashboard.html">Post an Opportunity</a></li>
+          <li><a href="#how">How Hiring Works</a></li>
         </ul>
         <ul><h4>Company</h4>
           <li><a href="#">About</a></li>
@@ -643,6 +620,49 @@ function fmtMoney(cents){
       </div>`;
     }
   } catch (e) { console.error('featured coaches load failed', e); }
+
+  try {
+    const LOCATION_LABELS = { virtual: 'Virtual', in_person: 'In-person', hybrid: 'Hybrid' };
+    const budgetLabel = (minCents, maxCents) => {
+      const min = minCents ? minCents / 100 : null;
+      const max = maxCents ? maxCents / 100 : null;
+      if (min && max && min !== max) return `$${min.toLocaleString()}–$${max.toLocaleString()}`;
+      if (min && !max) return `$${min.toLocaleString()}+`;
+      if (min) return `$${min.toLocaleString()}`;
+      return 'Budget TBD';
+    };
+    const daysAgo = (iso) => {
+      const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+      if (days <= 0) return 'today';
+      if (days === 1) return '1 day ago';
+      if (days < 14) return `${days} days ago`;
+      return `${Math.floor(days / 7)} weeks ago`;
+    };
+
+    const { data: opps, error: oppsError } = await sb
+      .from('opportunities')
+      .select('id, sport, title, location_type, duration_label, budget_min_cents, budget_max_cents, created_at')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+      .limit(6);
+
+    const list = document.getElementById('opp-list');
+    if (oppsError) {
+      list.innerHTML = `<div class="opp-row" style="grid-template-columns:1fr;"><div>Couldn't load opportunities right now.</div></div>`;
+    } else if (opps && opps.length) {
+      list.innerHTML = opps.map(o => `
+        <div class="opp-row">
+          <span class="opp-sport">${esc(o.sport)}</span>
+          <div><div class="opp-title">${esc(o.title)}</div><div class="opp-meta">${esc(LOCATION_LABELS[o.location_type] || o.location_type)}${o.duration_label ? ' · ' + esc(o.duration_label) : ''} · Posted ${daysAgo(o.created_at)}</div></div>
+          <span class="opp-budget">${budgetLabel(o.budget_min_cents, o.budget_max_cents)}</span>
+          <a href="dashboard.html" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
+        </div>`).join('');
+    } else {
+      list.innerHTML = `<div class="opp-row" style="grid-template-columns:1fr; text-align:center; padding:32px 20px;">
+        <div>No open opportunities right now — <a href="dashboard.html" style="text-decoration:underline;">post one</a> or check back soon.</div>
+      </div>`;
+    }
+  } catch (e) { console.error('opportunities load failed', e); }
 })();
 </script>
 
