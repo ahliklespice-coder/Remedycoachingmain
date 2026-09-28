@@ -143,6 +143,12 @@
   .status-pending{background:rgba(212,167,44,0.15); color:#8a6a10;}
   .status-accepted, .status-approved{background:rgba(47,107,79,0.15); color:var(--turf);}
   .status-declined, .status-rejected{background:rgba(181,69,63,0.12); color:#b5453f;}
+  .status-completed{background:rgba(22,52,42,0.12); color:var(--field);}
+
+  .applicant-list{margin-top:10px; padding-top:10px; border-top:1px dashed rgba(28,27,24,.1); display:flex; flex-direction:column; gap:8px;}
+  .applicant-row{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px;}
+  .applicant-name{font-weight:700;}
+  .applicant-meta{color:#8a8878; font-size:12px;}
 
   /* ---- verification ---- */
   .badge-verified{
@@ -246,6 +252,7 @@ const LOCATION_LABELS = { virtual:'Virtual', in_person:'In-person', hybrid:'Hybr
 let OPPORTUNITIES = [];          // rows from public.opportunities (status = 'open'), mapped for display
 let opportunitiesTableMissing = false;
 let myPostings = [];             // rows from public.opportunities where client_id = current user
+let postingApplications = {};    // opportunity_id -> array of application rows (with coach info) applied to it
 
 function budgetLabel(minCents, maxCents){
   const min = minCents ? minCents / 100 : null;
@@ -502,7 +509,7 @@ function bindProfileForm(){
       await refreshCredentials();
       await refreshOpportunities();
     }
-    if(currentProfile.role === 'Client'){ await refreshMyPostings(); }
+    if(currentProfile.role === 'Client'){ await refreshMyPostings(); await refreshPostingApplications(); }
     renderRoot();
   });
 }
@@ -588,13 +595,40 @@ function myPostingsListHtml(){
   }
   return `<div class="opp-list">
     ${myPostings.map(o => `
-      <div class="opp-row">
-        <span class="opp-sport">${escapeHtml(o.sport)}</span>
-        <div><div class="opp-title">${escapeHtml(o.title)}</div><div class="opp-meta">${escapeHtml(LOCATION_LABELS[o.location_type]||o.location_type)}${o.duration_label ? ' · ' + escapeHtml(o.duration_label) : ''} · <span class="status-badge status-${o.status === 'open' ? 'accepted' : 'declined'}">${escapeHtml(o.status)}</span></div></div>
-        <span class="opp-budget">${escapeHtml(budgetLabel(o.budget_min_cents, o.budget_max_cents))}</span>
-        <div style="display:flex; gap:6px;">
-          ${o.status === 'open' ? `<button class="btn btn-outline-dark btn-sm" data-close-posting="${o.id}">Close</button>` : ''}
-          <button class="btn btn-danger btn-sm" data-delete-posting="${o.id}">Delete</button>
+      <div class="opp-row" style="align-items:flex-start; flex-direction:column; display:flex;">
+        <div style="display:grid; grid-template-columns:auto 1fr auto auto; gap:16px; align-items:center; width:100%;">
+          <span class="opp-sport">${escapeHtml(o.sport)}</span>
+          <div><div class="opp-title">${escapeHtml(o.title)}</div><div class="opp-meta">${escapeHtml(LOCATION_LABELS[o.location_type]||o.location_type)}${o.duration_label ? ' · ' + escapeHtml(o.duration_label) : ''} · <span class="status-badge status-${o.status === 'open' ? 'accepted' : 'declined'}">${escapeHtml(o.status)}</span></div></div>
+          <span class="opp-budget">${escapeHtml(budgetLabel(o.budget_min_cents, o.budget_max_cents))}</span>
+          <div style="display:flex; gap:6px;">
+            ${o.status === 'open' ? `<button class="btn btn-outline-dark btn-sm" data-close-posting="${o.id}">Close</button>` : ''}
+            <button class="btn btn-danger btn-sm" data-delete-posting="${o.id}">Delete</button>
+          </div>
+        </div>
+        ${applicantListHtml(postingApplications[o.id] || [])}
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function applicantListHtml(apps){
+  if(apps.length === 0){
+    return `<div class="applicant-list"><div class="applicant-meta">No applicants yet.</div></div>`;
+  }
+  return `<div class="applicant-list">
+    ${apps.map(a => `
+      <div class="applicant-row" data-application="${a.id}">
+        <div>
+          <span class="applicant-name">${escapeHtml(a.coach?.name || 'Unknown coach')}</span>
+          <span class="applicant-meta">${escapeHtml(a.coach?.sport || '')}${a.coach?.verified ? ' · ✓ Verified' : ''} · Applied ${escapeHtml(new Date(a.created_at).toLocaleDateString())}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="status-badge status-${escapeHtml(a.status)}">${escapeHtml(a.status)}</span>
+          ${a.status === 'pending' ? `
+            <button class="btn btn-gold btn-sm" data-accept-app="${a.id}">Accept</button>
+            <button class="btn btn-danger btn-sm" data-decline-app="${a.id}">Decline</button>
+          ` : ''}
+          ${a.status === 'accepted' ? `<button class="btn btn-outline-dark btn-sm" data-complete-app="${a.id}">Mark Completed</button>` : ''}
         </div>
       </div>
     `).join('')}
@@ -637,6 +671,7 @@ function bindPostOpportunityForm(){
     }
     showToast('Opportunity posted');
     await refreshMyPostings();
+    await refreshPostingApplications();
     renderRoot();
   });
 }
@@ -648,6 +683,7 @@ function bindPostingActionButtons(){
       if(error){ showToast('Error: ' + error.message); return; }
       showToast('Opportunity closed');
       await refreshMyPostings();
+      await refreshPostingApplications();
       renderRoot();
     });
   });
@@ -658,9 +694,27 @@ function bindPostingActionButtons(){
       if(error){ showToast('Error: ' + error.message); return; }
       showToast('Opportunity deleted');
       await refreshMyPostings();
+      await refreshPostingApplications();
       renderRoot();
     });
   });
+  document.querySelectorAll('[data-accept-app]').forEach(btn=>{
+    btn.addEventListener('click', ()=>reviewApplication(btn.dataset.acceptApp, 'accepted'));
+  });
+  document.querySelectorAll('[data-decline-app]').forEach(btn=>{
+    btn.addEventListener('click', ()=>reviewApplication(btn.dataset.declineApp, 'declined'));
+  });
+  document.querySelectorAll('[data-complete-app]').forEach(btn=>{
+    btn.addEventListener('click', ()=>reviewApplication(btn.dataset.completeApp, 'completed'));
+  });
+}
+
+async function reviewApplication(applicationId, newStatus){
+  const { error } = await sb.from('applications').update({ status: newStatus }).eq('id', applicationId);
+  if(error){ showToast('Error: ' + error.message); return; }
+  showToast(newStatus === 'accepted' ? 'Application accepted' : newStatus === 'declined' ? 'Application declined' : 'Marked completed');
+  await refreshPostingApplications();
+  renderRoot();
 }
 
 async function refreshOpportunities(){
@@ -692,6 +746,29 @@ async function refreshMyPostings(){
   }
   opportunitiesTableMissing = false;
   myPostings = data;
+}
+
+async function refreshPostingApplications(){
+  if(!myPostings.length){ postingApplications = {}; return; }
+  const ids = myPostings.map(o => o.id);
+  const { data, error } = await sb.from('applications')
+    .select('*')
+    .in('opportunity_id', ids)
+    .order('created_at', { ascending: true });
+  if(error){ console.error(error); postingApplications = {}; return; }
+
+  const coachIds = [...new Set((data||[]).map(a => a.coach_id))];
+  let coachesById = {};
+  if(coachIds.length){
+    const { data: coaches } = await sb.from('profiles').select('id,name,sport,verified').in('id', coachIds);
+    coachesById = Object.fromEntries((coaches||[]).map(c => [c.id, c]));
+  }
+
+  postingApplications = {};
+  (data||[]).forEach(a => {
+    const withCoach = { ...a, coach: coachesById[a.coach_id] || null };
+    (postingApplications[a.opportunity_id] ||= []).push(withCoach);
+  });
 }
 
 function opportunityRowHtml(o, alreadyApplied){
@@ -976,6 +1053,7 @@ async function init(){
   }
   if(currentProfile && currentProfile.role === 'Client'){
     await refreshMyPostings();
+    await refreshPostingApplications();
   }
   renderRoot();
 
