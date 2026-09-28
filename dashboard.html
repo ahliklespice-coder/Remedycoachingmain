@@ -345,6 +345,12 @@ function renderRoot(){
     .filter(a => a.status !== 'declined')
     .reduce((sum, a) => sum + (OPPORTUNITIES.find(o => o.id === a.opportunity_id)?.value || 0), 0);
 
+  const FREE_MONTHLY_APPLICATION_LIMIT = 2;
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  const monthlyApplicationCount = applications.filter(a => new Date(a.created_at) >= monthStart).length;
+  const isUnlimitedPlan = currentPlan !== 'free';
+  const atApplicationLimit = !isUnlimitedPlan && monthlyApplicationCount >= FREE_MONTHLY_APPLICATION_LIMIT;
+
   root.innerHTML = `
     <div class="layout">
       <div class="sticky" id="profile-column">${profileCardHtml()}</div>
@@ -391,7 +397,14 @@ function renderRoot(){
             <h2>Open Opportunities</h2>
             <a href="index.html#opportunities" class="btn btn-outline-dark btn-sm">View on homepage →</a>
           </div>
-          <div id="open-opportunities-list">${openOpportunitiesListHtml(appliedIds)}</div>
+          ${!isUnlimitedPlan ? `
+          <div class="card" style="margin-bottom:14px; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div style="font-size:13px; color:#4a4940;">
+              <strong>Free Agent plan:</strong> ${monthlyApplicationCount} of ${FREE_MONTHLY_APPLICATION_LIMIT} applications used this month
+            </div>
+            <a href="index.html#pricing" class="btn btn-gold btn-sm">Upgrade for Unlimited</a>
+          </div>` : ''}
+          <div id="open-opportunities-list">${openOpportunitiesListHtml(appliedIds, atApplicationLimit)}</div>
         </div>`}
       </div>
     </div>`;
@@ -531,7 +544,7 @@ function bindProfileCard(){
 
 /* ---------------- OPPORTUNITIES + APPLICATIONS ---------------- */
 
-function openOpportunitiesListHtml(appliedIds){
+function openOpportunitiesListHtml(appliedIds, atApplicationLimit){
   if(opportunitiesTableMissing){
     return `<div class="card empty-state">
       <div class="display">Opportunities aren't set up yet</div>
@@ -544,7 +557,7 @@ function openOpportunitiesListHtml(appliedIds){
       <div>Check back soon — new postings show up here as clients add them.</div>
     </div>`;
   }
-  return `<div class="opp-list">${OPPORTUNITIES.map(o => opportunityRowHtml(o, appliedIds.has(o.id))).join('')}</div>`;
+  return `<div class="opp-list">${OPPORTUNITIES.map(o => opportunityRowHtml(o, appliedIds.has(o.id), atApplicationLimit)).join('')}</div>`;
 }
 
 function postOpportunityFormHtml(){
@@ -771,17 +784,19 @@ async function refreshPostingApplications(){
   });
 }
 
-function opportunityRowHtml(o, alreadyApplied){
+function opportunityRowHtml(o, alreadyApplied, atApplicationLimit){
+  const blocked = !alreadyApplied && atApplicationLimit;
   return `
     <div class="opp-row">
       <span class="opp-sport">${escapeHtml(o.sport)}</span>
       <div><div class="opp-title">${escapeHtml(o.title)}</div><div class="opp-meta">${escapeHtml(o.meta)}</div></div>
       <span class="opp-budget">${escapeHtml(o.budget)}</span>
       <button
-        class="btn ${alreadyApplied ? 'btn-outline-dark' : 'btn-gold'} btn-sm"
+        class="btn ${alreadyApplied || blocked ? 'btn-outline-dark' : 'btn-gold'} btn-sm"
         data-apply="${o.id}"
-        ${alreadyApplied ? 'disabled' : ''}
-      >${alreadyApplied ? 'Applied ✓' : 'Apply'}</button>
+        ${alreadyApplied || blocked ? 'disabled' : ''}
+        title="${blocked ? 'Free Agent limit reached — upgrade for unlimited applications' : ''}"
+      >${alreadyApplied ? 'Applied ✓' : blocked ? 'Limit Reached' : 'Apply'}</button>
     </div>`;
 }
 
@@ -829,6 +844,8 @@ function bindApplyButtons(){
         if(error.code === '42P01'){
           applicationsTableMissing = true;
           showToast('Applications table not set up yet — see note below.');
+        } else if(error.message && error.message.includes('FREE_PLAN_APPLICATION_LIMIT')){
+          showToast("You've used your 2 free applications this month — upgrade for unlimited.");
         } else {
           showToast('Error: ' + error.message);
         }
