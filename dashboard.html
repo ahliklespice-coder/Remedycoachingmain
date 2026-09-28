@@ -150,6 +150,16 @@
   .applicant-name{font-weight:700;}
   .applicant-meta{color:#8a8878; font-size:12px;}
 
+  .message-thread{margin-top:12px; background:#fdfcf9; border:1px solid rgba(28,27,24,.08); border-radius:10px; padding:14px;}
+  .message-list{display:flex; flex-direction:column; gap:8px; max-height:260px; overflow-y:auto; margin-bottom:10px;}
+  .message-bubble{max-width:80%; padding:8px 12px; border-radius:10px; font-size:13px;}
+  .message-bubble.mine{align-self:flex-end; background:var(--field); color:var(--chalk);}
+  .message-bubble.theirs{align-self:flex-start; background:var(--chalk-dim); color:var(--ink);}
+  .message-body{white-space:pre-wrap; word-break:break-word;}
+  .message-meta{font-size:10.5px; opacity:.65; margin-top:4px;}
+  .message-form{display:flex; gap:8px; align-items:flex-end;}
+  .message-form textarea{flex:1; min-height:44px; max-height:100px; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; resize:vertical;}
+
   /* ---- verification ---- */
   .badge-verified{
     display:inline-flex; align-items:center; gap:6px; margin-top:10px; width:fit-content;
@@ -253,6 +263,10 @@ let OPPORTUNITIES = [];          // rows from public.opportunities (status = 'op
 let opportunitiesTableMissing = false;
 let myPostings = [];             // rows from public.opportunities where client_id = current user
 let postingApplications = {};    // opportunity_id -> array of application rows (with coach info) applied to it
+
+let openThreadAppId = null;      // application_id of the currently open message thread, or null
+let threadMessages = [];         // messages for the currently open thread
+let threadOtherPartyName = 'them';
 
 function budgetLabel(minCents, maxCents){
   const min = minCents ? minCents / 100 : null;
@@ -421,6 +435,8 @@ function renderRoot(){
     bindCredentialForm();
     bindWithdrawCredentialButtons();
   }
+  bindThreadToggleButtons();
+  bindMessageThreadForm();
 }
 
 /* ---------------- PROFILE ---------------- */
@@ -630,19 +646,23 @@ function applicantListHtml(apps){
   }
   return `<div class="applicant-list">
     ${apps.map(a => `
-      <div class="applicant-row" data-application="${a.id}">
-        <div>
-          <span class="applicant-name">${escapeHtml(a.coach?.name || 'Unknown coach')}</span>
-          <span class="applicant-meta">${escapeHtml(a.coach?.sport || '')}${a.coach?.verified ? ' · ✓ Verified' : ''} · Applied ${escapeHtml(new Date(a.created_at).toLocaleDateString())}</span>
+      <div class="applicant-row" data-application="${a.id}" style="flex-direction:column; align-items:stretch;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div>
+            <span class="applicant-name">${escapeHtml(a.coach?.name || 'Unknown coach')}</span>
+            <span class="applicant-meta">${escapeHtml(a.coach?.sport || '')}${a.coach?.verified ? ' · ✓ Verified' : ''} · Applied ${escapeHtml(new Date(a.created_at).toLocaleDateString())}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="status-badge status-${escapeHtml(a.status)}">${escapeHtml(a.status)}</span>
+            ${a.status === 'pending' ? `
+              <button class="btn btn-gold btn-sm" data-accept-app="${a.id}">Accept</button>
+              <button class="btn btn-danger btn-sm" data-decline-app="${a.id}">Decline</button>
+            ` : ''}
+            ${a.status === 'accepted' ? `<button class="btn btn-outline-dark btn-sm" data-complete-app="${a.id}">Mark Completed</button>` : ''}
+            <button class="btn btn-outline-dark btn-sm" data-toggle-thread="${a.id}" data-other-name="${escapeHtml(a.coach?.name || 'the coach')}">${openThreadAppId === a.id ? 'Hide' : 'Message'}</button>
+          </div>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="status-badge status-${escapeHtml(a.status)}">${escapeHtml(a.status)}</span>
-          ${a.status === 'pending' ? `
-            <button class="btn btn-gold btn-sm" data-accept-app="${a.id}">Accept</button>
-            <button class="btn btn-danger btn-sm" data-decline-app="${a.id}">Decline</button>
-          ` : ''}
-          ${a.status === 'accepted' ? `<button class="btn btn-outline-dark btn-sm" data-complete-app="${a.id}">Mark Completed</button>` : ''}
-        </div>
+        ${openThreadAppId === a.id ? messageThreadHtml(a.id) : ''}
       </div>
     `).join('')}
   </div>`;
@@ -815,14 +835,105 @@ function applicationsListHtml(apps){
   }
   return `<div class="opp-list">
     ${apps.map(a => `
-      <div class="app-row">
-        <span class="opp-sport">${escapeHtml(a.sport||'')}</span>
-        <div><div class="opp-title">${escapeHtml(a.opportunity_title)}</div><div class="opp-meta">Applied ${escapeHtml(new Date(a.created_at).toLocaleDateString())} · ${escapeHtml(a.budget||'')}</div></div>
-        <span class="status-badge status-${escapeHtml(a.status)}">${escapeHtml(a.status)}</span>
-        <button class="btn btn-danger btn-sm" data-withdraw="${a.id}">Withdraw</button>
+      <div class="app-row" style="flex-direction:column; align-items:stretch;">
+        <div style="display:grid; grid-template-columns:auto 1fr auto auto; gap:16px; align-items:center; width:100%;">
+          <span class="opp-sport">${escapeHtml(a.sport||'')}</span>
+          <div><div class="opp-title">${escapeHtml(a.opportunity_title)}</div><div class="opp-meta">Applied ${escapeHtml(new Date(a.created_at).toLocaleDateString())} · ${escapeHtml(a.budget||'')}</div></div>
+          <span class="status-badge status-${escapeHtml(a.status)}">${escapeHtml(a.status)}</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline-dark btn-sm" data-toggle-thread="${a.id}" data-opp-id="${escapeHtml(a.opportunity_id)}">${openThreadAppId === a.id ? 'Hide' : 'Message'}</button>
+            <button class="btn btn-danger btn-sm" data-withdraw="${a.id}">Withdraw</button>
+          </div>
+        </div>
+        ${openThreadAppId === a.id ? messageThreadHtml(a.id) : ''}
       </div>
     `).join('')}
   </div>`;
+}
+
+/* ---------------- MESSAGING ---------------- */
+
+function messageThreadHtml(applicationId){
+  return `
+    <div class="message-thread">
+      <div class="message-list">
+        ${threadMessages.length === 0
+          ? `<div class="applicant-meta" style="padding:6px 0;">No messages yet — say hello.</div>`
+          : threadMessages.map(m => `
+            <div class="message-bubble ${m.sender_id === currentUser.id ? 'mine' : 'theirs'}">
+              <div class="message-body">${escapeHtml(m.body)}</div>
+              <div class="message-meta">${m.sender_id === currentUser.id ? 'You' : escapeHtml(threadOtherPartyName)} · ${new Date(m.created_at).toLocaleString()}</div>
+            </div>
+          `).join('')
+        }
+      </div>
+      <form class="message-form" data-thread-app="${applicationId}">
+        <textarea placeholder="Write a message…" maxlength="2000" required></textarea>
+        <button type="submit" class="btn btn-gold btn-sm">Send</button>
+      </form>
+    </div>`;
+}
+
+async function refreshThreadMessages(applicationId){
+  const { data, error } = await sb.from('messages')
+    .select('*')
+    .eq('application_id', applicationId)
+    .order('created_at', { ascending: true });
+  if(error){ console.error(error); threadMessages = []; return; }
+  threadMessages = data || [];
+}
+
+async function openThread(applicationId, knownOtherPartyName, opportunityId){
+  if(openThreadAppId === applicationId){
+    openThreadAppId = null;
+    renderRoot();
+    return;
+  }
+  openThreadAppId = applicationId;
+  threadMessages = [];
+  threadOtherPartyName = knownOtherPartyName || 'them';
+  renderRoot();
+
+  if(!knownOtherPartyName && opportunityId){
+    const { data: opp } = await sb.from('opportunities').select('client_id').eq('id', opportunityId).maybeSingle();
+    if(opp){
+      const { data: clientProfile } = await sb.from('profiles').select('name').eq('id', opp.client_id).maybeSingle();
+      threadOtherPartyName = clientProfile?.name || 'the client';
+    }
+  }
+
+  await refreshThreadMessages(applicationId);
+  if(openThreadAppId === applicationId){ renderRoot(); }
+}
+
+function bindThreadToggleButtons(){
+  document.querySelectorAll('[data-toggle-thread]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      openThread(btn.dataset.toggleThread, btn.dataset.otherName || null, btn.dataset.oppId || null);
+    });
+  });
+}
+
+function bindMessageThreadForm(){
+  const form = document.querySelector('[data-thread-app]');
+  if(!form) return;
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const applicationId = form.dataset.threadApp;
+    const textarea = form.querySelector('textarea');
+    const body = textarea.value.trim();
+    if(!body) return;
+    const btn = form.querySelector('button');
+    btn.disabled = true;
+    const { error } = await sb.from('messages').insert({
+      application_id: applicationId,
+      sender_id: currentUser.id,
+      body
+    });
+    if(error){ showToast('Error: ' + error.message); btn.disabled = false; return; }
+    await refreshThreadMessages(applicationId);
+    renderRoot();
+  });
 }
 
 function bindApplyButtons(){
