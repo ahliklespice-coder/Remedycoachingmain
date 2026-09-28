@@ -238,7 +238,16 @@ function renderGrid(){
   countEl.textContent = `${filtered.length} coach${filtered.length===1?'':'es'} found`;
 
   if(filtered.length === 0){
-    grid.innerHTML = `<div class="empty-state"><div class="display">No coaches match yet</div><div>Try a different sport or search term.</div></div>`;
+    if(allCoaches.length === 0){
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="display">Be our first coach.</div>
+          <div>The roster is just getting started — join now and claim one of the first spots.</div>
+          <a href="login.html" class="btn btn-gold" style="display:inline-block; margin-top:18px;">Join as a Coach</a>
+        </div>`;
+    } else {
+      grid.innerHTML = `<div class="empty-state"><div class="display">No coaches match yet</div><div>Try a different sport or search term.</div></div>`;
+    }
     return;
   }
   grid.innerHTML = `<div class="coach-grid">${filtered.map(coachTileHtml).join('')}</div>`;
