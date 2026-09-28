@@ -867,10 +867,17 @@ function messageThreadHtml(applicationId){
           `).join('')
         }
       </div>
+      ${currentPlan === 'free' ? `
+        <div class="applicant-meta" style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 0 2px;">
+          <span>Sending messages requires Professional or Elite.</span>
+          <a href="index.html#pricing" class="btn btn-gold btn-sm">Upgrade to Reply</a>
+        </div>
+      ` : `
       <form class="message-form" data-thread-app="${applicationId}">
         <textarea placeholder="Write a message…" maxlength="2000" required></textarea>
         <button type="submit" class="btn btn-gold btn-sm">Send</button>
       </form>
+      `}
     </div>`;
 }
 
@@ -930,7 +937,15 @@ function bindMessageThreadForm(){
       sender_id: currentUser.id,
       body
     });
-    if(error){ showToast('Error: ' + error.message); btn.disabled = false; return; }
+    if(error){
+      if(error.message && error.message.includes('MESSAGING_REQUIRES_PROFESSIONAL_PLAN')){
+        showToast('Sending messages requires Professional or Elite — upgrade to reply.');
+      } else {
+        showToast('Error: ' + error.message);
+      }
+      btn.disabled = false;
+      return;
+    }
     await refreshThreadMessages(applicationId);
     renderRoot();
   });
