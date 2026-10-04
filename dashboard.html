@@ -121,6 +121,7 @@
     transition:border-color .15s;
   }
   .opp-row:hover{border-color:var(--turf);}
+  .other-sport{margin-top:14px;}
   .opp-sport{
     font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
     background:var(--chalk-dim); color:var(--field); padding:6px 10px; border-radius:6px; white-space:nowrap;
@@ -370,6 +371,14 @@ const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.inclu
 const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
+
+/* "Other" sport support: picking Other reveals a free-text "Which sport?"
+   field, and the typed name is what gets saved as the sport (so profiles,
+   leads and opportunities read "Archery" rather than "Other"). */
+const KNOWN_SPORTS = SPORTS.filter(s => s !== 'Other');
+function isCustomSport(s){ return !!s && s !== 'Other' && !KNOWN_SPORTS.includes(s); }
+function sameSport(a, b){ return !!a && !!b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase(); }
+function sportFromAnswers(a){ return a.sport === 'Other' ? (a.sport_other || '').trim() : a.sport; }
 
 /* Matching-quiz vocabulary — must match match.html and
    supabase-setup-match-quiz.sql exactly. */
@@ -709,8 +718,13 @@ function profileFormHtml(){
 
         <label for="pf-sport">Primary Sport</label>
         <select id="pf-sport">
-          ${SPORTS.map(s=>`<option value="${s}" ${p.sport===s?'selected':''}>${s}</option>`).join('')}
+          ${SPORTS.map(s=>`<option value="${s}" ${(p.sport===s || (s==='Other' && isCustomSport(p.sport)))?'selected':''}>${s}</option>`).join('')}
         </select>
+
+        <div class="other-sport" id="pf-other-wrap" style="display:${(isCustomSport(p.sport)?'Other':p.sport)==='Other'?'block':'none'}">
+          <label for="pf-other">Which sport?</label>
+          <input id="pf-other" maxlength="40" placeholder="e.g. Archery, Rowing, Golf" value="${escapeHtml(isCustomSport(p.sport)?p.sport:'')}">
+        </div>
 
         <label for="pf-bio">Short Bio</label>
         <textarea id="pf-bio" maxlength="220" placeholder="Coaching background, specialties, what you're looking for...">${escapeHtml(p.bio||'')}</textarea>
@@ -818,17 +832,24 @@ function bindProfileForm(){
     });
   });
 
+  document.getElementById('pf-sport').addEventListener('change', e=>{
+    document.getElementById('pf-other-wrap').style.display = e.target.value === 'Other' ? 'block' : 'none';
+    if(e.target.value === 'Other') document.getElementById('pf-other').focus();
+  });
+
   document.getElementById('profile-form').addEventListener('submit', async e=>{
     e.preventDefault();
     const name = document.getElementById('pf-name').value.trim();
     if(!name) return;
+    const sportValue = (document.getElementById('pf-sport').value === 'Other' ? document.getElementById('pf-other').value.trim() : document.getElementById('pf-sport').value);
+    if(!sportValue || sportValue === 'Other'){ showToast('Please tell us which sport.'); document.getElementById('pf-other').focus(); return; }
     const role = document.getElementById('pf-role').value;
     const payload = {
       id: currentUser.id,
       email: currentUser.email,
       name,
       role,
-      sport: document.getElementById('pf-sport').value,
+      sport: sportValue,
       bio: document.getElementById('pf-bio').value.trim()
     };
 
@@ -978,6 +999,7 @@ function obIsStepValid(){
   const q = ONBOARD_QUESTIONS[obStep];
   const v = obAnswers[q.id];
   if(q.optional) return true;
+  if(q.id === 'sport' && obAnswers.sport === 'Other') return !!(obAnswers.sport_other || '').trim();
   if(q.type === 'multi') return Array.isArray(v) && v.length > 0;
   if(q.type === 'email') return !!v && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
   return !!(v && String(v).trim());
@@ -1003,6 +1025,10 @@ function renderOnboardingQuiz(){
     bodyHtml = `<textarea id="ob-q-input" maxlength="600" placeholder="Optional">${escapeHtml(obAnswers[q.id]||'')}</textarea>`;
   } else {
     bodyHtml = `<input id="ob-q-input" type="${q.type === 'email' ? 'email' : 'text'}" maxlength="120" value="${escapeHtml(obAnswers[q.id]||'')}" placeholder="${q.type==='email' ? 'name@example.com' : ''}">`;
+  }
+
+  if(q.id === 'sport' && obAnswers.sport === 'Other'){
+    bodyHtml += `<div class="other-sport"><label for="ob-other-sport-input">Which sport?</label><input id="ob-other-sport-input" maxlength="40" placeholder="e.g. Archery, Rowing, Golf" value="${escapeHtml(obAnswers.sport_other||'')}"></div>`;
   }
 
   root.innerHTML = `
@@ -1054,6 +1080,15 @@ function renderOnboardingQuiz(){
       document.getElementById('ob-next-btn').disabled = !obIsStepValid();
     });
     input.focus();
+  }
+
+  const otherInput = document.getElementById('ob-other-sport-input');
+  if(otherInput){
+    otherInput.addEventListener('input', ()=>{
+      obAnswers.sport_other = otherInput.value;
+      document.getElementById('ob-next-btn').disabled = !isStepValid();
+    });
+    if(!(obAnswers.sport_other || '')) otherInput.focus();
   }
 
   const backBtn = document.getElementById('ob-back-btn');
@@ -1161,14 +1196,14 @@ async function obFinishOnboarding(){
 
   const composedBio = obAnswers.notes && obAnswers.notes.trim()
     ? obAnswers.notes.trim()
-    : `Looking for a ${obAnswers.sport} coach${obAnswers.level ? ' at the ' + obAnswers.level + ' level' : ''}.`;
+    : `Looking for a ${sportFromAnswers(obAnswers)} coach${obAnswers.level ? ' at the ' + obAnswers.level + ' level' : ''}.`;
 
   const payload = {
     id: currentUser.id,
     email: currentUser.email,
     name: obAnswers.name,
     role: 'Client',
-    sport: obAnswers.sport,
+    sport: sportFromAnswers(obAnswers),
     bio: composedBio
   };
 
@@ -1205,7 +1240,7 @@ async function obRunMatch(){
   }
 
   const allCoaches = data || [];
-  let sportMatches = allCoaches.filter(c => c.sport === obAnswers.sport).map(obScoreCoach);
+  let sportMatches = allCoaches.filter(c => sameSport(c.sport, sportFromAnswers(obAnswers))).map(obScoreCoach);
   sportMatches.sort((a,b) => b.score - a.score);
 
   let fallback = [];
@@ -1234,7 +1269,7 @@ function obResultCardHtml(m, isFallback){
           <div>
             <div class="result-name">${escapeHtml(c.name)}</div>
             <div class="result-role">${escapeHtml(c.sport)}</div>
-            ${isFallback && c.sport !== obAnswers.sport ? `<div class="diff-sport-note">Different sport than requested</div>` : ''}
+            ${isFallback && !sameSport(c.sport, sportFromAnswers(obAnswers)) ? `<div class="diff-sport-note">Different sport than requested</div>` : ''}
           </div>
         </div>
         <span class="match-score ${isFallback?'fallback':''}">${isFallback ? 'Top overall match' : 'Match score ' + m.score}</span>
@@ -1271,8 +1306,8 @@ function obRenderResults(primary, fallback, usedFallback){
 
   const list = usedFallback ? fallback : primary;
   const headline = usedFallback
-    ? `We don't have ${escapeHtml(obAnswers.sport)} coaches yet — here are our top overall matches`
-    : `Your top matches for ${escapeHtml(obAnswers.sport)}`;
+    ? `We don't have ${escapeHtml(sportFromAnswers(obAnswers))} coaches yet — here are our top overall matches`
+    : `Your top matches for ${escapeHtml(sportFromAnswers(obAnswers))}`;
 
   root.innerHTML = `
     <div class="ob-shell">
@@ -1341,7 +1376,7 @@ function obBindContactForm(coachId, match){
       coach_id: coachId,
       athlete_name: name,
       athlete_email: email,
-      sport: obAnswers.sport,
+      sport: sportFromAnswers(obAnswers),
       level: obAnswers.level || null,
       notes: contextLines || null,
       match_summary: (match?.reasons || []).join(' · ') || null
@@ -1390,8 +1425,12 @@ function postOpportunityFormHtml(){
 
         <label for="opp-sport">Sport</label>
         <select id="opp-sport">
-          ${SPORTS.filter(s=>s!=='Other').map(s=>`<option value="${s}">${s}</option>`).join('')}
+          ${SPORTS.map(s=>`<option value="${s}">${s}</option>`).join('')}
         </select>
+        <div class="other-sport" id="opp-other-wrap" style="display:none">
+          <label for="opp-other">Which sport?</label>
+          <input id="opp-other" maxlength="40" placeholder="e.g. Archery, Rowing, Golf">
+        </div>
 
         <label for="opp-location">Location</label>
         <select id="opp-location">
@@ -1476,16 +1515,23 @@ function applicantListHtml(apps){
 function bindPostOpportunityForm(){
   const form = document.getElementById('post-opp-form');
   if(!form) return;
+  document.getElementById('opp-sport').addEventListener('change', e=>{
+    document.getElementById('opp-other-wrap').style.display = e.target.value === 'Other' ? 'block' : 'none';
+    if(e.target.value === 'Other') document.getElementById('opp-other').focus();
+  });
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const title = document.getElementById('opp-title').value.trim();
     const minVal = document.getElementById('opp-budget-min').value;
     if(!title || !minVal) return;
+    const oppSportSel = document.getElementById('opp-sport').value;
+    const oppSport = oppSportSel === 'Other' ? document.getElementById('opp-other').value.trim() : oppSportSel;
+    if(!oppSport){ showToast('Please tell us which sport.'); document.getElementById('opp-other').focus(); return; }
 
     const payload = {
       client_id: currentUser.id,
       title,
-      sport: document.getElementById('opp-sport').value,
+      sport: oppSport,
       location_type: document.getElementById('opp-location').value,
       duration_label: document.getElementById('opp-duration').value.trim() || null,
       budget_min_cents: Math.round(parseFloat(minVal) * 100),

@@ -161,18 +161,33 @@
   .section-head{display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:36px; flex-wrap:wrap;}
   .section-head h2{font-size:clamp(30px,4vw,42px);}
   .sport-grid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:14px;
   }
   .sport-tile{
-    display:block;
-    background:var(--chalk-dim); border:1px solid rgba(28,27,24,0.08);
-    border-radius:var(--radius); padding:18px 16px; cursor:pointer;
-    transition:border-color .15s, transform .15s, background .15s;
+    position:relative; display:flex; flex-direction:column; justify-content:flex-end;
+    aspect-ratio:4/5; overflow:hidden; isolation:isolate;
+    background:var(--field); color:#fff;
+    border:1px solid rgba(28,27,24,0.08);
+    border-radius:var(--radius); padding:16px; cursor:pointer;
+    transition:border-color .15s, transform .15s, box-shadow .15s;
   }
-  .sport-tile:hover{border-color:var(--turf); background:#DDE7DD; transform:translateY(-2px);}
-  .sport-tile .ico{font-size:22px; margin-bottom:10px;}
-  .sport-tile .name{font-weight:700; font-size:15px;}
-  .sport-tile .count{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--turf); margin-top:4px;}
+  .sport-tile .bg{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2;
+    transition:transform .35s ease;
+  }
+  /* Dark gradient keeps the white label readable on any photo. */
+  .sport-tile::after{
+    content:""; position:absolute; inset:0; z-index:-1;
+    background:linear-gradient(to top, rgba(22,52,42,0.92) 0%, rgba(22,52,42,0.55) 38%, rgba(22,52,42,0) 70%);
+  }
+  .sport-tile:hover, .sport-tile:focus-visible{border-color:var(--gold); transform:translateY(-2px); box-shadow:0 8px 20px rgba(22,52,42,0.25);}
+  .sport-tile:hover .bg, .sport-tile:focus-visible .bg{transform:scale(1.06);}
+  .sport-tile .name{font-weight:700; font-size:15px; line-height:1.2; text-shadow:0 1px 3px rgba(0,0,0,0.4);}
+  .sport-tile .count{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--gold); margin-top:4px;}
+  .photo-credit{margin-top:18px; font-size:12px; color:rgba(28,27,24,0.55);}
+  .photo-credit a{color:inherit; text-decoration:underline;}
+  @media (max-width:560px){ .sport-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (prefers-reduced-motion: reduce){ .sport-tile, .sport-tile .bg{transition:none;} .sport-tile:hover .bg{transform:none;} }
 
   /* ---------- FEATURED COACHES ---------- */
   .coaches{padding:76px 0; background:var(--field); color:var(--chalk);}
@@ -421,19 +436,22 @@
       </div>
     </div>
     <div class="sport-grid">
-      <a class="sport-tile" href="coaches.html?sport=Football"><div class="ico">🏈</div><div class="name">Football</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Basketball"><div class="ico">🏀</div><div class="name">Basketball</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Baseball"><div class="ico">⚾</div><div class="name">Baseball</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Soccer"><div class="ico">⚽</div><div class="name">Soccer</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Wrestling"><div class="ico">🤼</div><div class="name">Wrestling</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Track+%26+Field"><div class="ico">🏃</div><div class="name">Track &amp; Field</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Volleyball"><div class="ico">🏐</div><div class="name">Volleyball</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Lacrosse"><div class="ico">🥍</div><div class="name">Lacrosse</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Tennis"><div class="ico">🎾</div><div class="name">Tennis</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Swimming"><div class="ico">🏊</div><div class="name">Swimming</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Hockey"><div class="ico">🏒</div><div class="name">Hockey</div><div class="count">— coaches</div></a>
-      <a class="sport-tile" href="coaches.html?sport=Strength+%26+Conditioning"><div class="ico">🏋️</div><div class="name">Strength &amp; Conditioning</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Football"><img class="bg" src="https://images.unsplash.com/photo-1521742161220-fa485d0d53e5?auto=format&fit=crop&w=480&h=600&q=70" alt="Football player making a tackle" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Football</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Basketball"><img class="bg" src="https://images.unsplash.com/photo-1759694390162-bf13852b2650?auto=format&fit=crop&w=480&h=600&q=70" alt="Basketball player shooting a free throw" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Basketball</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Baseball"><img class="bg" src="https://images.unsplash.com/photo-1513879392062-82c9a1d1c614?auto=format&fit=crop&w=480&h=600&q=70" alt="Baseball pitcher mid-delivery" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Baseball</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Soccer"><img class="bg" src="https://images.unsplash.com/photo-1783428935019-920a18221d31?auto=format&fit=crop&w=480&h=600&q=70" alt="Soccer player kicking toward goal" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Soccer</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Wrestling"><img class="bg" src="https://images.unsplash.com/photo-1764908912174-cf465d433f0f?auto=format&fit=crop&w=480&h=600&q=70" alt="Two wrestlers grappling on a mat" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Wrestling</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Track+%26+Field"><img class="bg" src="https://images.unsplash.com/photo-1532444458054-01a7dd3e9fca?auto=format&fit=crop&w=480&h=600&q=70" alt="Sprinters racing on a track" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Track &amp; Field</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Volleyball"><img class="bg" src="https://images.unsplash.com/photo-1765910226872-e8811bd45d3e?auto=format&fit=crop&w=480&h=600&q=70" alt="Volleyball players at the net" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Volleyball</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Lacrosse"><img class="bg" src="https://images.unsplash.com/photo-1547214631-d0b4f214f75a?auto=format&fit=crop&w=480&h=600&q=70" alt="Lacrosse player holding a stick" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Lacrosse</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Tennis"><img class="bg" src="https://images.unsplash.com/photo-1758040252389-47b48246fecb?auto=format&fit=crop&w=480&h=600&q=70" alt="Tennis player serving" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Tennis</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Swimming"><img class="bg" src="https://images.unsplash.com/photo-1558006252-bc08d8bb0cf9?auto=format&fit=crop&w=480&h=600&q=70" alt="Swimmer in a lap pool" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Swimming</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Hockey"><img class="bg" src="https://images.unsplash.com/photo-1549956847-f77eb7058468?auto=format&fit=crop&w=480&h=600&q=70" alt="Hockey players on the ice" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Hockey</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Pickleball"><img class="bg" src="https://images.unsplash.com/photo-1762423570127-c36ff11b883f?auto=format&fit=crop&w=480&h=600&q=70" alt="Man holding a pickleball paddle on a court" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Pickleball</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Strength+%26+Conditioning"><img class="bg" src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=480&h=600&q=70" alt="Athlete preparing to lift a barbell" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Strength &amp; Conditioning</div><div class="count">— coaches</div></a>
+      <a class="sport-tile" href="coaches.html?sport=Other"><img class="bg" src="https://images.unsplash.com/photo-1646504632442-6cacb1858bd6?auto=format&fit=crop&w=480&h=600&q=70" alt="Basket of colorful sports balls" loading="lazy" decoding="async" width="240" height="300" onerror="this.remove()"><div class="name">Other</div><div class="count">— coaches</div></a>
     </div>
+    <p class="photo-credit">Photos via <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a></p>
   </div>
 </section>
 
@@ -618,10 +636,17 @@ function fmtMoney(cents){
   try {
     const { data: sportCounts } = await sb.from('sport_counts').select('*');
     const counts = Object.fromEntries((sportCounts || []).map(r => [r.sport, r.coach_count]));
+    const namedSports = new Set([...document.querySelectorAll('.sport-tile')].map(t => {
+      const sp = new URL(t.href).searchParams.get('sport') || '';
+      return decodeURIComponent(sp.replace(/\+/g, ' '));
+    }).filter(n => n !== 'Other'));
     document.querySelectorAll('.sport-tile').forEach(tile => {
       const url = new URL(tile.href);
       const sport = decodeURIComponent((url.searchParams.get('sport') || '').replace(/\+/g, ' '));
-      const n = counts[sport] || 0;
+      // "Other" = every sport that isn't one of the named tiles (coaches who typed in their own sport)
+      const n = sport === 'Other'
+        ? Object.entries(counts).reduce((t,[k,v]) => t + (namedSports.has(k) ? 0 : v), 0)
+        : (counts[sport] || 0);
       tile.querySelector('.count').textContent = n + (n === 1 ? ' coach' : ' coaches');
     });
   } catch (e) { console.error('sport_counts load failed', e); }

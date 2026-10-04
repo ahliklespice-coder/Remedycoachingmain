@@ -82,6 +82,7 @@
 
   label{display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin-bottom:6px; margin-top:16px;}
   label:first-of-type{margin-top:0;}
+  .other-sport{margin-top:14px;}
   input, select, textarea{
     width:100%; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:10px 12px;
     font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:#fdfcf9;
@@ -234,6 +235,14 @@ const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
 
+/* "Other" sport support: picking Other reveals a free-text "Which sport?"
+   field, and the typed name is what gets saved as the sport (so profiles,
+   leads and opportunities read "Archery" rather than "Other"). */
+const KNOWN_SPORTS = SPORTS.filter(s => s !== 'Other');
+function isCustomSport(s){ return !!s && s !== 'Other' && !KNOWN_SPORTS.includes(s); }
+function sameSport(a, b){ return !!a && !!b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase(); }
+function sportFromAnswers(a){ return a.sport === 'Other' ? (a.sport_other || '').trim() : a.sport; }
+
 let currentUser = null;
 let currentProfile = null;
 
@@ -304,6 +313,10 @@ async function renderProfileColumn(){
           <select id="pf-sport">
             ${SPORTS.map(s=>`<option value="${s}">${s}</option>`).join('')}
           </select>
+          <div class="other-sport" id="pf-other-wrap" style="display:none">
+            <label for="pf-other">Which sport?</label>
+            <input id="pf-other" maxlength="40" placeholder="e.g. Archery, Rowing, Golf">
+          </div>
 
           <label for="pf-bio">Short Bio</label>
           <textarea id="pf-bio" maxlength="220" placeholder="Coaching background, specialties, what you're looking for..."></textarea>
@@ -313,16 +326,23 @@ async function renderProfileColumn(){
         </form>
         <button class="btn btn-outline-dark" id="signout-btn" style="width:100%; margin-top:10px;">Sign Out</button>
       </div>`;
+    document.getElementById('pf-sport').addEventListener('change', e=>{
+      document.getElementById('pf-other-wrap').style.display = e.target.value === 'Other' ? 'block' : 'none';
+      if(e.target.value === 'Other') document.getElementById('pf-other').focus();
+    });
     document.getElementById('profile-form').addEventListener('submit', async e=>{
       e.preventDefault();
       const name = document.getElementById('pf-name').value.trim();
       if(!name) return;
+      const sportSel = document.getElementById('pf-sport').value;
+      const sportValue = sportSel === 'Other' ? document.getElementById('pf-other').value.trim() : sportSel;
+      if(!sportValue){ showToast('Please tell us which sport.'); document.getElementById('pf-other').focus(); return; }
       const payload = {
         id: currentUser.id,
         email: currentUser.email,
         name,
         role: document.getElementById('pf-role').value,
-        sport: document.getElementById('pf-sport').value,
+        sport: sportValue,
         bio: document.getElementById('pf-bio').value.trim()
       };
       const { error } = await sb.from('profiles').upsert(payload);
@@ -374,7 +394,13 @@ async function renderProfileColumn(){
     renderProfileColumn();
     document.getElementById('pf-name').value = saved.name;
     document.getElementById('pf-role').value = saved.role;
-    document.getElementById('pf-sport').value = saved.sport;
+    if(isCustomSport(saved.sport)){
+      document.getElementById('pf-sport').value = 'Other';
+      document.getElementById('pf-other-wrap').style.display = 'block';
+      document.getElementById('pf-other').value = saved.sport;
+    } else {
+      document.getElementById('pf-sport').value = saved.sport;
+    }
     document.getElementById('pf-bio').value = saved.bio || '';
     currentProfile = saved; // restore so submit does an upsert, not a stale-empty create
   });

@@ -227,6 +227,14 @@ const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
 
+/* "Other" sport support: picking Other reveals a free-text "Which sport?"
+   field, and the typed name is what gets saved as the sport (so profiles,
+   leads and opportunities read "Archery" rather than "Other"). */
+const KNOWN_SPORTS = SPORTS.filter(s => s !== 'Other');
+function isCustomSport(s){ return !!s && s !== 'Other' && !KNOWN_SPORTS.includes(s); }
+function sameSport(a, b){ return !!a && !!b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase(); }
+function sportFromAnswers(a){ return a.sport === 'Other' ? (a.sport_other || '').trim() : a.sport; }
+
 let allCoaches = [];
 let activeSport = 'All';
 let searchTerm = '';
@@ -306,7 +314,11 @@ function renderGrid(){
 
   let filtered = allCoaches;
   if(activeSport !== 'All'){
-    filtered = filtered.filter(c => c.sport === activeSport);
+    // "Other" covers every coach whose sport isn't one of the named ones
+    // (the free-text "Which sport?" answer), so they're still findable.
+    filtered = activeSport === 'Other'
+      ? filtered.filter(c => !KNOWN_SPORTS.includes(c.sport))
+      : filtered.filter(c => c.sport === activeSport);
   }
   if(searchTerm.trim()){
     const q = searchTerm.trim().toLowerCase();
