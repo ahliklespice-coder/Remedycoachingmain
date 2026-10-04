@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Community — Remedy Coaching</title>
+<title>Community Forum — Remedy Coaching</title>
 <link rel="canonical" href="https://remedycoachinggroup.com/community.html">
-<meta name="description" content="Create your coaching profile and share updates with the Remedy Coaching community.">
+<meta name="description" content="The Remedy Coaching community forum for Professional and Elite members: 28 sports and discussion categories.">
 <link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -82,6 +82,7 @@
 
   label{display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin-bottom:6px; margin-top:16px;}
   label:first-of-type{margin-top:0;}
+  .other-sport{margin-top:14px;}
   input, select, textarea{
     width:100%; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:10px 12px;
     font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:#fdfcf9;
@@ -104,6 +105,64 @@
   .post-name{font-weight:700; font-size:14.5px;}
   .post-meta{font-size:12px; color:#a8a596; margin-top:2px;}
   .post-body{font-size:14.5px; color:#2a2921; margin-top:14px; line-height:1.6; white-space:pre-wrap;}
+
+  /* ---------- FORUM ---------- */
+  .forum-top{display:flex; gap:12px; align-items:center; margin-bottom:18px;}
+  .forum-search{flex:1; min-width:0;}
+  .forum-search input{padding:11px 14px;}
+  .crumbs{font-size:13px; color:#8a8878; margin-bottom:14px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+  .crumbs a{color:var(--turf); font-weight:600;}
+  .crumbs a:hover{text-decoration:underline;}
+  .crumb-title{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;}
+  .cat-group{margin-bottom:30px;}
+  .cat-group-title{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--turf); font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:10px;}
+  .cat-group-title::after{content:""; flex:1; height:1px; background:rgba(28,27,24,.12);}
+  .cat-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
+  @media (max-width:1100px){ .cat-grid{grid-template-columns:1fr;} }
+  .cat-card{display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:12px; padding:16px; transition:border-color .15s, transform .15s, box-shadow .15s;}
+  .cat-card:hover, .cat-card:focus-visible{border-color:var(--turf); transform:translateY(-2px); box-shadow:0 8px 18px rgba(22,52,42,.10);}
+  .cat-emoji{font-size:28px; line-height:1; width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:var(--chalk); border-radius:10px; flex-shrink:0;}
+  .cat-body{min-width:0;}
+  .cat-name{font-weight:700; font-size:15px; line-height:1.25;}
+  .cat-blurb{font-size:12.5px; color:#6f6d60; margin-top:3px; line-height:1.4;}
+  .cat-meta{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--turf); margin-top:8px;}
+  .cat-head{display:flex; gap:16px; align-items:center; margin-bottom:16px; flex-wrap:wrap;}
+  .cat-head-emoji{font-size:40px; line-height:1;}
+  .cat-head-title{font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; font-size:clamp(24px,3vw,32px); line-height:1.05; color:var(--field);}
+  .cat-head-blurb{font-size:14px; color:#6f6d60; margin-top:4px;}
+  .forum-notice{background:#FFF6D6; border:1px solid #E9C868; color:#5b4a0f; border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.45; margin-bottom:16px;}
+  .locked-note{margin-bottom:16px;}
+  .thread-list{display:flex; flex-direction:column; gap:10px;}
+  .thread-row{display:flex; gap:16px; justify-content:space-between; align-items:center; background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:12px; padding:14px 16px; transition:border-color .15s;}
+  .thread-row:hover, .thread-row:focus-visible{border-color:var(--turf);}
+  .thread-main{min-width:0;}
+  .thread-title{font-weight:700; font-size:15px; line-height:1.3;}
+  .thread-meta{font-size:12px; color:#8a8878; margin-top:4px;}
+  .thread-stats{text-align:right; flex-shrink:0; min-width:78px;}
+  .thread-count{font-family:'Anton',sans-serif; font-size:20px; line-height:1; color:var(--field);}
+  .thread-lbl{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#8a8878;}
+  .thread-last{font-size:11px; color:#a8a596; margin-top:4px;}
+  .thread-h1{font-size:clamp(20px,2.6vw,26px); line-height:1.25; font-weight:800; margin-bottom:16px;}
+  .replies-title{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--turf); margin:26px 0 12px;}
+  .no-replies{color:#a8a596; font-size:14px; padding:6px 2px;}
+  .op-badge{font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; background:var(--chalk-dim); color:var(--field); padding:2px 7px; border-radius:99px; vertical-align:middle;}
+  @media (max-width:560px){
+    .thread-row{flex-direction:column; align-items:flex-start; gap:8px;}
+    .thread-stats{text-align:left; display:flex; gap:8px; align-items:baseline; min-width:0;}
+    .thread-last{margin-top:0;}
+  }
+  .gate-card{text-align:center; padding:48px 28px;}
+  .gate-lock{font-size:38px; line-height:1; margin-bottom:14px;}
+  .gate-title{font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; font-size:clamp(22px,3vw,30px); line-height:1.1; color:var(--field);}
+  .gate-text{color:#6f6d60; max-width:520px; margin:12px auto 22px; font-size:14.5px;}
+  .gate-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  .gate-actions .btn{display:inline-block;}
+  /* ---------- END FORUM ---------- */
+
+  /* ---------- SAMPLE CONTENT LABELS ----------
+     Placeholder data shown only while the database has no real records.
+     Everything built from it carries a "Sample" chip plus a banner. */
+  .sample-chip{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; background:#D4A72C; color:#16342A; padding:2px 8px; border-radius:99px; vertical-align:middle; white-space:nowrap;}
   .empty-state{text-align:center; padding:50px 20px; color:#a8a596;}
   .empty-state .display{font-size:20px; color:var(--field); margin-bottom:8px;}
   .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
@@ -171,7 +230,6 @@
       <a href="coaches.html">Find a Coach</a>
       <a href="match.html">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
-      <a href="community.html" class="active">Community</a>
       <div class="nav-dd">
         <a href="dashboard.html" class="nav-dd-toggle" aria-haspopup="true" aria-expanded="false">Dashboard <span class="nav-dd-caret" aria-hidden="true">▾</span></a>
         <div class="nav-dd-menu" role="menu">
@@ -186,16 +244,16 @@
       <a href="index.html#pricing">Pricing</a>
     </nav>
     <div class="nav-cta">
-      <a href="index.html" class="btn btn-ghost">← Back to Home</a>
+      <a href="dashboard.html" class="btn btn-ghost">← My Dashboard</a>
     </div>
   </div>
 </header>
 
 <section class="pagehead">
   <div class="wrap">
-    <div class="eyebrow">Community</div>
-    <h1 class="display">Your profile. Your voice.</h1>
-    <p>Create a coaching profile and post updates, wins, and questions — visible to everyone in the network, in real time.</p>
+    <div class="eyebrow">Community Forum</div>
+    <h1 class="display">Talk sports. Share the game.</h1>
+    <p>A members-only forum for Professional and Elite plans. Pick a category, start a thread, and join the conversation across every sport.</p>
   </div>
 </section>
 
@@ -204,11 +262,8 @@
     <div class="sticky" id="profile-column">
       <div class="skeleton">Loading...</div>
     </div>
-    <div>
-      <div class="card composer" id="composer-column"></div>
-      <div class="feed" id="feed">
-        <div class="skeleton">Loading feed...</div>
-      </div>
+    <div id="forum-root" style="min-width:0;">
+      <div class="skeleton">Loading the forum...</div>
     </div>
   </div>
 </main>
@@ -233,6 +288,14 @@ if(!isConfigured){ document.getElementById('setup-warning').style.display = 'blo
 const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
+
+/* "Other" sport support: picking Other reveals a free-text "Which sport?"
+   field, and the typed name is what gets saved as the sport (so profiles,
+   leads and opportunities read "Archery" rather than "Other"). */
+const KNOWN_SPORTS = SPORTS.filter(s => s !== 'Other');
+function isCustomSport(s){ return !!s && s !== 'Other' && !KNOWN_SPORTS.includes(s); }
+function sameSport(a, b){ return !!a && !!b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase(); }
+function sportFromAnswers(a){ return a.sport === 'Other' ? (a.sport_other || '').trim() : a.sport; }
 
 let currentUser = null;
 let currentProfile = null;
@@ -304,6 +367,10 @@ async function renderProfileColumn(){
           <select id="pf-sport">
             ${SPORTS.map(s=>`<option value="${s}">${s}</option>`).join('')}
           </select>
+          <div class="other-sport" id="pf-other-wrap" style="display:none">
+            <label for="pf-other">Which sport?</label>
+            <input id="pf-other" maxlength="40" placeholder="e.g. Archery, Rowing, Golf">
+          </div>
 
           <label for="pf-bio">Short Bio</label>
           <textarea id="pf-bio" maxlength="220" placeholder="Coaching background, specialties, what you're looking for..."></textarea>
@@ -313,16 +380,23 @@ async function renderProfileColumn(){
         </form>
         <button class="btn btn-outline-dark" id="signout-btn" style="width:100%; margin-top:10px;">Sign Out</button>
       </div>`;
+    document.getElementById('pf-sport').addEventListener('change', e=>{
+      document.getElementById('pf-other-wrap').style.display = e.target.value === 'Other' ? 'block' : 'none';
+      if(e.target.value === 'Other') document.getElementById('pf-other').focus();
+    });
     document.getElementById('profile-form').addEventListener('submit', async e=>{
       e.preventDefault();
       const name = document.getElementById('pf-name').value.trim();
       if(!name) return;
+      const sportSel = document.getElementById('pf-sport').value;
+      const sportValue = sportSel === 'Other' ? document.getElementById('pf-other').value.trim() : sportSel;
+      if(!sportValue){ showToast('Please tell us which sport.'); document.getElementById('pf-other').focus(); return; }
       const payload = {
         id: currentUser.id,
         email: currentUser.email,
         name,
         role: document.getElementById('pf-role').value,
-        sport: document.getElementById('pf-sport').value,
+        sport: sportValue,
         bio: document.getElementById('pf-bio').value.trim()
       };
       const { error } = await sb.from('profiles').upsert(payload);
@@ -330,7 +404,7 @@ async function renderProfileColumn(){
       currentProfile = payload;
       showToast('Profile created');
       renderProfileColumn();
-      renderComposer();
+      renderForum();
     });
     document.getElementById('signout-btn').addEventListener('click', async ()=>{
       await sb.auth.signOut();
@@ -366,7 +440,7 @@ async function renderProfileColumn(){
     currentProfile = null;
     showToast('Profile deleted');
     renderProfileColumn();
-    renderComposer();
+    renderForum();
   });
   document.getElementById('edit-profile-btn').addEventListener('click', ()=>{
     const saved = currentProfile;
@@ -374,7 +448,13 @@ async function renderProfileColumn(){
     renderProfileColumn();
     document.getElementById('pf-name').value = saved.name;
     document.getElementById('pf-role').value = saved.role;
-    document.getElementById('pf-sport').value = saved.sport;
+    if(isCustomSport(saved.sport)){
+      document.getElementById('pf-sport').value = 'Other';
+      document.getElementById('pf-other-wrap').style.display = 'block';
+      document.getElementById('pf-other').value = saved.sport;
+    } else {
+      document.getElementById('pf-sport').value = saved.sport;
+    }
     document.getElementById('pf-bio').value = saved.bio || '';
     currentProfile = saved; // restore so submit does an upsert, not a stale-empty create
   });
@@ -383,100 +463,456 @@ async function renderProfileColumn(){
   });
 }
 
-/* ---------------- COMPOSER ---------------- */
+/* =========================================================
+   FORUM — categories -> threads -> replies
+   Routing is hash-based so the page stays one static file:
+     (none)        category directory
+     #c/<slug>     thread list for one category
+     #t/<id>       a thread and its replies
+     #new/<slug>   start a new thread (slug optional)
+========================================================= */
 
-function renderComposer(){
-  const el = document.getElementById('composer-column');
-  if(!isConfigured || !currentUser || !currentProfile){
-    el.innerHTML = `
-      <div class="locked-note">
-        <span>🔒</span>
-        <span>${!isConfigured ? 'Connect Supabase to enable posting.' : 'Sign in and create a profile to start posting.'}</span>
-      </div>`;
-    return;
-  }
+const CATEGORY_GROUPS = [
+  { title:'Leagues & Sports', cats:[
+    ['football','🏈','Football / NFL','American football talk, from the NFL down to Friday-night lights.'],
+    ['soccer','⚽','Soccer / Football','The world game: leagues, tactics, transfers and tournaments.'],
+    ['basketball','🏀','Basketball / NBA','Pro, college and pickup. Plays, players and film.'],
+    ['baseball','⚾','Baseball / MLB','Pitching, hitting, the long season and the postseason.'],
+    ['hockey','🏒','Hockey / NHL','On-ice talk: lines, goaltending and playoff runs.'],
+    ['tennis','🎾','Tennis','Tours, majors, technique and club play.'],
+    ['boxing-mma','🥊','Boxing & MMA','Fight cards, rankings, styles and training camps.'],
+    ['motorsports','🏎️','Motorsports / F1 / NASCAR','Race weekends, strategy, drivers and machinery.'],
+    ['cricket','🏏','Cricket','Test, ODI and T20: matches, selection and technique.'],
+    ['golf','🏌️','Golf','Tours, swing thoughts, courses and equipment fitting.'],
+    ['rugby','🏉','Rugby','Union, league and sevens: scrums, tactics and fixtures.'],
+    ['athletics','🏃','Athletics & Track','Sprints, distance, jumps, throws and cross country.'],
+    ['swimming','🏊','Swimming & Water Sports','Pool and open water, plus rowing, water polo and more.'],
+    ['winter-sports','🏂','Winter Sports','Skiing, snowboarding, skating and curling.'],
+    ['olympics','🏅','Olympics','Summer and Winter Games, qualifying and national teams.']
+  ]},
+  { title:'Training & Games', cats:[
+    ['fitness','🏋️','Fitness & Training','Programming, recovery, conditioning and injury questions.'],
+    ['esports','🎮','Esports & Sports Gaming','Competitive gaming and sports video games.'],
+    ['fantasy','🧠','Fantasy Sports','Drafts, waiver wires, lineups and league banter.'],
+    ['predictions','📊','Predictions & Betting','Forecasts and odds talk. Discussion only: see the notice inside.']
+  ]},
+  { title:'Discussion', cats:[
+    ['news','📰','Sports News & Rumors','Breaking stories, trades, signings and the rumor mill.'],
+    ['hot-takes','🔥','Hot Takes & Debates','Bold opinions welcome. Bring an argument, not an insult.'],
+    ['history','🏆','History, Records & Legends','Great careers, record books and moments worth remembering.'],
+    ['teams','👕','Teams, Clubs & Fan Communities','Find your fellow supporters and organize around your team.'],
+    ['media','📸','Photos, Videos & Highlights','Share clips, photos and highlights you made or love.'],
+    ['trivia','🎲','Sports Games & Trivia','Quizzes, guessing games and sports brain-teasers.']
+  ]},
+  { title:'Hangout', cats:[
+    ['general','💬','General Sports Chat','Anything sports that does not fit elsewhere.'],
+    ['gear','🛒','Sports Gear & Equipment','Reviews, buying advice and gear for every sport.'],
+    ['off-topic','🗣️','Off-Topic / Community','Introductions, site feedback and everything non-sports.']
+  ]}
+];
+const CATEGORIES = CATEGORY_GROUPS.flatMap(g => g.cats.map(([slug, emoji, name, blurb]) => ({ slug, emoji, name, blurb, group: g.title })));
+const catBySlug = slug => CATEGORIES.find(c => c.slug === slug) || null;
 
-  el.innerHTML = `
-    <label for="post-text" style="margin-top:0;">Share an update with the community</label>
-    <textarea id="post-text" maxlength="500" placeholder="A win, a question, a tip for other coaches..."></textarea>
-    <div class="composer-foot">
-      <span class="composer-hint"><span id="char-count">500</span> characters left</span>
-      <button class="btn btn-gold" id="post-submit-btn">Post</button>
-    </div>`;
+const CATEGORY_NOTICES = {
+  predictions: 'Discussion only. No gambling services, paid tips or links to betting sites. You must be of legal age where you live. If betting stops being fun, call 1-800-GAMBLER (US).'
+};
 
-  const textarea = document.getElementById('post-text');
-  const counter = document.getElementById('char-count');
-  textarea.addEventListener('input', ()=>{ counter.textContent = 500 - textarea.value.length; });
+/* Fictional placeholder threads, shown ONLY while the forum has no real
+   threads at all, and always tagged with a "Sample" chip. */
+const hoursAgoIso = h => new Date(Date.now() - h * 3600000).toISOString();
+const SAMPLE_THREADS = [
+  { id:'sample-t1', category:'basketball', title:'Film sessions: three possessions, not thirty', author_name:'Marisol Quenby', role:'Coach', sport:'Basketball', hours:5,
+    body:'Something that has worked well with my varsity group: pick three possessions to break down, not thirty. Players keep one clear idea far better than a pile of corrections. What is your film-session format?',
+    replies:[ { author_name:'Calvin Ashgrove', role:'Coach', hours:3, body:'Same idea in pickleball. One pattern per session, then drill it live the next day.' },
+              { author_name:'Imani Castellano', role:'Coach', hours:1, body:'I let one player present the clip first. They spot more than I expect.' } ] },
+  { id:'sample-t2', category:'fitness', title:'Return-to-play conditioning after a soft-tissue injury', author_name:'Renata Voss', role:'Coach', sport:'Strength & Conditioning', hours:30,
+    body:'How do you progress conditioning after a hamstring strain without rushing the athlete? Looking for how others stage running volume and sprint exposure.',
+    replies:[ { author_name:'Dexter Halloran', role:'Coach', hours:26, body:'I gate each stage on pain-free movement, not the calendar. Tempo runs first, then build to full-speed efforts.' } ] },
+  { id:'sample-t3', category:'hot-takes', title:'Hot take: youth sports specialize far too early', author_name:'Dexter Halloran', role:'Coach', sport:'Wrestling', hours:52,
+    body:'Most kids under 12 should be playing three sports. Early specialization burns them out and the skill gains are smaller than parents think. Convince me otherwise.',
+    replies:[ { author_name:'Tobias Lindqvist', role:'Coach', hours:48, body:'Swimming is the exception. Early technique work matters, but the volume should still stay low.' },
+              { author_name:'Hannah Pellerin', role:'Coach', hours:40, body:'Agree on volume. Variety in movement is the real gain.' } ] },
+  { id:'sample-t4', category:'tennis', title:'Does pickleball footwork transfer to tennis?', author_name:'Calvin Ashgrove', role:'Coach', sport:'Pickleball', hours:80,
+    body:'A few of my students play both. Short split-step habits seem to carry over, but court coverage is very different. Curious what tennis coaches see.',
+    replies:[] },
+  { id:'sample-t5', category:'off-topic', title:'Introduce yourself: what do you coach?', author_name:'Hannah Pellerin', role:'Coach', sport:'Archery', hours:120,
+    body:'Starting a thread for introductions. Name, sport, level you work with, and one thing you are hoping to learn from this community.',
+    replies:[ { author_name:'Marisol Quenby', role:'Coach', hours:110, body:'Basketball skills coach, mostly high school and club. Here to swap film tips.' } ] }
+].map(t => ({
+  ...t, sample:true,
+  created_at: hoursAgoIso(t.hours), last_activity_at: hoursAgoIso(t.replies.length ? t.replies[t.replies.length-1].hours : t.hours),
+  reply_count: t.replies.length,
+  replies: t.replies.map((r, i) => ({ ...r, id:`${t.id}-r${i}`, created_at: hoursAgoIso(r.hours), sample:true }))
+}));
 
-  document.getElementById('post-submit-btn').addEventListener('click', async ()=>{
-    const content = textarea.value.trim();
-    if(!content) return;
-    const { error } = await sb.from('posts').insert({
-      author_id: currentUser.id,
-      author_name: currentProfile.name,
-      role: currentProfile.role,
-      sport: currentProfile.sport,
-      content
-    });
-    if(error){ showToast('Error: ' + error.message); return; }
-    textarea.value = '';
-    counter.textContent = 500;
-    showToast('Posted');
-    // Feed updates automatically via the realtime subscription below.
-  });
+let threadsCache = [];      // real threads (summary rows), newest activity first
+let forumRoute = { view:'home' };
+let renderToken = 0;        // guards async thread loads against fast navigation
+
+const usingSampleThreads = () => threadsCache.length === 0;
+const visibleThreads = () => usingSampleThreads() ? SAMPLE_THREADS : threadsCache;
+const canPost = () => isConfigured && !!currentUser && !!currentProfile;
+
+/* ---- Access gate: the forum is for Professional and Elite members ---- */
+let currentPlan = 'free';
+let planLoaded = false;
+const hasCommunityAccess = () => currentPlan === 'professional' || currentPlan === 'elite';
+
+async function refreshPlan(){
+  planLoaded = false;
+  if(!isConfigured || !currentUser){ currentPlan = 'free'; planLoaded = true; return; }
+  const { data, error } = await sb.from('subscriptions').select('plan,status').eq('user_id', currentUser.id).maybeSingle();
+  if(error){ console.error(error); currentPlan = 'free'; }
+  else currentPlan = (data && data.status === 'active') ? data.plan : 'free';
+  planLoaded = true;
 }
 
-/* ---------------- FEED ---------------- */
+function gateHtml(){
+  const signedIn = !!currentUser;
+  return `
+    <div class="card gate-card">
+      <div class="gate-lock" aria-hidden="true">🔒</div>
+      <h1 class="gate-title">The community forum is for Professional and Elite members</h1>
+      <p class="gate-text">${signedIn
+        ? 'Your Free Agent plan doesn\u2019t include forum access. Upgrade to Professional ($29/mo) or Elite ($79/mo) to read threads, start discussions and reply across 28 sports and topic categories.'
+        : 'Sign in with a Professional or Elite plan to read threads, start discussions and reply across 28 sports and topic categories.'}</p>
+      <div class="gate-actions">
+        ${signedIn ? '' : '<a href="login.html" class="btn btn-gold">Sign In</a>'}
+        <a href="index.html#pricing" class="btn ${signedIn ? 'btn-gold' : 'btn-outline-dark'}">${signedIn ? 'Upgrade Your Plan' : 'View Plans'}</a>
+        ${signedIn ? '<a href="dashboard.html" class="btn btn-outline-dark">Back to Dashboard</a>' : ''}
+      </div>
+    </div>`;
+}
 
-let postsCache = [];
+function parseRoute(){
+  const [v, arg] = decodeURIComponent(location.hash.replace(/^#/, '')).split('/');
+  if(v === 'c' && catBySlug(arg)) return { view:'cat', slug:arg };
+  if(v === 't' && arg) return { view:'thread', id:arg };
+  if(v === 'new') return { view:'new', slug: catBySlug(arg) ? arg : null };
+  return { view:'home' };
+}
 
-function renderFeed(){
-  const el = document.getElementById('feed');
-  if(!isConfigured){
-    el.innerHTML = `<div class="skeleton">Connect Supabase to load the feed.</div>`;
-    return;
+function sampleChip(){ return '<span class="sample-chip">Sample</span>'; }
+function lockedNoteHtml(){
+  return `<div class="locked-note"><span>🔒</span><span>${!isConfigured ? 'Connect Supabase to enable posting.' : 'Sign in and create a profile to start threads and reply.'}</span></div>`;
+}
+
+function threadRowHtml(t){
+  const cat = catBySlug(t.category);
+  return `
+    <a class="thread-row" href="#t/${encodeURIComponent(t.id)}">
+      <div class="thread-main">
+        <div class="thread-title">${escapeHtml(t.title)} ${t.sample ? sampleChip() : ''}</div>
+        <div class="thread-meta">${cat ? `${cat.emoji} ${escapeHtml(cat.name)} · ` : ''}by ${escapeHtml(t.author_name)}${t.role ? ' · ' + escapeHtml(t.role) : ''} · started ${timeAgo(t.created_at)}</div>
+      </div>
+      <div class="thread-stats">
+        <div class="thread-count">${t.reply_count || 0}</div>
+        <div class="thread-lbl">${(t.reply_count || 0) === 1 ? 'reply' : 'replies'}</div>
+        <div class="thread-last">active ${timeAgo(t.last_activity_at || t.created_at)}</div>
+      </div>
+    </a>`;
+}
+
+function homeHtml(){
+  const threads = visibleThreads();
+  const byCat = {};
+  threads.forEach(t => { (byCat[t.category] ||= []).push(t); });
+  const recent = threads.slice().sort((a,b) => new Date(b.last_activity_at) - new Date(a.last_activity_at)).slice(0, 5);
+
+  const groups = CATEGORY_GROUPS.map(g => `
+    <section class="cat-group">
+      <h2 class="cat-group-title">${escapeHtml(g.title)}</h2>
+      <div class="cat-grid">
+        ${g.cats.map(([slug]) => {
+          const c = catBySlug(slug);
+          const list = byCat[slug] || [];
+          const posts = list.reduce((n, t) => n + 1 + (t.reply_count || 0), 0);
+          const latest = list.slice().sort((a,b) => new Date(b.last_activity_at) - new Date(a.last_activity_at))[0];
+          return `
+          <a class="cat-card" href="#c/${c.slug}">
+            <div class="cat-emoji" aria-hidden="true">${c.emoji}</div>
+            <div class="cat-body">
+              <div class="cat-name">${escapeHtml(c.name)}</div>
+              <div class="cat-blurb">${escapeHtml(c.blurb)}</div>
+              <div class="cat-meta">${list.length} thread${list.length === 1 ? '' : 's'} · ${posts} post${posts === 1 ? '' : 's'}${latest ? ` · active ${timeAgo(latest.last_activity_at)}` : ''}${usingSampleThreads() && list.length ? ' ' + sampleChip() : ''}</div>
+            </div>
+          </a>`;
+        }).join('')}
+      </div>
+    </section>`).join('');
+
+  return `
+    <div class="forum-top">
+      <div class="forum-search"><input id="forum-search" type="search" placeholder="Search thread titles..." aria-label="Search thread titles"></div>
+      ${canPost() ? `<a class="btn btn-gold" href="#new">+ New Thread</a>` : ''}
+    </div>
+    ${canPost() ? '' : lockedNoteHtml()}
+    <div id="forum-search-results"></div>
+    <div id="forum-home-body">
+      ${recent.length ? `
+      <section class="cat-group">
+        <h2 class="cat-group-title">Latest Activity</h2>
+        <div class="thread-list">${recent.map(threadRowHtml).join('')}</div>
+      </section>` : ''}
+      ${groups}
+    </div>`;
+}
+
+function catHtml(slug){
+  const c = catBySlug(slug);
+  const list = visibleThreads().filter(t => t.category === slug)
+    .sort((a,b) => new Date(b.last_activity_at) - new Date(a.last_activity_at));
+  return `
+    <nav class="crumbs"><a href="#">Forum</a> <span>/</span> <span>${escapeHtml(c.name)}</span></nav>
+    <div class="cat-head card">
+      <div class="cat-head-emoji" aria-hidden="true">${c.emoji}</div>
+      <div style="flex:1; min-width:0;">
+        <h1 class="cat-head-title">${escapeHtml(c.name)}</h1>
+        <p class="cat-head-blurb">${escapeHtml(c.blurb)}</p>
+      </div>
+      ${canPost() ? `<a class="btn btn-gold" href="#new/${c.slug}">+ New Thread</a>` : ''}
+    </div>
+    ${CATEGORY_NOTICES[slug] ? `<div class="forum-notice">${escapeHtml(CATEGORY_NOTICES[slug])}</div>` : ''}
+    ${canPost() ? '' : lockedNoteHtml()}
+    ${list.length
+      ? `<div class="thread-list">${list.map(threadRowHtml).join('')}</div>`
+      : `<div class="card empty-state"><div class="display">No threads yet</div><div>Be the first to start a conversation in ${escapeHtml(c.name)}.</div></div>`}`;
+}
+
+function newThreadHtml(slug){
+  if(!canPost()){
+    return `<nav class="crumbs"><a href="#">Forum</a> <span>/</span> <span>New thread</span></nav>${lockedNoteHtml()}`;
   }
-  if(postsCache.length === 0){
-    el.innerHTML = `
-      <div class="card empty-state">
-        <div class="display">No posts yet</div>
-        <div>Be the first to share something with the community.</div>
-      </div>`;
-    return;
-  }
-  el.innerHTML = postsCache.map(post => `
-    <div class="post" data-id="${post.id}">
+  return `
+    <nav class="crumbs"><a href="#">Forum</a> <span>/</span> <span>New thread</span></nav>
+    <div class="card">
+      <form id="new-thread-form">
+        <label for="nt-cat" style="margin-top:0;">Category</label>
+        <select id="nt-cat">
+          ${CATEGORY_GROUPS.map(g => `<optgroup label="${escapeHtml(g.title)}">${g.cats.map(([s, e, n]) => `<option value="${s}" ${s === slug ? 'selected' : ''}>${e} ${escapeHtml(n)}</option>`).join('')}</optgroup>`).join('')}
+        </select>
+        <label for="nt-title">Title</label>
+        <input id="nt-title" required maxlength="140" placeholder="A clear, specific title">
+        <label for="nt-body">Message</label>
+        <textarea id="nt-body" required maxlength="5000" style="min-height:160px;" placeholder="Share your thoughts, question or story..."></textarea>
+        <div class="composer-foot">
+          <span class="composer-hint"><span id="nt-count">5000</span> characters left</span>
+          <button type="submit" class="btn btn-gold" id="nt-submit">Post Thread</button>
+        </div>
+      </form>
+    </div>`;
+}
+
+function postCardHtml(p, opts){
+  return `
+    <div class="post" ${opts.id ? `data-id="${opts.id}"` : ''}>
       <div class="post-head">
         <div class="post-who">
-          <div class="avatar post-avatar">${initials(post.author_name)}</div>
+          <div class="avatar post-avatar">${initials(p.author_name)}</div>
           <div>
-            <div class="post-name">${escapeHtml(post.author_name)}</div>
-            <div class="post-meta">${escapeHtml(post.role||'')} · ${escapeHtml(post.sport||'')} · ${timeAgo(post.created_at)}</div>
+            <div class="post-name">${escapeHtml(p.author_name)} ${opts.op ? '<span class="op-badge">Author</span>' : ''} ${p.sample ? sampleChip() : ''}</div>
+            <div class="post-meta">${escapeHtml(p.role || '')}${p.sport ? ' · ' + escapeHtml(p.sport) : ''} · ${timeAgo(p.created_at)}</div>
           </div>
         </div>
-        ${currentUser && currentUser.id === post.author_id ? `<button class="btn btn-danger" data-delete="${post.id}">Delete</button>` : ''}
+        ${opts.deleteAttr ? `<button class="btn btn-danger" ${opts.deleteAttr}>Delete</button>` : ''}
       </div>
-      <div class="post-body">${escapeHtml(post.content)}</div>
-    </div>
-  `).join('');
+      <div class="post-body">${escapeHtml(p.body)}</div>
+    </div>`;
+}
 
-  el.querySelectorAll('[data-delete]').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const id = btn.getAttribute('data-delete');
-      const { error } = await sb.from('posts').delete().eq('id', id);
+function repliesHtml(replies){
+  if(!replies.length) return `<div class="no-replies">No replies yet.</div>`;
+  return replies.map(r => postCardHtml(r, {
+    id: r.id,
+    deleteAttr: currentUser && currentUser.id === r.author_id ? `data-delete-reply="${r.id}"` : ''
+  })).join('');
+}
+
+function threadShellHtml(thread, replies){
+  const c = catBySlug(thread.category);
+  return `
+    <nav class="crumbs"><a href="#">Forum</a> <span>/</span> ${c ? `<a href="#c/${c.slug}">${escapeHtml(c.name)}</a>` : ''} <span>/</span> <span class="crumb-title">${escapeHtml(thread.title)}</span></nav>
+    <h1 class="thread-h1">${escapeHtml(thread.title)} ${thread.sample ? sampleChip() : ''}</h1>
+    ${postCardHtml(thread, { op:true, deleteAttr: currentUser && currentUser.id === thread.author_id ? 'id="delete-thread-btn"' : '' })}
+    <h2 class="replies-title"><span id="reply-count">${replies.length}</span> ${replies.length === 1 ? 'Reply' : 'Replies'}</h2>
+    <div class="feed" id="thread-replies" style="margin-top:0;">${repliesHtml(replies)}</div>
+    <div class="card composer" id="reply-box" style="margin-top:18px;">
+      ${thread.sample
+        ? `<div class="locked-note"><span>ℹ️</span><span>This is a sample thread, so replies are turned off. Start a real thread to join the conversation.</span></div>`
+        : canPost()
+          ? `<form id="reply-form">
+               <label for="reply-text" style="margin-top:0;">Reply</label>
+               <textarea id="reply-text" required maxlength="3000" placeholder="Add to the conversation..."></textarea>
+               <div class="composer-foot"><span class="composer-hint"><span id="reply-chars">3000</span> characters left</span><button type="submit" class="btn btn-gold" id="reply-submit">Post Reply</button></div>
+             </form>`
+          : lockedNoteHtml()}
+    </div>`;
+}
+
+async function fetchThreads(){
+  if(!isConfigured) return;
+  const { data, error } = await sb.from('forum_threads')
+    .select('id, category, title, author_id, author_name, role, sport, reply_count, created_at, last_activity_at')
+    .order('last_activity_at', { ascending: false })
+    .limit(1000);
+  if(error){
+    // 42P01 = forum tables not created yet (supabase-setup-forum.sql); treat as empty.
+    if(error.code !== '42P01') console.error(error);
+    return;
+  }
+  threadsCache = data || [];
+}
+
+async function fetchReplies(threadId){
+  const { data, error } = await sb.from('forum_replies').select('*').eq('thread_id', threadId).order('created_at', { ascending: true });
+  if(error){ console.error(error); return []; }
+  return data || [];
+}
+
+function bindSearch(){
+  const input = document.getElementById('forum-search');
+  if(!input) return;
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    const out = document.getElementById('forum-search-results');
+    const body = document.getElementById('forum-home-body');
+    if(!q){ out.innerHTML = ''; body.style.display = ''; return; }
+    body.style.display = 'none';
+    const hits = visibleThreads().filter(t => t.title.toLowerCase().includes(q));
+    out.innerHTML = hits.length
+      ? `<div class="thread-list">${hits.map(threadRowHtml).join('')}</div>`
+      : `<div class="card empty-state"><div class="display">No matching threads</div><div>Try different words, or start a new thread.</div></div>`;
+  });
+}
+
+function bindNewThread(){
+  const form = document.getElementById('new-thread-form');
+  if(!form) return;
+  const body = document.getElementById('nt-body');
+  body.addEventListener('input', () => { document.getElementById('nt-count').textContent = 5000 - body.value.length; });
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const title = document.getElementById('nt-title').value.trim();
+    const text = body.value.trim();
+    const category = document.getElementById('nt-cat').value;
+    if(!title || !text) return;
+    const btn = document.getElementById('nt-submit'); btn.disabled = true;
+    const { data, error } = await sb.from('forum_threads').insert({
+      category, title, body: text,
+      author_id: currentUser.id, author_name: currentProfile.name,
+      role: currentProfile.role, sport: currentProfile.sport
+    }).select('id').single();
+    btn.disabled = false;
+    if(error){
+      showToast(error.code === '42P01' ? 'The forum is not set up yet. Ask the site owner to run supabase-setup-forum.sql.' : 'Error: ' + error.message);
+      return;
+    }
+    showToast('Thread posted');
+    await fetchThreads();
+    location.hash = '#t/' + data.id;
+  });
+}
+
+async function loadAndRenderThread(id, token){
+  const root = document.getElementById('forum-root');
+  const sample = SAMPLE_THREADS.find(t => t.id === id);
+  let thread, replies;
+  if(sample && usingSampleThreads()){
+    thread = sample; replies = sample.replies;
+  } else if(!isConfigured){
+    root.innerHTML = `<div class="skeleton">Connect Supabase to load threads.</div>`; return;
+  } else {
+    const { data, error } = await sb.from('forum_threads').select('*').eq('id', id).maybeSingle();
+    if(token !== renderToken) return;
+    if(error || !data){
+      root.innerHTML = `<nav class="crumbs"><a href="#">Forum</a></nav><div class="card empty-state"><div class="display">Thread not found</div><div>It may have been deleted.</div><a href="#" class="btn btn-outline-dark" style="display:inline-block; margin-top:18px;">Back to the forum</a></div>`;
+      return;
+    }
+    thread = data;
+    replies = await fetchReplies(id);
+    if(token !== renderToken) return;
+  }
+  document.title = `${thread.title} — Remedy Community`;
+  root.innerHTML = threadShellHtml(thread, replies);
+  bindThread(thread);
+}
+
+function bindThread(thread){
+  const del = document.getElementById('delete-thread-btn');
+  if(del) del.addEventListener('click', async () => {
+    if(!confirm('Delete this thread and all of its replies?')) return;
+    const { error } = await sb.from('forum_threads').delete().eq('id', thread.id);
+    if(error){ showToast('Error: ' + error.message); return; }
+    showToast('Thread deleted');
+    await fetchThreads();
+    location.hash = '#c/' + thread.category;
+  });
+  bindReplyActions(thread);
+  const form = document.getElementById('reply-form');
+  if(!form) return;
+  const ta = document.getElementById('reply-text');
+  ta.addEventListener('input', () => { document.getElementById('reply-chars').textContent = 3000 - ta.value.length; });
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = ta.value.trim();
+    if(!text) return;
+    const btn = document.getElementById('reply-submit'); btn.disabled = true;
+    const { error } = await sb.from('forum_replies').insert({
+      thread_id: thread.id, body: text,
+      author_id: currentUser.id, author_name: currentProfile.name, role: currentProfile.role, sport: currentProfile.sport
+    });
+    btn.disabled = false;
+    if(error){ showToast('Error: ' + error.message); return; }
+    ta.value = ''; document.getElementById('reply-chars').textContent = 3000;
+    showToast('Reply posted');
+    await refreshReplies(thread);
+  });
+}
+
+function bindReplyActions(thread){
+  document.querySelectorAll('[data-delete-reply]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm('Delete this reply?')) return;
+      const { error } = await sb.from('forum_replies').delete().eq('id', btn.getAttribute('data-delete-reply'));
       if(error){ showToast('Error: ' + error.message); return; }
-      showToast('Post deleted');
-      // Feed updates automatically via the realtime subscription below.
+      showToast('Reply deleted');
+      await refreshReplies(thread);
     });
   });
 }
 
-async function fetchPosts(){
-  const { data, error } = await sb.from('posts').select('*').order('created_at', { ascending: false }).limit(200);
-  if(error){ console.error(error); return; }
-  postsCache = data;
-  renderFeed();
+/* Re-render only the replies list so a half-typed reply is never wiped. */
+async function refreshReplies(thread){
+  const list = document.getElementById('thread-replies');
+  if(!list || thread.sample) return;
+  const replies = await fetchReplies(thread.id);
+  list.innerHTML = repliesHtml(replies);
+  document.getElementById('reply-count').textContent = replies.length;
+  bindReplyActions(thread);
 }
+
+async function renderForum(){
+  forumRoute = parseRoute();
+  const token = ++renderToken;
+  const root = document.getElementById('forum-root');
+  document.title = 'Community — Remedy Coaching';
+  if(!planLoaded){ root.innerHTML = `<div class="skeleton">Loading the forum...</div>`; return; }
+  if(!hasCommunityAccess()){ root.innerHTML = gateHtml(); return; }
+  if(forumRoute.view === 'home'){
+    root.innerHTML = homeHtml(); bindSearch();
+  } else if(forumRoute.view === 'cat'){
+    const c = catBySlug(forumRoute.slug);
+    document.title = `${c.name} — Remedy Community`;
+    root.innerHTML = catHtml(forumRoute.slug);
+  } else if(forumRoute.view === 'new'){
+    root.innerHTML = newThreadHtml(forumRoute.slug); bindNewThread();
+  } else {
+    root.innerHTML = `<div class="skeleton">Loading thread...</div>`;
+    await loadAndRenderThread(forumRoute.id, token);
+  }
+}
+
+window.addEventListener('hashchange', () => { renderForum(); window.scrollTo({ top: 0 }); });
 
 /* ---------------- INIT ---------------- */
 
@@ -487,11 +923,44 @@ async function loadProfileForUser(){
   currentProfile = data;
 }
 
+let forumChannel = null;
+function subscribeForumRealtime(){
+  if(forumChannel || !isConfigured) return;
+  // Live updates: new threads/replies from any member appear without a refresh.
+  // Lists re-render; an open thread only refreshes its replies (never the reply box).
+  forumChannel = sb.channel('public:forum')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'forum_threads' }, async () => {
+      await fetchThreads();
+      if(forumRoute.view === 'home' || forumRoute.view === 'cat') renderForum();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'forum_replies' }, async () => {
+      await fetchThreads();
+      if(forumRoute.view === 'thread'){
+        const list = document.getElementById('thread-replies');
+        if(list){
+          const replies = await fetchReplies(forumRoute.id);
+          list.innerHTML = repliesHtml(replies);
+          const rc = document.getElementById('reply-count'); if(rc) rc.textContent = replies.length;
+          bindReplyActions({ id: forumRoute.id });
+        }
+      } else if(forumRoute.view === 'home' || forumRoute.view === 'cat') renderForum();
+    })
+    .subscribe();
+}
+
+async function startForumForUser(){
+  await refreshPlan();
+  if(hasCommunityAccess()){
+    await fetchThreads();
+    subscribeForumRealtime();
+  }
+}
+
 async function init(){
   if(!isConfigured){
+    planLoaded = true;
     renderProfileColumn();
-    renderComposer();
-    renderFeed();
+    renderForum();
     return;
   }
 
@@ -499,20 +968,16 @@ async function init(){
   currentUser = session ? session.user : null;
   await loadProfileForUser();
   renderProfileColumn();
-  renderComposer();
-  await fetchPosts();
+  await startForumForUser();
+  await renderForum();
 
   sb.auth.onAuthStateChange(async (_event, session)=>{
     currentUser = session ? session.user : null;
     await loadProfileForUser();
     renderProfileColumn();
-    renderComposer();
+    await startForumForUser();
+    renderForum();
   });
-
-  // Live updates: new/deleted posts from any visitor appear without a refresh.
-  sb.channel('public:posts')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => { fetchPosts(); })
-    .subscribe();
 }
 
 init();

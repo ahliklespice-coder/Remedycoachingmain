@@ -98,6 +98,7 @@
 
   .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   @media (max-width:520px){ .choice-grid{grid-template-columns:1fr;} }
+  .other-sport{margin-top:14px;}
   .choice-tile{
     text-align:left; border:1.5px solid rgba(28,27,24,.14); border-radius:10px; padding:13px 15px;
     background:#fdfcf9; font-size:14px; font-weight:600; color:var(--ink);
@@ -194,7 +195,6 @@
       <a href="coaches.html">Find a Coach</a>
       <a href="match.html" class="active">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
-      <a href="community.html">Community</a>
       <div class="nav-dd">
         <a href="dashboard.html" class="nav-dd-toggle" aria-haspopup="true" aria-expanded="false">Dashboard <span class="nav-dd-caret" aria-hidden="true">▾</span></a>
         <div class="nav-dd-menu" role="menu">
@@ -239,6 +239,14 @@ if(!isConfigured){ document.getElementById('setup-warning').style.display = 'blo
 const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
+
+/* "Other" sport support: picking Other reveals a free-text "Which sport?"
+   field, and the typed name is what gets saved as the sport (so profiles,
+   leads and opportunities read "Archery" rather than "Other"). */
+const KNOWN_SPORTS = SPORTS.filter(s => s !== 'Other');
+function isCustomSport(s){ return !!s && s !== 'Other' && !KNOWN_SPORTS.includes(s); }
+function sameSport(a, b){ return !!a && !!b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase(); }
+function sportFromAnswers(a){ return a.sport === 'Other' ? (a.sport_other || '').trim() : a.sport; }
 const LEVELS = ["Youth","Middle School","High School","College","Semi-Pro/Pro"];
 const SPECIALTIES = ["Skill Development","Strength & Conditioning","Mental Performance","Recruiting Guidance","Game Strategy","Injury Recovery","Team Building","Position-Specific Training"];
 const FORMAT_LABELS = { virtual:'Virtual', in_person:'In-person', hybrid:'Hybrid' };
@@ -316,6 +324,7 @@ function isStepValid(){
   const q = QUESTIONS[step];
   const v = answers[q.id];
   if(q.optional) return true;
+  if(q.id === 'sport' && answers.sport === 'Other') return !!(answers.sport_other || '').trim();
   if(q.type === 'multi') return Array.isArray(v) && v.length > 0;
   if(q.type === 'email') return !!v && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
   return !!(v && String(v).trim());
@@ -338,6 +347,10 @@ function renderQuestion(){
     bodyHtml = `<textarea id="q-input" maxlength="600" placeholder="Optional">${escapeHtml(answers[q.id]||'')}</textarea>`;
   } else {
     bodyHtml = `<input id="q-input" type="${q.type === 'email' ? 'email' : 'text'}" maxlength="120" value="${escapeHtml(answers[q.id]||'')}" placeholder="${q.type==='email' ? 'name@example.com' : ''}">`;
+  }
+
+  if(q.id === 'sport' && answers.sport === 'Other'){
+    bodyHtml += `<div class="other-sport"><label for="other-sport-input">Which sport?</label><input id="other-sport-input" maxlength="40" placeholder="e.g. Archery, Rowing, Golf" value="${escapeHtml(answers.sport_other||'')}"></div>`;
   }
 
   root.innerHTML = `
@@ -383,6 +396,15 @@ function renderQuestion(){
       document.getElementById('next-btn').disabled = !isStepValid();
     });
     input.focus();
+  }
+
+  const otherInput = document.getElementById('other-sport-input');
+  if(otherInput){
+    otherInput.addEventListener('input', ()=>{
+      answers.sport_other = otherInput.value;
+      document.getElementById('next-btn').disabled = !isStepValid();
+    });
+    if(!(answers.sport_other || '')) otherInput.focus();
   }
 
   const backBtn = document.getElementById('back-btn');
@@ -514,7 +536,7 @@ async function runMatch(){
     return;
   }
 
-  let sportMatches = allCoaches.filter(c => c.sport === answers.sport).map(scoreCoach);
+  let sportMatches = allCoaches.filter(c => sameSport(c.sport, sportFromAnswers(answers))).map(scoreCoach);
   sportMatches.sort((a,b) => b.score - a.score);
 
   let fallback = [];
@@ -543,7 +565,7 @@ function resultCardHtml(m, isFallback){
           <div>
             <div class="result-name">${escapeHtml(c.name)}</div>
             <div class="result-role">${escapeHtml(c.sport)}</div>
-            ${isFallback && c.sport !== answers.sport ? `<div class="diff-sport-note">Different sport than requested</div>` : ''}
+            ${isFallback && !sameSport(c.sport, sportFromAnswers(answers)) ? `<div class="diff-sport-note">Different sport than requested</div>` : ''}
           </div>
         </div>
         <span class="match-score ${isFallback?'fallback':''}">${isFallback ? 'Top overall match' : 'Match score ' + m.score}</span>
@@ -574,8 +596,8 @@ function renderResults(primary, fallback, usedFallback){
 
   const list = usedFallback ? fallback : primary;
   const headline = usedFallback
-    ? `We don't have ${escapeHtml(answers.sport)} coaches yet — here are our top overall matches`
-    : `Your top matches for ${escapeHtml(answers.sport)}`;
+    ? `We don't have ${escapeHtml(sportFromAnswers(answers))} coaches yet — here are our top overall matches`
+    : `Your top matches for ${escapeHtml(sportFromAnswers(answers))}`;
 
   root.innerHTML = `
     <div class="results-head">
@@ -642,7 +664,7 @@ function bindContactForm(coachId, match){
       coach_id: coachId,
       athlete_name: name,
       athlete_email: email,
-      sport: answers.sport,
+      sport: sportFromAnswers(answers),
       level: answers.level || null,
       notes: contextLines || null,
       match_summary: (match?.reasons || []).join(' · ') || null

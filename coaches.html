@@ -117,6 +117,10 @@
   .tag{font-size:11px; background:var(--chalk-dim); padding:4px 9px; border-radius:20px; color:var(--field);}
   .view-link{margin-top:16px; font-size:13px; font-weight:700; color:var(--turf);}
 
+  /* ---------- SAMPLE CONTENT LABELS ----------
+     Placeholder data shown only while the database has no real records.
+     Everything built from it carries a "Sample" chip plus a banner. */
+  .sample-chip{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; background:#D4A72C; color:#16342A; padding:2px 8px; border-radius:99px; vertical-align:middle; white-space:nowrap;}
   .empty-state{text-align:center; padding:60px 20px; color:#a8a596;}
   .empty-state .display{font-size:20px; color:var(--field); margin-bottom:8px;}
   .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
@@ -175,7 +179,6 @@
       <a href="coaches.html" class="active">Find a Coach</a>
       <a href="match.html">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
-      <a href="community.html">Community</a>
       <div class="nav-dd">
         <a href="dashboard.html" class="nav-dd-toggle" aria-haspopup="true" aria-expanded="false">Dashboard <span class="nav-dd-caret" aria-hidden="true">▾</span></a>
         <div class="nav-dd-menu" role="menu">
@@ -227,7 +230,51 @@ const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
 
+/* "Other" sport support: picking Other reveals a free-text "Which sport?"
+   field, and the typed name is what gets saved as the sport (so profiles,
+   leads and opportunities read "Archery" rather than "Other"). */
+const KNOWN_SPORTS = SPORTS.filter(s => s !== 'Other');
+function isCustomSport(s){ return !!s && s !== 'Other' && !KNOWN_SPORTS.includes(s); }
+function sameSport(a, b){ return !!a && !!b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase(); }
+function sportFromAnswers(a){ return a.sport === 'Other' ? (a.sport_other || '').trim() : a.sport; }
+
+
+const SAMPLE_COACHES = [
+  { id:'sample-1', name:'Marisol Quenby', role:'Coach', sport:'Basketball', verified:false, sample:true,
+    bio:'Former collegiate point guard turned skills coach. Focus on ball handling, decision-making and film-based game prep for high school and club players.',
+    specialties:['Skill Development','Game Strategy','Recruiting Guidance'], specialty_ratings:{'Skill Development':5,'Game Strategy':4,'Recruiting Guidance':3},
+    credentials:[{title:'Advanced Coaching Certificate (Sample)', issuer:'Sample Coaching Association'},{title:'First Aid & CPR (Sample)', issuer:'Sample Safety Council'}] },
+  { id:'sample-2', name:'Dexter Halloran', role:'Coach', sport:'Wrestling', verified:false, sample:true,
+    bio:'Twenty years on the mat as an athlete and coach. Specializes in neutral-position technique and building a sound cutting and recovery plan.',
+    specialties:['Position-Specific Training','Mental Performance','Injury Recovery'], specialty_ratings:{'Position-Specific Training':5,'Mental Performance':4,'Injury Recovery':3},
+    credentials:[{title:'Level 3 Wrestling Coach Certificate (Sample)', issuer:'Sample Wrestling Federation'}] },
+  { id:'sample-3', name:'Imani Castellano', role:'Coach', sport:'Soccer', verified:false, sample:true,
+    bio:'Goalkeeper and defensive-unit coach. Runs small-group sessions on positioning, distribution and communication, in person or over video review.',
+    specialties:['Position-Specific Training','Team Building','Game Strategy'], specialty_ratings:{'Position-Specific Training':5,'Team Building':4,'Game Strategy':4},
+    credentials:[{title:'Goalkeeping Licence (Sample)', issuer:'Sample Football Association'}] },
+  { id:'sample-4', name:'Tobias Lindqvist', role:'Coach', sport:'Swimming', verified:false, sample:true,
+    bio:'Stroke-mechanics specialist working with age-group and masters swimmers. Underwater video analysis and race-pace planning.',
+    specialties:['Skill Development','Strength & Conditioning'], specialty_ratings:{'Skill Development':5,'Strength & Conditioning':3},
+    credentials:[{title:'Swim Coach Certification (Sample)', issuer:'Sample Aquatics Board'}] },
+  { id:'sample-5', name:'Renata Voss', role:'Coach', sport:'Strength & Conditioning', verified:false, sample:true,
+    bio:'Builds off-season and in-season programs for team sports. Emphasis on durability, speed development and return-to-play progressions.',
+    specialties:['Strength & Conditioning','Injury Recovery','Mental Performance'], specialty_ratings:{'Strength & Conditioning':5,'Injury Recovery':4,'Mental Performance':3},
+    credentials:[{title:'Strength & Conditioning Specialist (Sample)', issuer:'Sample Strength Institute'}] },
+  { id:'sample-6', name:'Calvin Ashgrove', role:'Coach', sport:'Pickleball', verified:false, sample:true,
+    bio:'Teaching pro for beginner through tournament-level players. Third-shot drops, dinking strategy and doubles positioning.',
+    specialties:['Skill Development','Game Strategy'], specialty_ratings:{'Skill Development':4,'Game Strategy':5},
+    credentials:[{title:'Teaching Professional Certificate (Sample)', issuer:'Sample Racquet Association'}] },
+  { id:'sample-7', name:'Hannah Pellerin', role:'Coach', sport:'Archery', verified:false, sample:true,
+    bio:'Target archery coach for juniors and adults. Form, consistency and competition mindset, with a focus on safe range habits.',
+    specialties:['Skill Development','Mental Performance'], specialty_ratings:{'Skill Development':4,'Mental Performance':5},
+    credentials:[{title:'Archery Instructor Certificate (Sample)', issuer:'Sample Archery Society'}] }
+];
+
+/* The SAMPLE_* data above is fictional placeholder content, shown ONLY when the
+   database has no real records, and always tagged with a small "Sample" chip. */
+
 let allCoaches = [];
+let usingSamples = false;
 let activeSport = 'All';
 let searchTerm = '';
 
@@ -292,6 +339,7 @@ function coachTileHtml(c){
           <div class="coach-role">${escapeHtml(c.sport)}</div>
         </div>
       </div>
+      ${c.sample ? `<div><span class="sample-chip">Sample profile</span></div>` : ''}
       ${c.verified ? `<div class="badge-verified">✓ Verified Credentials</div>` : ''}
       ${c.bio ? `<div class="coach-bio">${escapeHtml(c.bio)}</div>` : `<div class="coach-bio" style="color:#c7c4b6;">No bio yet.</div>`}
       ${strengthPreviewHtml(c)}
@@ -306,7 +354,11 @@ function renderGrid(){
 
   let filtered = allCoaches;
   if(activeSport !== 'All'){
-    filtered = filtered.filter(c => c.sport === activeSport);
+    // "Other" covers every coach whose sport isn't one of the named ones
+    // (the free-text "Which sport?" answer), so they're still findable.
+    filtered = activeSport === 'Other'
+      ? filtered.filter(c => !KNOWN_SPORTS.includes(c.sport))
+      : filtered.filter(c => c.sport === activeSport);
   }
   if(searchTerm.trim()){
     const q = searchTerm.trim().toLowerCase();
@@ -347,7 +399,13 @@ async function loadCoaches(){
     document.getElementById('coach-grid').innerHTML = `<div class="empty-state"><div class="display">Couldn't load coaches</div><div>${escapeHtml(error.message)}</div></div>`;
     return;
   }
-  allCoaches = data;
+  if(!data || data.length === 0){
+    // No real coaches yet — show clearly-labeled sample coaches instead of an empty page.
+    usingSamples = true;
+    allCoaches = SAMPLE_COACHES;
+  } else {
+    allCoaches = data;
+  }
   renderGrid();
 }
 
