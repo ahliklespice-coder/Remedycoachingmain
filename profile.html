@@ -102,6 +102,10 @@
   .strength-caption{font-size:11.5px; color:#a8a596; margin-top:10px;}
   .strength-empty{font-size:13.5px; color:#a8a596;}
 
+  /* ---------- SAMPLE CONTENT LABELS ----------
+     Placeholder data shown only while the database has no real records.
+     Everything built from it carries a "Sample" chip plus a banner. */
+  .sample-chip{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; background:#D4A72C; color:#16342A; padding:2px 8px; border-radius:99px; vertical-align:middle; white-space:nowrap;}
   .empty-state{text-align:center; padding:70px 20px; color:#a8a596;}
   .empty-state .display{font-size:22px; color:var(--field); margin-bottom:8px;}
   .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
@@ -160,7 +164,6 @@
       <a href="coaches.html">Find a Coach</a>
       <a href="match.html">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
-      <a href="community.html">Community</a>
       <div class="nav-dd">
         <a href="dashboard.html" class="nav-dd-toggle" aria-haspopup="true" aria-expanded="false">Dashboard <span class="nav-dd-caret" aria-hidden="true">▾</span></a>
         <div class="nav-dd-menu" role="menu">
@@ -234,6 +237,41 @@ function strengthBarsHtml(p){
     <div class="strength-caption">Self-rated by the coach.</div>`;
 }
 
+
+const SAMPLE_COACHES = [
+  { id:'sample-1', name:'Marisol Quenby', role:'Coach', sport:'Basketball', verified:false, sample:true,
+    bio:'Former collegiate point guard turned skills coach. Focus on ball handling, decision-making and film-based game prep for high school and club players.',
+    specialties:['Skill Development','Game Strategy','Recruiting Guidance'], specialty_ratings:{'Skill Development':5,'Game Strategy':4,'Recruiting Guidance':3},
+    credentials:[{title:'Advanced Coaching Certificate (Sample)', issuer:'Sample Coaching Association'},{title:'First Aid & CPR (Sample)', issuer:'Sample Safety Council'}] },
+  { id:'sample-2', name:'Dexter Halloran', role:'Coach', sport:'Wrestling', verified:false, sample:true,
+    bio:'Twenty years on the mat as an athlete and coach. Specializes in neutral-position technique and building a sound cutting and recovery plan.',
+    specialties:['Position-Specific Training','Mental Performance','Injury Recovery'], specialty_ratings:{'Position-Specific Training':5,'Mental Performance':4,'Injury Recovery':3},
+    credentials:[{title:'Level 3 Wrestling Coach Certificate (Sample)', issuer:'Sample Wrestling Federation'}] },
+  { id:'sample-3', name:'Imani Castellano', role:'Coach', sport:'Soccer', verified:false, sample:true,
+    bio:'Goalkeeper and defensive-unit coach. Runs small-group sessions on positioning, distribution and communication, in person or over video review.',
+    specialties:['Position-Specific Training','Team Building','Game Strategy'], specialty_ratings:{'Position-Specific Training':5,'Team Building':4,'Game Strategy':4},
+    credentials:[{title:'Goalkeeping Licence (Sample)', issuer:'Sample Football Association'}] },
+  { id:'sample-4', name:'Tobias Lindqvist', role:'Coach', sport:'Swimming', verified:false, sample:true,
+    bio:'Stroke-mechanics specialist working with age-group and masters swimmers. Underwater video analysis and race-pace planning.',
+    specialties:['Skill Development','Strength & Conditioning'], specialty_ratings:{'Skill Development':5,'Strength & Conditioning':3},
+    credentials:[{title:'Swim Coach Certification (Sample)', issuer:'Sample Aquatics Board'}] },
+  { id:'sample-5', name:'Renata Voss', role:'Coach', sport:'Strength & Conditioning', verified:false, sample:true,
+    bio:'Builds off-season and in-season programs for team sports. Emphasis on durability, speed development and return-to-play progressions.',
+    specialties:['Strength & Conditioning','Injury Recovery','Mental Performance'], specialty_ratings:{'Strength & Conditioning':5,'Injury Recovery':4,'Mental Performance':3},
+    credentials:[{title:'Strength & Conditioning Specialist (Sample)', issuer:'Sample Strength Institute'}] },
+  { id:'sample-6', name:'Calvin Ashgrove', role:'Coach', sport:'Pickleball', verified:false, sample:true,
+    bio:'Teaching pro for beginner through tournament-level players. Third-shot drops, dinking strategy and doubles positioning.',
+    specialties:['Skill Development','Game Strategy'], specialty_ratings:{'Skill Development':4,'Game Strategy':5},
+    credentials:[{title:'Teaching Professional Certificate (Sample)', issuer:'Sample Racquet Association'}] },
+  { id:'sample-7', name:'Hannah Pellerin', role:'Coach', sport:'Archery', verified:false, sample:true,
+    bio:'Target archery coach for juniors and adults. Form, consistency and competition mindset, with a focus on safe range habits.',
+    specialties:['Skill Development','Mental Performance'], specialty_ratings:{'Skill Development':4,'Mental Performance':5},
+    credentials:[{title:'Archery Instructor Certificate (Sample)', issuer:'Sample Archery Society'}] }
+];
+
+/* The SAMPLE_* data above is fictional placeholder content, shown ONLY when the
+   database has no real records, and always tagged with a small "Sample" chip. */
+
 function renderNotFound(message){
   document.getElementById('page-content').innerHTML = `
     <div class="wrap" style="padding-top:60px;">
@@ -246,9 +284,11 @@ function renderNotFound(message){
 }
 
 function renderProfile(profile, credentials){
-  const verifiedBadge = profile.verified
-    ? `<div class="badge-verified">✓ Verified Credentials</div>`
-    : `<div class="badge-pending">Not yet verified</div>`;
+  const verifiedBadge = profile.sample
+    ? `<div><span class="sample-chip">Sample profile</span></div>`
+    : profile.verified
+      ? `<div class="badge-verified">✓ Verified Credentials</div>`
+      : `<div class="badge-pending">Not yet verified</div>`;
 
   const credsHtml = credentials.length
     ? `<div class="cred-list">${credentials.map(c => `
@@ -257,7 +297,7 @@ function renderProfile(profile, credentials){
             <div class="cred-title">${escapeHtml(c.title)}</div>
             ${c.issuer ? `<div class="cred-issuer">${escapeHtml(c.issuer)}</div>` : ''}
           </div>
-          <div class="cred-check">✓ Approved</div>
+          <div class="cred-check">${profile.sample ? '<span class="sample-chip">Sample</span>' : '✓ Approved'}</div>
         </div>
       `).join('')}</div>`
     : `<p style="font-size:13.5px; color:#a8a596;">No approved credentials on file yet.</p>`;
@@ -297,6 +337,17 @@ function renderProfile(profile, credentials){
 }
 
 async function init(){
+  // Sample profiles (linked from the directory when it has no real coaches)
+  // are rendered from built-in placeholder data — never read from or written
+  // to the database.
+  const sampleId = new URLSearchParams(window.location.search).get('id');
+  if(sampleId && sampleId.startsWith('sample-')){
+    const sample = SAMPLE_COACHES.find(c => c.id === sampleId);
+    if(!sample){ renderNotFound(); return; }
+    document.title = `${sample.name} (Sample) — Remedy Coaching`;
+    renderProfile(sample, sample.credentials);
+    return;
+  }
   if(!isConfigured){
     renderNotFound('Connect Supabase to load profiles.');
     return;
@@ -332,6 +383,24 @@ async function init(){
   // still renders fine with an empty credentials list.
 
   renderProfile(profile, credentials);
+  addCommunityLinkForOwner(profile);
+}
+
+/* The community forum is reached from your own profile (it's no longer in the
+   site header). Only the signed-in owner of this profile sees the button. */
+async function addCommunityLinkForOwner(profile){
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session || session.user.id !== profile.id) return;
+    const top = document.querySelector('.hero-top > div:last-child');
+    if(!top) return;
+    const a = document.createElement('a');
+    a.href = 'community.html';
+    a.className = 'btn btn-gold';
+    a.style.cssText = 'display:inline-block; margin-top:14px;';
+    a.textContent = 'Open Community Forum →';
+    top.appendChild(a);
+  } catch(e){ console.error(e); }
 }
 
 init();

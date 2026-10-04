@@ -222,6 +222,10 @@
   .cred-title{font-weight:700; font-size:14px;}
   .cred-issuer{font-size:12.5px; color:#8a8878; margin-top:2px;}
 
+  /* ---------- SAMPLE CONTENT LABELS ----------
+     Placeholder data shown only while the database has no real records.
+     Everything built from it carries a "Sample" chip plus a banner. */
+  .sample-chip{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; background:#D4A72C; color:#16342A; padding:2px 8px; border-radius:99px; vertical-align:middle; white-space:nowrap;}
   .empty-state{text-align:center; padding:40px 20px; color:#a8a596;}
   .empty-state .display{font-size:18px; color:var(--field); margin-bottom:6px;}
 
@@ -325,7 +329,6 @@
       <a href="coaches.html">Find a Coach</a>
       <a href="match.html">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
-      <a href="community.html">Community</a>
       <div class="nav-dd">
         <a href="dashboard.html" class="nav-dd-toggle active" aria-haspopup="true" aria-expanded="false">Dashboard <span class="nav-dd-caret" aria-hidden="true">▾</span></a>
         <div class="nav-dd-menu" role="menu">
@@ -697,6 +700,7 @@ function profileCardHtml(){
         <button class="btn btn-danger" id="delete-profile-btn">Delete</button>
       </div>
       <a href="profile.html?id=${encodeURIComponent(currentUser.id)}" target="_blank" class="btn btn-outline-dark" style="width:100%; margin-top:8px; text-align:center;">View Public Profile ↗</a>
+      <a href="community.html" class="btn btn-outline-dark" style="width:100%; margin-top:8px; text-align:center;">Community Forum ${currentPlan === 'free' ? '🔒 <span style="font-weight:500; font-size:12px;">Professional+</span>' : '→'}</a>
     </div>`;
 }
 
@@ -1400,6 +1404,16 @@ function obBindContactForm(coachId, match){
 
 /* ---------------- OPPORTUNITIES + APPLICATIONS ---------------- */
 
+const SAMPLE_OPENINGS = [
+  { id:'sample-opp-1', sport:'Basketball', title:'Film review package for a varsity girls program', meta:'Virtual · 4 weeks', budget:'$400–$800' },
+  { id:'sample-opp-2', sport:'Wrestling', title:'Technique clinic for a youth club', meta:'In-person · One weekend', budget:'$600–$900' },
+  { id:'sample-opp-3', sport:'Soccer', title:'Goalkeeper training block', meta:'Hybrid · 8 weeks', budget:'$800–$1,500' },
+  { id:'sample-opp-4', sport:'Strength & Conditioning', title:'Off-season conditioning plan for a high school football team', meta:'Virtual · 12 weeks', budget:'$1,200–$2,000' }
+];
+
+/* The SAMPLE_* data above is fictional placeholder content, shown ONLY when the
+   database has no real records, and always tagged with a small "Sample" chip. */
+
 function openOpportunitiesListHtml(appliedIds, atApplicationLimit){
   if(opportunitiesTableMissing){
     return `<div class="card empty-state">
@@ -1408,10 +1422,15 @@ function openOpportunitiesListHtml(appliedIds, atApplicationLimit){
     </div>`;
   }
   if(OPPORTUNITIES.length === 0){
-    return `<div class="card empty-state">
-      <div class="display">No open opportunities right now</div>
-      <div>Check back soon — new postings show up here as clients add them.</div>
-    </div>`;
+    // No real postings yet — show labeled samples. They have no Apply button, so
+    // nothing here can be submitted to the database.
+    return `<div class="opp-list">${SAMPLE_OPENINGS.map(o => `
+        <div class="opp-row">
+          <span class="opp-sport">${escapeHtml(o.sport)}</span>
+          <div><div class="opp-title">${escapeHtml(o.title)}</div><div class="opp-meta">${escapeHtml(o.meta)}</div></div>
+          <span class="opp-budget">${escapeHtml(o.budget)}</span>
+          <span class="sample-chip">Sample</span>
+        </div>`).join('')}</div>`;
   }
   return `<div class="opp-list">${OPPORTUNITIES.map(o => opportunityRowHtml(o, appliedIds.has(o.id), atApplicationLimit)).join('')}</div>`;
 }

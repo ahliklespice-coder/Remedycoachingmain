@@ -156,6 +156,10 @@
   }
   @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} }
 
+  /* ---------- SAMPLE CONTENT LABELS ----------
+     Placeholder data shown only while the database has no real records.
+     Everything built from it carries a "Sample" chip plus a banner. */
+  .sample-chip{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; background:#D4A72C; color:#16342A; padding:2px 8px; border-radius:99px; vertical-align:middle; white-space:nowrap;}
   /* ---------- SEARCH BY SPORT ---------- */
   .sports{padding:76px 0; background:var(--chalk);}
   .section-head{display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:36px; flex-wrap:wrap;}
@@ -368,7 +372,6 @@
       <a href="#sports">Find a Coach</a>
       <a href="match.html">Match Quiz</a>
       <a href="#opportunities">Opportunities</a>
-      <a href="community.html">Community</a>
       <div class="nav-dd">
         <a href="dashboard.html" class="nav-dd-toggle" aria-haspopup="true" aria-expanded="false">Dashboard <span class="nav-dd-caret" aria-hidden="true">▾</span></a>
         <div class="nav-dd-menu" role="menu">
@@ -406,6 +409,7 @@
         <div><div class="num" id="stat-paid">$0</div><div class="lbl">Paid to coaches</div></div>
         <div><div class="num" id="stat-coaches">0</div><div class="lbl">Verified coaches</div></div>
       </div>
+      <div class="sample-stats-note" hidden style="margin-top:12px;"><span class="sample-chip">Sample figures</span></div>
     </div>
 
     <div class="board">
@@ -513,6 +517,7 @@
       <div class="win-card"><div class="n" id="win-athletes">0</div><div class="l">Athletes recruited to college</div></div>
       <div class="win-card"><div class="n">14</div><div class="l">Sports represented</div></div>
     </div>
+    <div class="sample-stats-note" hidden style="margin-top:18px;"><span class="sample-chip">Sample figures</span></div>
   </div>
 </section>
 
@@ -544,6 +549,7 @@
           <li>Full professional profile</li>
           <li>Unlimited opportunity access</li>
           <li>Direct client messaging</li>
+          <li>Community forum access</li>
           <li>Profile analytics</li>
         </ul>
         <a href="login.html" data-plan="professional" class="btn btn-gold" style="text-align:center;">Go Professional</a>
@@ -552,6 +558,7 @@
         <h3>Elite</h3>
         <div class="price">$79<span> /mo</span></div>
         <ul>
+          <li>Everything in Professional</li>
           <li>Featured, priority placement</li>
           <li>Verified professional badge</li>
           <li>Early access to opportunities</li>
@@ -632,6 +639,48 @@ function fmtMoney(cents){
   return '$' + dollars.toLocaleString();
 }
 
+
+const SAMPLE_COACHES = [
+  { id:'sample-1', name:'Marisol Quenby', role:'Coach', sport:'Basketball', verified:false, sample:true,
+    bio:'Former collegiate point guard turned skills coach. Focus on ball handling, decision-making and film-based game prep for high school and club players.',
+    specialties:['Skill Development','Game Strategy','Recruiting Guidance'], specialty_ratings:{'Skill Development':5,'Game Strategy':4,'Recruiting Guidance':3},
+    credentials:[{title:'Advanced Coaching Certificate (Sample)', issuer:'Sample Coaching Association'},{title:'First Aid & CPR (Sample)', issuer:'Sample Safety Council'}] },
+  { id:'sample-2', name:'Dexter Halloran', role:'Coach', sport:'Wrestling', verified:false, sample:true,
+    bio:'Twenty years on the mat as an athlete and coach. Specializes in neutral-position technique and building a sound cutting and recovery plan.',
+    specialties:['Position-Specific Training','Mental Performance','Injury Recovery'], specialty_ratings:{'Position-Specific Training':5,'Mental Performance':4,'Injury Recovery':3},
+    credentials:[{title:'Level 3 Wrestling Coach Certificate (Sample)', issuer:'Sample Wrestling Federation'}] },
+  { id:'sample-3', name:'Imani Castellano', role:'Coach', sport:'Soccer', verified:false, sample:true,
+    bio:'Goalkeeper and defensive-unit coach. Runs small-group sessions on positioning, distribution and communication, in person or over video review.',
+    specialties:['Position-Specific Training','Team Building','Game Strategy'], specialty_ratings:{'Position-Specific Training':5,'Team Building':4,'Game Strategy':4},
+    credentials:[{title:'Goalkeeping Licence (Sample)', issuer:'Sample Football Association'}] },
+  { id:'sample-4', name:'Tobias Lindqvist', role:'Coach', sport:'Swimming', verified:false, sample:true,
+    bio:'Stroke-mechanics specialist working with age-group and masters swimmers. Underwater video analysis and race-pace planning.',
+    specialties:['Skill Development','Strength & Conditioning'], specialty_ratings:{'Skill Development':5,'Strength & Conditioning':3},
+    credentials:[{title:'Swim Coach Certification (Sample)', issuer:'Sample Aquatics Board'}] },
+  { id:'sample-5', name:'Renata Voss', role:'Coach', sport:'Strength & Conditioning', verified:false, sample:true,
+    bio:'Builds off-season and in-season programs for team sports. Emphasis on durability, speed development and return-to-play progressions.',
+    specialties:['Strength & Conditioning','Injury Recovery','Mental Performance'], specialty_ratings:{'Strength & Conditioning':5,'Injury Recovery':4,'Mental Performance':3},
+    credentials:[{title:'Strength & Conditioning Specialist (Sample)', issuer:'Sample Strength Institute'}] },
+  { id:'sample-6', name:'Calvin Ashgrove', role:'Coach', sport:'Pickleball', verified:false, sample:true,
+    bio:'Teaching pro for beginner through tournament-level players. Third-shot drops, dinking strategy and doubles positioning.',
+    specialties:['Skill Development','Game Strategy'], specialty_ratings:{'Skill Development':4,'Game Strategy':5},
+    credentials:[{title:'Teaching Professional Certificate (Sample)', issuer:'Sample Racquet Association'}] },
+  { id:'sample-7', name:'Hannah Pellerin', role:'Coach', sport:'Archery', verified:false, sample:true,
+    bio:'Target archery coach for juniors and adults. Form, consistency and competition mindset, with a focus on safe range habits.',
+    specialties:['Skill Development','Mental Performance'], specialty_ratings:{'Skill Development':4,'Mental Performance':5},
+    credentials:[{title:'Archery Instructor Certificate (Sample)', issuer:'Sample Archery Society'}] }
+];
+
+const SAMPLE_OPPS = [
+  { sport:'Basketball', title:'Film review package for a varsity girls program', location_type:'virtual', duration_label:'4 weeks', min:400, max:800, daysAgo:2 },
+  { sport:'Wrestling', title:'Technique clinic for a youth club', location_type:'in_person', duration_label:'One weekend', min:600, max:900, daysAgo:3 },
+  { sport:'Soccer', title:'Goalkeeper training block', location_type:'hybrid', duration_label:'8 weeks', min:800, max:1500, daysAgo:5 },
+  { sport:'Strength & Conditioning', title:'Off-season conditioning plan for a high school football team', location_type:'virtual', duration_label:'12 weeks', min:1200, max:2000, daysAgo:9 }
+];
+const SAMPLE_STATS = { paid:127400, projects:86, athletes:31, coaches:42 };
+
+/* The SAMPLE_* data above is fictional placeholder content, shown ONLY when the
+   database has no real records, and always tagged with a small "Sample" chip. */
 (async function loadLiveStats(){
   try {
     const { data: sportCounts } = await sb.from('sport_counts').select('*');
@@ -651,16 +700,27 @@ function fmtMoney(cents){
     });
   } catch (e) { console.error('sport_counts load failed', e); }
 
+  const applySampleStats = () => {
+    document.getElementById('stat-paid').textContent = '$' + SAMPLE_STATS.paid.toLocaleString();
+    document.getElementById('stat-coaches').textContent = SAMPLE_STATS.coaches.toLocaleString() + '+';
+    document.getElementById('win-paid').textContent = '$' + SAMPLE_STATS.paid.toLocaleString();
+    document.getElementById('win-projects').textContent = SAMPLE_STATS.projects.toLocaleString();
+    document.getElementById('win-athletes').textContent = SAMPLE_STATS.athletes.toLocaleString();
+    document.querySelectorAll('.sample-stats-note').forEach(n => { n.hidden = false; });
+  };
   try {
     const { data: stats } = await sb.from('network_stats').select('*').single();
-    if (stats) {
+    const hasRealStats = stats && (stats.total_paid_cents || stats.projects_completed || stats.athletes_recruited || stats.verified_coaches);
+    if (hasRealStats) {
       document.getElementById('stat-paid').textContent = fmtMoney(stats.total_paid_cents);
       document.getElementById('stat-coaches').textContent = stats.verified_coaches.toLocaleString() + '+';
       document.getElementById('win-paid').textContent = fmtMoney(stats.total_paid_cents);
       document.getElementById('win-projects').textContent = stats.projects_completed.toLocaleString();
       document.getElementById('win-athletes').textContent = stats.athletes_recruited.toLocaleString();
+    } else {
+      applySampleStats();
     }
-  } catch (e) { console.error('network_stats load failed', e); }
+  } catch (e) { console.error('network_stats load failed', e); applySampleStats(); }
 
   try {
     const { data: coaches } = await sb
@@ -688,11 +748,18 @@ function fmtMoney(cents){
         </div>`;
       }).join('');
     } else {
-      row.innerHTML = `<div class="coach-card" style="grid-column:1/-1; text-align:center; padding:40px 22px;">
-        <div class="coach-name" style="font-size:19px; margin-bottom:8px;">Be the first Featured Coach.</div>
-        <p style="color:var(--chalk-dim); font-size:14px; margin-bottom:18px;">No verified coaches yet — join now and claim one of the first spots on the network.</p>
-        <a href="login.html" class="btn btn-gold">Join as a Coach</a>
-      </div>`;
+      row.innerHTML = SAMPLE_COACHES.slice(0, 3).map(c => `<div class="coach-card">
+          <div class="coach-top">
+            <div class="avatar">${esc(c.name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase())}</div>
+            <div>
+              <div class="coach-name">${esc(c.name)}</div>
+              <div class="coach-role">${esc(c.role)} · ${esc(c.sport)}</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;"><span class="sample-chip">Sample profile</span></div>
+          <p style="margin-top:14px; font-size:13.5px; color:var(--chalk-dim);">${esc(c.bio)}</p>
+        </div>`).join('') +
+        `<div style="grid-column:1/-1; text-align:center; margin-top:6px;"><a href="login.html" class="btn btn-gold">Join as a Coach — be the first real Featured Coach</a></div>`;
     }
   } catch (e) { console.error('featured coaches load failed', e); }
 
@@ -733,9 +800,14 @@ function fmtMoney(cents){
           <a href="dashboard.html" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
         </div>`).join('');
     } else {
-      list.innerHTML = `<div class="opp-row" style="grid-template-columns:1fr; text-align:center; padding:32px 20px;">
-        <div>No open opportunities right now — <a href="dashboard.html" style="text-decoration:underline;">post one</a> or check back soon.</div>
-      </div>`;
+      list.innerHTML = SAMPLE_OPPS.map(o => `
+        <div class="opp-row">
+          <span class="opp-sport">${esc(o.sport)}</span>
+          <div><div class="opp-title">${esc(o.title)}</div><div class="opp-meta">${esc(LOCATION_LABELS[o.location_type])} · ${esc(o.duration_label)} · Posted ${daysAgo(new Date(Date.now() - o.daysAgo * 86400000).toISOString())}</div></div>
+          <span class="opp-budget">${budgetLabel(o.min * 100, o.max ? o.max * 100 : null)}</span>
+          <span class="sample-chip">Sample</span>
+        </div>`).join('') +
+        `<div style="text-align:center; padding:18px 0 0; font-size:14px;">No real postings yet — <a href="dashboard.html" style="text-decoration:underline;">post the first one</a>.</div>`;
     }
   } catch (e) { console.error('opportunities load failed', e); }
 })();
