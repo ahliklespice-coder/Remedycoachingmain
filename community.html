@@ -135,6 +135,7 @@
     </a>
     <nav class="nav-links">
       <a href="coaches.html">Find a Coach</a>
+      <a href="match.html">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
       <a href="community.html" class="active">Community</a>
       <a href="dashboard.html">Dashboard</a>
@@ -187,7 +188,7 @@ if(!isConfigured){ document.getElementById('setup-warning').style.display = 'blo
 
 const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Other"];
+const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
 
 let currentUser = null;
 let currentProfile = null;

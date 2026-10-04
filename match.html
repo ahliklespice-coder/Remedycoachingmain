@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find My Coach — Remedy Coaching</title>
+<link rel="canonical" href="https://remedycoachinggroup.com/match.html">
+<meta name="description" content="Answer 15 quick questions and get matched with the right verified coach for your sport, level, and goals.">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --field:#16342A;
+    --field-light:#20493A;
+    --turf:#2F6B4F;
+    --chalk:#F5F3EA;
+    --chalk-dim:#E7E2D3;
+    --ink:#1C1B18;
+    --gold:#D4A72C;
+    --gold-dim:#E9C868;
+    --line: rgba(245,243,234,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:0.98;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(22,52,42,0.96); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1180px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:11px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:18px; white-space:nowrap;}
+  .logo-mark{width:38px; height:38px; flex-shrink:0;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:460px){ .logo-word{display:none;} }
+  .nav-links{display:flex; gap:32px; font-size:14.5px; font-weight:500;}
+  .nav-links a{color:var(--chalk-dim); transition:color .15s;}
+  .nav-links a:hover, .nav-links a.active{color:var(--gold);}
+  @media (max-width:760px){ .nav-links{display:none;} }
+  .nav-cta{display:flex; gap:12px; align-items:center;}
+
+  .btn{font-weight:700; font-size:14px; padding:10px 18px; border-radius:6px; border:1.5px solid transparent; transition:transform .12s, background .15s; display:inline-block;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-ghost{border-color:rgba(245,243,234,.35); color:var(--chalk); background:none;}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-outline-dark{border-color:rgba(28,27,24,.2); color:var(--ink); background:none;}
+  .btn-outline-dark:hover{border-color:var(--turf); color:var(--turf);}
+  .btn-sm{font-size:12.5px; padding:7px 12px;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:""; width:22px; height:2px; background:var(--gold); display:inline-block;}
+
+  .pagehead{background:var(--field); color:var(--chalk); padding:44px 0 36px;}
+  .pagehead .eyebrow{color:var(--gold-dim);}
+  .pagehead h1{font-size:clamp(28px,4vw,42px);}
+  .pagehead p{color:var(--chalk-dim); margin-top:8px; max-width:560px;}
+
+  main{padding:36px 0 90px;}
+  .card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:24px;}
+  .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
+  .empty-state{text-align:center; padding:50px 20px; color:#a8a596;}
+  .empty-state .display{font-size:20px; color:var(--field); margin-bottom:8px;}
+  .setup-warning{background:#b5453f; color:#fff; text-align:center; padding:10px 16px; font-size:13.5px; font-family:'IBM Plex Mono',monospace;}
+
+  label{display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin-bottom:6px;}
+  input, textarea{
+    width:100%; border:1.5px solid rgba(28,27,24,.15); border-radius:8px; padding:11px 12px;
+    font-family:'Inter',sans-serif; font-size:14.5px; color:var(--ink); background:#fdfcf9;
+  }
+  input:focus, textarea:focus{outline:none; border-color:var(--turf);}
+  textarea{resize:vertical; min-height:90px;}
+  .field-hint{font-size:11.5px; color:#a8a596; margin-top:6px;}
+
+  /* ---------------- QUIZ SHELL ---------------- */
+  .quiz-shell{max-width:640px; margin:0 auto;}
+  .progress-track{background:var(--chalk-dim); border-radius:20px; height:6px; overflow:hidden; margin-bottom:10px;}
+  .progress-fill{background:linear-gradient(90deg,var(--turf),var(--gold)); height:100%; border-radius:20px; transition:width .25s ease;}
+  .progress-label{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#8a8878; text-transform:uppercase; letter-spacing:.06em; margin-bottom:22px; display:flex; justify-content:space-between;}
+
+  .q-card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:16px; padding:32px 28px;}
+  .q-label{font-size:20px; font-family:'Anton',sans-serif; text-transform:uppercase; color:var(--field); line-height:1.2; margin-bottom:6px;}
+  .q-sub{font-size:13.5px; color:#8a8878; margin-bottom:20px;}
+
+  .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media (max-width:520px){ .choice-grid{grid-template-columns:1fr;} }
+  .choice-tile{
+    text-align:left; border:1.5px solid rgba(28,27,24,.14); border-radius:10px; padding:13px 15px;
+    background:#fdfcf9; font-size:14px; font-weight:600; color:var(--ink);
+    transition:border-color .15s, background .15s;
+  }
+  .choice-tile:hover{border-color:var(--turf);}
+  .choice-tile.selected{border-color:var(--turf); background:rgba(47,107,79,0.08); color:var(--field);}
+  .choice-tile .sub{font-weight:500; font-size:12px; color:#8a8878; margin-top:2px;}
+  .choice-tile.selected .sub{color:var(--turf);}
+
+  .q-nav{display:flex; justify-content:space-between; align-items:center; margin-top:26px; gap:10px;}
+  .q-nav .spacer{flex:1;}
+
+  /* ---------------- RESULTS ---------------- */
+  .results-head{text-align:center; margin-bottom:28px;}
+  .results-head h1{font-size:clamp(26px,4vw,36px);}
+  .results-head p{color:#6b6a63; margin-top:8px;}
+  .result-grid{display:flex; flex-direction:column; gap:16px; max-width:720px; margin:0 auto;}
+  .result-card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:22px;}
+  .result-top{display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+  .result-who{display:flex; gap:13px; align-items:center;}
+  .avatar{width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg,var(--turf),var(--field-light)); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:16px; color:var(--chalk); flex-shrink:0;}
+  .result-name{font-weight:700; font-size:16px;}
+  .result-role{font-size:12.5px; color:#8a8878; margin-top:2px;}
+  .match-score{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--turf); background:rgba(47,107,79,.08); border:1px solid rgba(47,107,79,.25); padding:5px 10px; border-radius:20px; white-space:nowrap;}
+  .match-score.fallback{color:#8a6a10; background:rgba(212,167,44,.1); border-color:rgba(212,167,44,.3);}
+  .badge-verified{
+    display:inline-flex; align-items:center; gap:5px; margin-top:10px; width:fit-content;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--turf);
+    border:1px solid rgba(47,107,79,0.3); background:rgba(47,107,79,0.07); padding:3px 9px; border-radius:20px;
+  }
+  .why-chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;}
+  .why-chip{font-size:11.5px; background:var(--chalk-dim); color:var(--field); padding:4px 10px; border-radius:20px;}
+  .result-bio{font-size:13px; color:#4a4940; margin-top:14px; line-height:1.5;}
+  .result-actions{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;}
+
+  .contact-box{margin-top:16px; padding-top:16px; border-top:1px dashed rgba(28,27,24,.12);}
+  .contact-box .field-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .contact-box .field-row > div{flex:1; min-width:180px;}
+  .sent-note{font-size:13px; color:var(--turf); font-weight:600; margin-top:16px; padding-top:16px; border-top:1px dashed rgba(28,27,24,.12);}
+
+  .diff-sport-note{font-size:12px; color:#8a6a10; margin-top:2px;}
+</style>
+</head>
+<body>
+
+<div class="setup-warning" id="setup-warning" style="display:none;">⚠️ Supabase isn't configured yet — edit SUPABASE_URL and SUPABASE_ANON_KEY near the bottom of this file.</div>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </a>
+    <nav class="nav-links">
+      <a href="coaches.html">Find a Coach</a>
+      <a href="match.html" class="active">Match Quiz</a>
+      <a href="index.html#opportunities">Opportunities</a>
+      <a href="community.html">Community</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="login.html" class="btn btn-ghost">Log In</a>
+      <a href="login.html" class="btn btn-gold">Join as Coach</a>
+    </div>
+  </div>
+</header>
+
+<section class="pagehead">
+  <div class="wrap">
+    <div class="eyebrow">Find My Coach</div>
+    <h1 class="display">15 questions. The right coach.</h1>
+    <p>Tell us about the athlete, the goals, and what matters most — we'll match against our verified coach network and connect you directly. No account required.</p>
+  </div>
+</section>
+
+<main>
+  <div class="wrap" id="quiz-root">
+    <div class="quiz-shell">
+      <div class="skeleton">Loading…</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
+
+const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.includes('YOUR_');
+if(!isConfigured){ document.getElementById('setup-warning').style.display = 'block'; }
+const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
+const LEVELS = ["Youth","Middle School","High School","College","Semi-Pro/Pro"];
+const SPECIALTIES = ["Skill Development","Strength & Conditioning","Mental Performance","Recruiting Guidance","Game Strategy","Injury Recovery","Team Building","Position-Specific Training"];
+const FORMAT_LABELS = { virtual:'Virtual', in_person:'In-person', hybrid:'Hybrid' };
+const STYLE_LABELS = { encouraging:'Encouraging & positive', direct:'Direct & no-nonsense', structured:'Highly structured', flexible:'Flexible & adaptive' };
+const STYLE_KEYWORDS = {
+  encouraging: ['encourag','positive','supportive','patient','uplift'],
+  direct: ['direct','discipline','accountab','tough','no-nonsense','nonsense'],
+  structured: ['structur','program','systematic','detailed','curriculum'],
+  flexible: ['flexib','adapt','individualiz','individualis','tailor','custom']
+};
+const BUDGET_BANDS = {
+  under_50: [0, 5000],
+  '50_150': [5000, 15000],
+  '150_300': [15000, 30000],
+  '300_plus': [30000, Infinity],
+};
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : str;
+  return d.innerHTML;
+}
+function initials(name){
+  return (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('') || '?';
+}
+
+/* =========================================================================
+   THE 15 QUESTIONS
+   Each question is one of:
+     - single : pick exactly one option, scored or used as a hard filter
+     - multi  : pick up to `max` options, scored
+     - text / email / textarea : free-form, mostly for contacting the coach
+
+   Every question either (a) hard-filters coaches, (b) feeds a scored
+   dimension backed by real coach data, or (c) is used only for context in
+   the outreach message — that split is called out in computeMatches()
+   below rather than pretending every answer changes the ranking.
+========================================================================= */
+const QUESTIONS = [
+  { id:'sport', type:'single', label:"What sport are you looking for coaching in?", options: SPORTS.map(s=>({value:s,label:s})) },
+  { id:'level', type:'single', label:"What's the athlete's competitive level?", options: LEVELS.map(l=>({value:l,label:l})) },
+  { id:'specialties', type:'multi', max:2, label:"What are you hoping to improve most?", sub:"Choose up to 2.", options: SPECIALTIES.map(s=>({value:s,label:s})) },
+  { id:'format', type:'single', label:"How do you prefer to train?", options:[
+    {value:'virtual', label:'Virtual'}, {value:'in_person', label:'In-person'}, {value:'hybrid', label:'Hybrid'}, {value:'no_preference', label:'No preference'}
+  ]},
+  { id:'budget', type:'single', label:"What's your budget, per session or project?", options:[
+    {value:'under_50', label:'Under $50'}, {value:'50_150', label:'$50 – $150'}, {value:'150_300', label:'$150 – $300'}, {value:'300_plus', label:'$300+'}, {value:'not_sure', label:"Not sure yet"}
+  ]},
+  { id:'timeline', type:'single', label:"How soon are you hoping to start?", sub:"This won't affect your matches — just helps us set expectations.", options:[
+    {value:'this_week', label:'This week'}, {value:'within_month', label:'Within a month'}, {value:'just_exploring', label:'Just exploring'}
+  ]},
+  { id:'commitment', type:'single', label:"How much time can you commit?", sub:"For context only — shared with the coach you contact.", options:[
+    {value:'1x_week', label:'~1 session / week'}, {value:'2_3x_week', label:'2–3 sessions / week'}, {value:'few_times_month', label:'A few times a month'}, {value:'one_time', label:'One-time session'}
+  ]},
+  { id:'verified_importance', type:'single', label:"How important is it that your coach is a verified network member?", options:[
+    {value:'strongly', label:'Very important'}, {value:'somewhat', label:'Nice to have'}, {value:'no_preference', label:'No preference'}
+  ]},
+  { id:'trackrecord_importance', type:'single', label:"How much does a coach's track record matter?", sub:"E.g. athletes they've recruited to college.", options:[
+    {value:'very', label:'Very important'}, {value:'somewhat', label:'Somewhat'}, {value:'not_important', label:'Not important'}
+  ]},
+  { id:'age_band', type:'single', label:"What age is the athlete?", sub:"For context only — helps the coach prepare.", options:[
+    {value:'8_10', label:'8–10'}, {value:'11_13', label:'11–13'}, {value:'14_18', label:'14–18'}, {value:'college_plus', label:'College / adult'}
+  ]},
+  { id:'style', type:'multi', max:2, label:"What matters most in a coach's communication style?", sub:"Choose up to 2 — we compare this against each coach's own bio.", options: Object.entries(STYLE_LABELS).map(([value,label])=>({value,label})) },
+  { id:'injuries', type:'text', label:"Any past injuries or physical considerations coaches should know about?", sub:"Optional — shared with the coach you contact.", optional:true },
+  { id:'name', type:'text', label:"What's your name?" },
+  { id:'email', type:'email', label:"Best email to reach you?", sub:"Only shared with the coach(es) you choose to contact." },
+  { id:'notes', type:'textarea', label:"Anything else you'd like matched coaches to know?", sub:"Optional.", optional:true },
+];
+
+let step = 0;
+let answers = {};
+
+function isStepValid(){
+  const q = QUESTIONS[step];
+  const v = answers[q.id];
+  if(q.optional) return true;
+  if(q.type === 'multi') return Array.isArray(v) && v.length > 0;
+  if(q.type === 'email') return !!v && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
+  return !!(v && String(v).trim());
+}
+
+function renderQuestion(){
+  const root = document.getElementById('quiz-root');
+  const q = QUESTIONS[step];
+  const pct = Math.round(((step) / QUESTIONS.length) * 100);
+
+  let bodyHtml = '';
+  if(q.type === 'single' || q.type === 'multi'){
+    const selected = q.type === 'multi' ? (answers[q.id]||[]) : [answers[q.id]];
+    bodyHtml = `<div class="choice-grid">${q.options.map(opt => `
+      <button type="button" class="choice-tile ${selected.includes(opt.value)?'selected':''}" data-value="${escapeHtml(opt.value)}">
+        ${escapeHtml(opt.label)}
+      </button>
+    `).join('')}</div>`;
+  } else if(q.type === 'textarea'){
+    bodyHtml = `<textarea id="q-input" maxlength="600" placeholder="Optional">${escapeHtml(answers[q.id]||'')}</textarea>`;
+  } else {
+    bodyHtml = `<input id="q-input" type="${q.type === 'email' ? 'email' : 'text'}" maxlength="120" value="${escapeHtml(answers[q.id]||'')}" placeholder="${q.type==='email' ? 'name@example.com' : ''}">`;
+  }
+
+  root.innerHTML = `
+    <div class="quiz-shell">
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-label"><span>Question ${step+1} of ${QUESTIONS.length}</span><span>${pct}%</span></div>
+      <div class="q-card">
+        <div class="q-label">${escapeHtml(q.label)}</div>
+        ${q.sub ? `<div class="q-sub">${escapeHtml(q.sub)}</div>` : ''}
+        ${bodyHtml}
+        <div class="q-nav">
+          ${step > 0 ? `<button type="button" class="btn btn-outline-dark" id="back-btn">← Back</button>` : `<span></span>`}
+          <div class="spacer"></div>
+          <button type="button" class="btn btn-gold" id="next-btn" ${isStepValid() ? '' : 'disabled'}>
+            ${step === QUESTIONS.length - 1 ? 'See My Matches' : 'Next →'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  if(q.type === 'single' || q.type === 'multi'){
+    root.querySelectorAll('.choice-tile').forEach(tile=>{
+      tile.addEventListener('click', ()=>{
+        if(q.type === 'single'){
+          answers[q.id] = tile.dataset.value;
+        } else {
+          const cur = new Set(answers[q.id] || []);
+          if(cur.has(tile.dataset.value)){
+            cur.delete(tile.dataset.value);
+          } else {
+            if(cur.size >= (q.max||99)) return; // at the cap — ignore extra picks
+            cur.add(tile.dataset.value);
+          }
+          answers[q.id] = [...cur];
+        }
+        renderQuestion();
+      });
+    });
+  } else {
+    const input = document.getElementById('q-input');
+    input.addEventListener('input', ()=>{
+      answers[q.id] = input.value;
+      document.getElementById('next-btn').disabled = !isStepValid();
+    });
+    input.focus();
+  }
+
+  const backBtn = document.getElementById('back-btn');
+  if(backBtn) backBtn.addEventListener('click', ()=>{ step--; renderQuestion(); });
+
+  document.getElementById('next-btn').addEventListener('click', ()=>{
+    if(!isStepValid()) return;
+    if(step === QUESTIONS.length - 1){
+      runMatch();
+    } else {
+      step++;
+      renderQuestion();
+    }
+  });
+}
+
+/* =========================================================================
+   MATCHING
+   Every coach starts at 0. Points are only added for dimensions backed by
+   real profile data (sport, coaching_levels, specialties, session_formats,
+   rate range, verified, athletes_recruited_to_college, and a keyword read
+   of the coach's own bio for communication style). Timeline, weekly
+   commitment, age band, injuries and notes are NOT scored — they're
+   context passed along when you contact a coach, called out as such in the
+   questions above so nothing here is pretending to be smarter than it is.
+========================================================================= */
+
+function rangesOverlap(a, b){
+  return a[0] <= b[1] && b[0] <= a[1];
+}
+
+function scoreCoach(c){
+  let score = 0;
+  const reasons = [];
+
+  // Level
+  if(Array.isArray(c.coaching_levels) && c.coaching_levels.length){
+    if(c.coaching_levels.includes(answers.level)){
+      score += 20;
+      reasons.push(`Coaches the ${answers.level} level`);
+    }
+  } else {
+    score += 5; // no data from this coach yet — small neutral credit, not a match claim
+  }
+
+  // Specialties overlap
+  const specialtiesSet = new Set(c.specialties || []);
+  (answers.specialties || []).forEach(s => {
+    if(specialtiesSet.has(s)){ score += 15; reasons.push(`Focuses on ${s}`); }
+  });
+
+  // Training format
+  if(answers.format === 'no_preference'){
+    score += 5;
+  } else if(Array.isArray(c.session_formats) && c.session_formats.length){
+    if(c.session_formats.includes(answers.format)){
+      score += 15;
+      reasons.push(`Trains ${FORMAT_LABELS[answers.format]}`);
+    }
+  } else {
+    score += 3;
+  }
+
+  // Budget
+  if(answers.budget !== 'not_sure'){
+    const band = BUDGET_BANDS[answers.budget];
+    if(c.rate_min_cents != null || c.rate_max_cents != null){
+      const coachRange = [c.rate_min_cents ?? 0, c.rate_max_cents ?? Infinity];
+      if(rangesOverlap(coachRange, band)){
+        score += 15;
+        reasons.push('Fits your budget');
+      } else {
+        score -= 5;
+      }
+    } else {
+      score += 3;
+    }
+  }
+
+  // Verified importance
+  if(answers.verified_importance !== 'no_preference'){
+    const weight = answers.verified_importance === 'strongly' ? 25 : 12;
+    if(c.verified){
+      score += weight;
+      reasons.push('✓ Verified credentials');
+    } else if(answers.verified_importance === 'strongly'){
+      score -= 10;
+    }
+  }
+
+  // Track record importance
+  if(answers.trackrecord_importance !== 'not_important'){
+    const weight = answers.trackrecord_importance === 'very' ? 2 : 1;
+    const recruited = c.athletes_recruited_to_college || 0;
+    score += Math.min(recruited, 10) * weight;
+    if(recruited > 0) reasons.push(`${recruited} athlete${recruited===1?'':'s'} recruited to college`);
+  }
+
+  // Communication style — naive keyword match against the coach's own bio.
+  // This is a heuristic, not a claim about the coach's actual style, so
+  // it's always phrased as "from bio" in the chip.
+  const bio = (c.bio || '').toLowerCase();
+  (answers.style || []).forEach(styleKey => {
+    const hit = (STYLE_KEYWORDS[styleKey]||[]).some(kw => bio.includes(kw));
+    if(hit){ score += 10; reasons.push(`${STYLE_LABELS[styleKey]} style (from bio)`); }
+  });
+
+  return { coach: c, score, reasons };
+}
+
+async function runMatch(){
+  const root = document.getElementById('quiz-root');
+  root.innerHTML = `<div class="quiz-shell"><div class="skeleton">Finding your matches…</div></div>`;
+
+  if(!isConfigured){
+    root.innerHTML = `<div class="quiz-shell card empty-state"><div class="display">Not connected</div><div>Connect Supabase to run the match quiz.</div></div>`;
+    return;
+  }
+
+  const { data, error } = await sb.from('profiles').select('*').eq('role', 'Coach');
+  if(error){
+    root.innerHTML = `<div class="quiz-shell card empty-state"><div class="display">Something went wrong</div><div>${escapeHtml(error.message)}</div></div>`;
+    return;
+  }
+
+  const allCoaches = data || [];
+  if(allCoaches.length === 0){
+    renderResults([], [], false);
+    return;
+  }
+
+  let sportMatches = allCoaches.filter(c => c.sport === answers.sport).map(scoreCoach);
+  sportMatches.sort((a,b) => b.score - a.score);
+
+  let fallback = [];
+  let usedFallback = false;
+  if(sportMatches.length === 0){
+    usedFallback = true;
+    fallback = allCoaches.map(scoreCoach);
+    fallback.sort((a,b) => b.score - a.score);
+  }
+
+  renderResults(sportMatches.slice(0,6), fallback.slice(0,6), usedFallback);
+}
+
+function chipList(reasons){
+  if(!reasons.length) return '';
+  return `<div class="why-chips">${reasons.map(r => `<span class="why-chip">${escapeHtml(r)}</span>`).join('')}</div>`;
+}
+
+function resultCardHtml(m, isFallback){
+  const c = m.coach;
+  return `
+    <div class="result-card" data-coach-id="${escapeHtml(c.id)}">
+      <div class="result-top">
+        <div class="result-who">
+          <div class="avatar">${initials(c.name)}</div>
+          <div>
+            <div class="result-name">${escapeHtml(c.name)}</div>
+            <div class="result-role">${escapeHtml(c.sport)}</div>
+            ${isFallback && c.sport !== answers.sport ? `<div class="diff-sport-note">Different sport than requested</div>` : ''}
+          </div>
+        </div>
+        <span class="match-score ${isFallback?'fallback':''}">${isFallback ? 'Top overall match' : 'Match score ' + m.score}</span>
+      </div>
+      ${c.verified ? `<div class="badge-verified">✓ Verified Credentials</div>` : ''}
+      ${c.bio ? `<div class="result-bio">${escapeHtml(c.bio)}</div>` : ''}
+      ${chipList(m.reasons)}
+      <div class="result-actions">
+        <a href="profile.html?id=${encodeURIComponent(c.id)}" target="_blank" class="btn btn-outline-dark btn-sm">View Profile ↗</a>
+        <button type="button" class="btn btn-gold btn-sm" data-contact-toggle="${escapeHtml(c.id)}">Contact This Coach</button>
+      </div>
+      <div class="contact-box" id="contact-box-${escapeHtml(c.id)}" style="display:none;"></div>
+    </div>`;
+}
+
+function renderResults(primary, fallback, usedFallback){
+  const root = document.getElementById('quiz-root');
+
+  if(primary.length === 0 && fallback.length === 0){
+    root.innerHTML = `
+      <div class="quiz-shell card empty-state">
+        <div class="display">Be our first match.</div>
+        <div>The coach network is just getting started — no one's in it yet for us to match you with. Check back soon, or join as a coach yourself.</div>
+        <a href="login.html" class="btn btn-gold" style="display:inline-block; margin-top:18px;">Join as a Coach</a>
+      </div>`;
+    return;
+  }
+
+  const list = usedFallback ? fallback : primary;
+  const headline = usedFallback
+    ? `We don't have ${escapeHtml(answers.sport)} coaches yet — here are our top overall matches`
+    : `Your top matches for ${escapeHtml(answers.sport)}`;
+
+  root.innerHTML = `
+    <div class="results-head">
+      <div class="eyebrow" style="justify-content:center; color:var(--turf);">Your Results</div>
+      <h1 class="display">${headline}</h1>
+      <p>Ranked by fit to what you told us. Message any coach directly — no account needed.</p>
+    </div>
+    <div class="result-grid">${list.map(m => resultCardHtml(m, usedFallback)).join('')}</div>
+    <div style="text-align:center; margin-top:28px;">
+      <a href="coaches.html" class="btn btn-outline-dark btn-sm">Browse the full directory →</a>
+    </div>`;
+
+  document.querySelectorAll('[data-contact-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.contactToggle;
+      const box = document.getElementById('contact-box-' + id);
+      const isOpen = box.style.display !== 'none';
+      if(isOpen){ box.style.display = 'none'; return; }
+      box.style.display = 'block';
+      box.innerHTML = contactFormHtml(id);
+      bindContactForm(id, list.find(m => m.coach.id === id));
+    });
+  });
+}
+
+function contactFormHtml(coachId){
+  return `
+    <form data-contact-form="${escapeHtml(coachId)}">
+      <div class="field-row">
+        <div><label>Your name</label><input id="contact-name-${escapeHtml(coachId)}" value="${escapeHtml(answers.name||'')}" required></div>
+        <div><label>Your email</label><input type="email" id="contact-email-${escapeHtml(coachId)}" value="${escapeHtml(answers.email||'')}" required></div>
+      </div>
+      <label style="margin-top:14px;">Note to this coach (optional)</label>
+      <textarea id="contact-note-${escapeHtml(coachId)}" maxlength="500" placeholder="Anything specific you'd like them to know...">${escapeHtml(answers.notes||'')}</textarea>
+      <button type="submit" class="btn btn-gold btn-sm form-submit" style="margin-top:12px;">Send My Info</button>
+      <div class="field-hint" id="contact-status-${escapeHtml(coachId)}"></div>
+    </form>`;
+}
+
+function bindContactForm(coachId, match){
+  const form = document.querySelector(`[data-contact-form="${coachId}"]`);
+  if(!form) return;
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const name = document.getElementById(`contact-name-${coachId}`).value.trim();
+    const email = document.getElementById(`contact-email-${coachId}`).value.trim();
+    const note = document.getElementById(`contact-note-${coachId}`).value.trim();
+    const statusEl = document.getElementById(`contact-status-${coachId}`);
+    if(!name || !email){ return; }
+
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    const contextLines = [
+      answers.timeline ? `Timeline: ${answers.timeline.replace(/_/g,' ')}` : null,
+      answers.commitment ? `Weekly commitment: ${answers.commitment.replace(/_/g,' ')}` : null,
+      answers.age_band ? `Athlete age: ${answers.age_band.replace(/_/g,' ')}` : null,
+      answers.injuries ? `Injuries/considerations: ${answers.injuries}` : null,
+      note ? `Note: ${note}` : null,
+    ].filter(Boolean).join('\n');
+
+    const { error } = await sb.from('match_leads').insert({
+      coach_id: coachId,
+      athlete_name: name,
+      athlete_email: email,
+      sport: answers.sport,
+      level: answers.level || null,
+      notes: contextLines || null,
+      match_summary: (match?.reasons || []).join(' · ') || null
+    });
+
+    if(error){
+      if(error.code === '42P01'){
+        statusEl.textContent = "Contacting coaches isn't set up yet — run supabase-setup-match-quiz.sql in Supabase.";
+      } else {
+        statusEl.textContent = 'Error: ' + error.message;
+      }
+      btn.disabled = false;
+      btn.textContent = 'Send My Info';
+      return;
+    }
+
+    const box = document.getElementById('contact-box-' + coachId);
+    box.innerHTML = `<div class="sent-note">✓ Sent — this coach will reach out to you directly at ${escapeHtml(email)}.</div>`;
+  });
+}
+
+renderQuestion();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Us — Remedy Coaching</title>
+<link rel="canonical" href="https://remedycoachinggroup.com/about.html">
+<meta name="description" content="Remedy Coaching is the professional network for sports coaches: coaches build verified profiles and get hired for paid consulting work, from film review to full program builds.">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<meta property="og:title" content="About Us — Remedy Coaching">
+<meta property="og:description" content="Remedy Coaching is an online network built for coaches, by coaches. Coaches in 13 sports and beyond create profiles that show their championships, certifications and endorsements, then apply to paid consulting projects posted by teams, schools and athletic organizations.">
+<meta property="og:url" content="https://remedycoachinggroup.com/about.html">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://remedycoachinggroup.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --field:#16342A;
+    --field-light:#20493A;
+    --turf:#2F6B4F;
+    --chalk:#F5F3EA;
+    --chalk-dim:#E7E2D3;
+    --ink:#1C1B18;
+    --gold:#D4A72C;
+    --gold-dim:#E9C868;
+    --line: rgba(245,243,234,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:0.96;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(22,52,42,0.96); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1180px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:11px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:18px; white-space:nowrap;}
+  .logo-mark{width:38px; height:38px; flex-shrink:0;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:460px){ .logo-word{display:none;} }
+  .nav-links{display:flex; gap:32px; font-size:14.5px; font-weight:500;}
+  .nav-links a{color:var(--chalk-dim); transition:color .15s;}
+  .nav-links a:hover, .nav-links a.active{color:var(--gold);}
+  @media (max-width:860px){ .nav-links{display:none;} }
+  .nav-cta{display:flex; gap:12px; align-items:center;}
+
+  .btn{font-weight:700; font-size:14px; padding:10px 18px; border-radius:6px; border:1.5px solid transparent; transition:transform .12s, background .15s; display:inline-block;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-ghost{border-color:rgba(245,243,234,.35); color:var(--chalk); background:none;}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-outline-dark{border-color:rgba(28,27,24,.2); color:var(--ink); background:none;}
+  .btn-outline-dark:hover{border-color:var(--turf); color:var(--turf);}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:""; width:22px; height:2px; background:var(--gold); display:inline-block;}
+
+  .pagehead{background:var(--field); color:var(--chalk); padding:56px 0 48px;}
+  .pagehead .eyebrow{color:var(--gold-dim);}
+  .pagehead h1{font-size:clamp(32px,4.5vw,50px);}
+  .pagehead p{color:var(--chalk-dim); margin-top:14px; max-width:620px; font-size:17px;}
+
+  main{padding:56px 0 90px;}
+  .about-wrap{max-width:720px; margin:0 auto; padding:0 28px;}
+  .about-body p{font-size:15.5px; color:#3a3930; line-height:1.75; margin-top:18px;}
+  .about-body p:first-child{margin-top:0;}
+  .about-body p.about-closing{
+    color:var(--field); font-weight:700; font-size:16.5px; margin-top:28px; padding-top:28px;
+    border-top:1px solid rgba(28,27,24,.1);
+  }
+
+  .about-cta{background:var(--field); color:var(--chalk); padding:56px 0; text-align:center; margin-top:64px;}
+  .about-cta h2{font-size:clamp(26px,4vw,38px); max-width:600px; margin:0 auto;}
+  .about-cta p{color:var(--chalk-dim); margin:14px auto 0; max-width:460px; font-size:14.5px;}
+  .about-cta-actions{display:flex; gap:14px; justify-content:center; margin-top:28px; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </a>
+    <nav class="nav-links">
+      <a href="coaches.html">Find a Coach</a>
+      <a href="match.html">Match Quiz</a>
+      <a href="index.html#opportunities">Opportunities</a>
+      <a href="community.html">Community</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="about.html" class="active">About</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="login.html" class="btn btn-ghost">Log In</a>
+      <a href="login.html" class="btn btn-gold">Join as Coach</a>
+    </div>
+  </div>
+</header>
+
+<section class="pagehead">
+  <div class="wrap">
+    <div class="eyebrow">About Us</div>
+    <h1 class="display">Built by coaches, for coaches.</h1>
+    <p>Remedy Coaching is the professional network for sports coaches: coaches build verified profiles and get hired for paid consulting work, from film review to full program builds.</p>
+  </div>
+</section>
+
+<main>
+  <div class="about-wrap">
+    <div class="about-body">
+      <p>Thousands of experienced coaches have deep expertise but few ways to earn from it outside their main job. Meanwhile, schools, clubs and athletic organizations struggle to find qualified help for short-term needs. Remedy Coaching connects the two.</p>
+      <p>On our platform, coaches build a professional profile that shows their record, certifications and peer endorsements. We cover 13 sports: football, basketball, baseball, soccer, wrestling, track and field, volleyball, lacrosse, tennis, pickleball, swimming, hockey, and strength and conditioning. Coaches in any other sport can join too. Organizations post consulting projects, from film review to full program builds. Coaches apply, get hired and get paid, building a reputation that brings more work.</p>
+      <p class="about-closing">Remedy Coaching is built for coaches, by coaches. The platform is live and we're now bringing on our first coaches and organizations.</p>
+    </div>
+  </div>
+</main>
+
+<section class="about-cta">
+  <div class="wrap">
+    <h2 class="display">Your experience is worth more than a sideline.</h2>
+    <p>Join the network built for coaches — free to start, no long-term commitment.</p>
+    <div class="about-cta-actions">
+      <a href="login.html" class="btn btn-gold">Join as a Coach</a>
+      <a href="index.html#pricing" class="btn btn-ghost">See Plans &amp; Pricing</a>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
