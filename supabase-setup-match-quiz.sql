@@ -1,6 +1,12 @@
 -- Remedy Coaching — 15-question "Find My Coach" quiz for athletes/parents.
--- Run once in Supabase SQL Editor, after supabase-setup.sql and
+-- Run in Supabase SQL Editor, after supabase-setup.sql and
 -- supabase-setup-verification.sql (the quiz surfaces the verified badge).
+--
+-- SAFE TO RE-RUN: every statement is idempotent (add column if not exists,
+-- create table if not exists, drop-then-create for constraints and policies),
+-- so pasting this in again after a partial run or an update never errors and
+-- never touches existing data (no rows in profiles or match_leads are
+-- modified or deleted).
 --
 -- Two pieces:
 --   1. A handful of self-reported matching fields on profiles, so a coach
@@ -50,7 +56,7 @@ alter table public.profiles
 -- 2. match_leads — a quiz-taker's request to be connected with one coach
 -- ---------------------------------------------------------------------------
 
-create table public.match_leads (
+create table if not exists public.match_leads (
   id uuid primary key default gen_random_uuid(),
   coach_id uuid references auth.users(id) on delete cascade not null,
   athlete_name text not null check (char_length(athlete_name) > 0),
@@ -63,6 +69,8 @@ create table public.match_leads (
   created_at timestamptz default now()
 );
 
+-- (Re-running is harmless: enabling RLS on a table that already has it on
+-- is a no-op.)
 alter table public.match_leads enable row level security;
 
 -- Quiz-takers are usually NOT signed in (no account needed to take the
@@ -70,10 +78,14 @@ alter table public.match_leads enable row level security;
 -- publicly-readable profiles/opportunities policies elsewhere in this repo,
 -- just for insert instead of select. There is no public select policy: a
 -- lead is only ever visible to the coach it names.
+-- Postgres has no `create policy if not exists`, so each policy is dropped
+-- first and recreated. Same definition each time, so behaviour is unchanged.
+drop policy if exists "Anyone can submit a match lead" on public.match_leads;
 create policy "Anyone can submit a match lead"
   on public.match_leads for insert
   with check (true);
 
+drop policy if exists "Coaches can view their own match leads" on public.match_leads;
 create policy "Coaches can view their own match leads"
   on public.match_leads for select
   using (auth.uid() = coach_id);
