@@ -107,6 +107,12 @@
   }
   .coach-bio{font-size:13px; color:#4a4940; margin-top:12px; line-height:1.5; flex:1;
     display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .strength-compact{margin-top:14px;}
+  .strength-compact-row{margin-bottom:8px;}
+  .strength-compact-row:last-child{margin-bottom:0;}
+  .strength-compact-name{font-size:11px; font-weight:700; color:var(--field); margin-bottom:4px; display:block;}
+  .strength-compact-track{background:var(--chalk-dim); border-radius:20px; height:6px; overflow:hidden;}
+  .strength-compact-fill{background:linear-gradient(90deg,var(--turf),var(--gold)); height:100%; border-radius:20px;}
   .tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;}
   .tag{font-size:11px; background:var(--chalk-dim); padding:4px 9px; border-radius:20px; color:var(--field);}
   .view-link{margin-top:16px; font-size:13px; font-weight:700; color:var(--turf);}
@@ -133,6 +139,7 @@
     </a>
     <nav class="nav-links">
       <a href="coaches.html" class="active">Find a Coach</a>
+      <a href="match.html">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
       <a href="community.html">Community</a>
       <a href="dashboard.html">Dashboard</a>
@@ -149,6 +156,7 @@
     <div class="eyebrow">Find a Coach</div>
     <h1 class="display">Every sport. Every level. All verified.</h1>
     <p>Search the roster, filter by sport, and open a profile to see credentials, experience, and specialties.</p>
+    <a href="match.html" class="btn btn-gold" style="margin-top:18px; display:inline-block;">Not sure who to pick? Take the match quiz →</a>
   </div>
 </section>
 
@@ -173,7 +181,7 @@ const isConfigured = !SUPABASE_URL.includes('YOUR_') && !SUPABASE_ANON_KEY.inclu
 if(!isConfigured){ document.getElementById('setup-warning').style.display = 'block'; }
 const sb = isConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Other"];
+const SPORTS = ["Football","Basketball","Baseball","Soccer","Wrestling","Track & Field","Volleyball","Lacrosse","Tennis","Swimming","Hockey","Strength & Conditioning","Pickleball","Other"];
 
 let allCoaches = [];
 let activeSport = 'All';
@@ -186,6 +194,33 @@ function escapeHtml(str){
   const d = document.createElement('div');
   d.textContent = str == null ? '' : str;
   return d.innerHTML;
+}
+
+/* Compact "Coaching Strengths" preview for a directory card — the coach's
+   top 2 specialties (by their own 1-5 rating, from
+   supabase-setup-strengths.sql), as thin bars with no numeric label so it
+   stays legible at card size. The full bar-per-specialty visual with level
+   labels lives on profile.html; this is just a teaser. Renders nothing if
+   the coach has no specialties yet (or the migration hasn't run), same
+   graceful-degrade pattern as the rest of this card. */
+function strengthPreviewHtml(c){
+  const list = Array.isArray(c.specialties) ? c.specialties : [];
+  if(!list.length) return '';
+  const ratings = c.specialty_ratings && typeof c.specialty_ratings === 'object' ? c.specialty_ratings : {};
+  const ratingFor = s => {
+    const n = parseInt(ratings[s], 10);
+    return Number.isFinite(n) && n >= 1 && n <= 5 ? n : 3;
+  };
+  const top = [...list].sort((a,b) => ratingFor(b) - ratingFor(a)).slice(0,2);
+  return `
+    <div class="strength-compact">
+      ${top.map(s => `
+        <div class="strength-compact-row">
+          <span class="strength-compact-name">${escapeHtml(s)}</span>
+          <div class="strength-compact-track"><div class="strength-compact-fill" style="width:${ratingFor(s)*20}%"></div></div>
+        </div>
+      `).join('')}
+    </div>`;
 }
 
 function renderPills(){
@@ -215,6 +250,7 @@ function coachTileHtml(c){
       </div>
       ${c.verified ? `<div class="badge-verified">✓ Verified Credentials</div>` : ''}
       ${c.bio ? `<div class="coach-bio">${escapeHtml(c.bio)}</div>` : `<div class="coach-bio" style="color:#c7c4b6;">No bio yet.</div>`}
+      ${strengthPreviewHtml(c)}
       <div class="tags"><span class="tag">${escapeHtml(c.sport)}</span></div>
       <div class="view-link">View Profile →</div>
     </a>`;

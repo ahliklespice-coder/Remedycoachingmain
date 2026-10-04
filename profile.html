@@ -92,6 +92,16 @@
   .cred-issuer{font-size:12px; color:#8a8878; margin-top:2px;}
   .cred-check{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--turf); white-space:nowrap;}
 
+  .strength-row{margin-bottom:14px;}
+  .strength-row:last-child{margin-bottom:0;}
+  .strength-row-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:6px;}
+  .strength-name{font-weight:700; font-size:13.5px; color:var(--field);}
+  .strength-level{font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8a8878; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;}
+  .strength-track{background:var(--chalk-dim); border-radius:20px; height:10px; overflow:hidden;}
+  .strength-fill{background:linear-gradient(90deg,var(--turf),var(--gold)); height:100%; border-radius:20px;}
+  .strength-caption{font-size:11.5px; color:#a8a596; margin-top:10px;}
+  .strength-empty{font-size:13.5px; color:#a8a596;}
+
   .empty-state{text-align:center; padding:70px 20px; color:#a8a596;}
   .empty-state .display{font-size:22px; color:var(--field); margin-bottom:8px;}
   .skeleton{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; color:#c7c4b6; font-size:13.5px;}
@@ -114,6 +124,7 @@
     </a>
     <nav class="nav-links">
       <a href="coaches.html">Find a Coach</a>
+      <a href="match.html">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
       <a href="community.html">Community</a>
       <a href="dashboard.html">Dashboard</a>
@@ -142,6 +153,41 @@ function escapeHtml(str){
   const d = document.createElement('div');
   d.textContent = str == null ? '' : str;
   return d.innerHTML;
+}
+
+/* Coaching Strengths & Expertise visual — one horizontal bar per specialty,
+   filled by the coach's own 1-5 self-rating (supabase-setup-strengths.sql).
+   Same markup/logic as dashboard.html's strengthBarsHtml(), duplicated here
+   per this repo's no-shared-JS-module convention. If specialties/
+   specialty_ratings haven't been migrated yet, profile.specialties is just
+   undefined and this renders the empty state below — no error thrown,
+   since profile.html already does `select('*')`. */
+const STRENGTH_LEVELS = { 1:'Developing', 2:'Solid', 3:'Strong', 4:'Advanced', 5:'Signature Strength' };
+
+function strengthRatingFor(p, specialty){
+  const raw = p.specialty_ratings && typeof p.specialty_ratings === 'object' ? p.specialty_ratings[specialty] : null;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n >= 1 && n <= 5 ? n : 3;
+}
+
+function strengthBarsHtml(p){
+  const list = Array.isArray(p.specialties) ? p.specialties : [];
+  if(!list.length){
+    return `<p class="strength-empty">This coach hasn't listed specialty areas yet.</p>`;
+  }
+  return `
+    ${list.map(s => {
+      const val = strengthRatingFor(p, s);
+      return `
+      <div class="strength-row">
+        <div class="strength-row-top">
+          <span class="strength-name">${escapeHtml(s)}</span>
+          <span class="strength-level">${escapeHtml(STRENGTH_LEVELS[val])}</span>
+        </div>
+        <div class="strength-track"><div class="strength-fill" style="width:${val*20}%"></div></div>
+      </div>`;
+    }).join('')}
+    <div class="strength-caption">Self-rated by the coach.</div>`;
 }
 
 function renderNotFound(message){
@@ -193,6 +239,11 @@ function renderProfile(profile, credentials){
           <div class="bio-text">${profile.bio ? escapeHtml(profile.bio) : 'This coach hasn’t added a bio yet.'}</div>
           <div class="tags"><span class="tag">${escapeHtml(profile.sport)}</span><span class="tag">${escapeHtml(profile.role)}</span></div>
         </div>
+        ${profile.role === 'Coach' ? `
+        <div class="card">
+          <h2>Coaching Strengths &amp; Expertise</h2>
+          ${strengthBarsHtml(profile)}
+        </div>` : ''}
         <div class="card">
           <h2>Credentials</h2>
           ${credsHtml}
