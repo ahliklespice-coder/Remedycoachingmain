@@ -115,6 +115,40 @@
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
   .setup-warning{background:#b5453f; color:#fff; text-align:center; padding:10px 16px; font-size:13.5px; font-family:'IBM Plex Mono',monospace;}
+
+
+
+
+
+
+  /* ---------- HEADER SPACING FIX ----------
+     Keeps the logo, nav links and buttons on one line with real gaps between
+     them: nothing wraps or shrinks into the logo, and the link row hides
+     (as it already did on small screens) before it would collide. */
+  header .nav{gap:24px;}
+  header .logo{flex-shrink:0;}
+  header .nav-links{gap:18px; font-size:14px; white-space:nowrap; flex-shrink:0;}
+  header .nav-cta{flex-shrink:0; margin-left:auto;}
+  header .nav-cta .btn{white-space:nowrap;}
+  @media (max-width:975px){ header .nav-links{display:none;} }
+  /* ---------- END HEADER SPACING FIX ---------- */
+
+  /* ---------- DASHBOARD DROPDOWN (header) ---------- */
+  .nav-dd{position:relative; display:inline-block;}
+  .nav-dd-toggle{display:inline-flex; align-items:center; gap:5px;}
+  .nav-dd-caret{font-size:10px; transition:transform .15s;}
+  .nav-dd:hover .nav-dd-caret, .nav-dd:focus-within .nav-dd-caret, .nav-dd.open .nav-dd-caret{transform:rotate(180deg);}
+  .nav-dd-menu{
+    display:none; position:absolute; top:100%; left:-14px; min-width:210px; z-index:60;
+    margin-top:22px; padding:8px; background:#0F241C; border:1px solid rgba(245,243,234,0.16);
+    border-radius:10px; box-shadow:0 18px 40px -12px rgba(0,0,0,.55);
+  }
+  /* invisible bridge so the menu doesn't close while the pointer crosses the gap */
+  .nav-dd-menu::before{content:""; position:absolute; left:0; right:0; top:-24px; height:24px;}
+  .nav-dd:hover .nav-dd-menu, .nav-dd:focus-within .nav-dd-menu, .nav-dd.open .nav-dd-menu{display:block;}
+  .nav-dd-menu a{display:block; padding:9px 12px; border-radius:6px; font-size:14px; white-space:nowrap; color:var(--chalk-dim);}
+  .nav-dd-menu a:hover, .nav-dd-menu a:focus-visible{background:rgba(245,243,234,0.08); color:var(--gold);}
+  /* ---------- END DASHBOARD DROPDOWN ---------- */
 </style>
 </head>
 <body>
@@ -138,7 +172,17 @@
       <a href="match.html">Match Quiz</a>
       <a href="index.html#opportunities">Opportunities</a>
       <a href="community.html" class="active">Community</a>
-      <a href="dashboard.html">Dashboard</a>
+      <div class="nav-dd">
+        <a href="dashboard.html" class="nav-dd-toggle" aria-haspopup="true" aria-expanded="false">Dashboard <span class="nav-dd-caret" aria-hidden="true">▾</span></a>
+        <div class="nav-dd-menu" role="menu">
+          <a role="menuitem" href="dashboard.html">Overview</a>
+          <a role="menuitem" href="dashboard.html#profile-column" data-sec="profile-column">My Profile</a>
+          <a role="menuitem" href="dashboard.html#sec-activity" data-sec="sec-activity">Applications / Postings</a>
+          <a role="menuitem" href="dashboard.html#sec-opportunities" data-sec="sec-opportunities">Opportunities</a>
+          <a role="menuitem" href="dashboard.html#sec-verification" data-sec="sec-verification">Verification</a>
+          <a role="menuitem" href="dashboard.html#sec-leads" data-sec="sec-leads">Leads</a>
+        </div>
+      </div>
       <a href="index.html#pricing">Pricing</a>
     </nav>
     <div class="nav-cta">
@@ -474,5 +518,19 @@ async function init(){
 init();
 </script>
 
+<script>
+/* Header "Dashboard" dropdown: opens on hover/focus via CSS; on touch devices the
+   first tap opens it instead of navigating, and a tap elsewhere (or Esc) closes it. */
+(function(){
+  var dd = document.querySelector('.nav-dd'); if(!dd) return;
+  var toggle = dd.querySelector('.nav-dd-toggle');
+  function setOpen(o){ dd.classList.toggle('open', o); toggle.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+  toggle.addEventListener('click', function(e){
+    if(window.matchMedia('(hover: none)').matches && !dd.classList.contains('open')){ e.preventDefault(); setOpen(true); }
+  });
+  document.addEventListener('click', function(e){ if(!dd.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ setOpen(false); toggle.blur(); } });
+})();
+</script>
 </body>
 </html>
