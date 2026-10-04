@@ -1,6 +1,10 @@
 -- Remedy Coaching — "Coaching Strengths & Expertise" visual.
--- Run once in Supabase SQL Editor, after supabase-setup-match-quiz.sql (this
+-- Run in Supabase SQL Editor, after supabase-setup-match-quiz.sql (this
 -- builds on the `specialties` column it adds).
+--
+-- SAFE TO RE-RUN: the column uses `add column if not exists` and the check
+-- constraint is dropped-then-recreated, so running this again never errors
+-- and never changes existing ratings data.
 --
 -- Adds one field: a coach's own 1-5 rating for each specialty they've
 -- selected, so the strength bars shown on their public profile, directory
