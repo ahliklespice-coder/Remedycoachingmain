@@ -478,6 +478,8 @@ let currentPlan = 'free';    // from public.subscriptions, kept in sync by the S
    Client's onboarding IS the match quiz, ending in their profile being
    created and their matches shown inline. Either can switch to the other. */
 let onboardingMode = null;
+let postIntent = false;   // arrived via a "Post an Opportunity" link (?post=1)
+let wantsToPost = false;  // postIntent, or signed up from that link (user_metadata.intent === 'post')
 let obStep = 0;
 let obAnswers = {};
 
@@ -535,22 +537,27 @@ function renderRoot(){
       <div class="layout">
         <div class="sticky">
           ${profileFormHtml()}
-          <div class="card" style="margin-top:14px; text-align:center;">
+          ${wantsToPost ? '' : `<div class="card" style="margin-top:14px; text-align:center;">
             <p style="font-size:13px; color:#6b6a63; margin-bottom:10px;">Looking for a coach instead of offering coaching?</p>
             <button type="button" class="btn btn-outline-dark" id="switch-to-quiz-btn" style="width:100%;">Take the Match Quiz Instead →</button>
-          </div>
+          </div>`}
         </div>
         <div class="card">
           <div class="empty-state">
-            <div class="display">Set up your profile</div>
-            <div>Add your name, sport, and a short bio to unlock applications and your pipeline stats.</div>
+            <div class="display">${wantsToPost ? 'Create your hiring profile' : 'Set up your profile'}</div>
+            <div>${wantsToPost
+              ? 'Add your name, sport, and a short bio — then you can post your opportunity right away.'
+              : 'Add your name, sport, and a short bio to unlock applications and your pipeline stats.'}</div>
           </div>
         </div>
       </div>`;
     bindProfileForm();
-    document.getElementById('switch-to-quiz-btn').addEventListener('click', startOnboardingQuiz);
+    const quizBtn = document.getElementById('switch-to-quiz-btn');
+    if(quizBtn) quizBtn.addEventListener('click', startOnboardingQuiz);
     document.getElementById('pagehead-title').textContent = "One more step.";
-    document.getElementById('pagehead-sub').textContent = "Complete your profile to start applying to opportunities.";
+    document.getElementById('pagehead-sub').textContent = wantsToPost
+      ? "Create a Client / Program profile to post your opportunity."
+      : "Complete your profile to start applying to opportunities.";
     return;
   }
 
@@ -578,6 +585,14 @@ function renderRoot(){
       <div class="sticky" id="profile-column">${profileCardHtml()}</div>
 
       <div>
+        ${postIntent && currentProfile.role === 'Coach' ? `
+        <div class="card" style="margin-bottom:18px; border-color:var(--gold); display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;">
+          <div style="font-size:14px; max-width:560px;">
+            <strong>Posting opportunities needs a Client / Program profile.</strong>
+            You're signed in with a Coach profile. Switch your profile type in Edit Profile (you'll no longer appear in the coach directory), or sign in with a separate hiring account.
+          </div>
+          <button type="button" class="btn btn-gold btn-sm" id="post-banner-edit">Edit Profile</button>
+        </div>` : ''}
         ${currentProfile.role === 'Client' ? '' : `
         <div class="stat-row">
           <div class="stat-tile"><div class="n">${sentCount}</div><div class="l">Applications Sent</div></div>
@@ -639,6 +654,8 @@ function renderRoot(){
     </div>`;
 
   bindProfileCard();
+  const postBannerBtn = document.getElementById('post-banner-edit');
+  if(postBannerBtn) postBannerBtn.addEventListener('click', ()=>document.getElementById('edit-profile-btn').click());
   if(currentProfile.role === 'Client'){
     bindPostOpportunityForm();
     bindPostingActionButtons();
@@ -706,6 +723,7 @@ function profileCardHtml(){
 
 function profileFormHtml(){
   const p = currentProfile || {};
+  const roleDefault = p.role || (wantsToPost ? 'Client' : 'Coach');
   return `
     <div class="card">
       <h3 class="display" style="font-size:19px; margin-bottom:4px;">${p.name ? 'Edit Profile' : 'Create Your Profile'}</h3>
@@ -716,8 +734,8 @@ function profileFormHtml(){
 
         <label for="pf-role">I am a...</label>
         <select id="pf-role">
-          <option value="Coach" ${p.role==='Coach'?'selected':''}>Coach</option>
-          <option value="Client" ${p.role==='Client'?'selected':''}>Client / Program</option>
+          <option value="Coach" ${roleDefault==='Coach'?'selected':''}>Coach</option>
+          <option value="Client" ${roleDefault==='Client'?'selected':''}>Client / Program</option>
         </select>
 
         <label for="pf-sport">Primary Sport</label>
@@ -734,7 +752,7 @@ function profileFormHtml(){
         <textarea id="pf-bio" maxlength="220" placeholder="Coaching background, specialties, what you're looking for...">${escapeHtml(p.bio||'')}</textarea>
         <div class="field-hint">Max 220 characters. Also read by the "Find My Coach" quiz to match communication style.</div>
 
-        ${(p.role || 'Coach') === 'Coach' ? coachMatchingFieldsHtml(p) : ''}
+        ${roleDefault === 'Coach' ? coachMatchingFieldsHtml(p) : ''}
 
         <button type="submit" class="btn btn-gold form-submit">${p.name ? 'Save Changes' : 'Create Profile'}</button>
       </form>
@@ -820,6 +838,14 @@ function refreshStrengthRateRows(){
   bindStrengthRateInputs();
 }
 
+function scrollToPostFormIfWanted(){
+  if(wantsToPost && currentProfile && currentProfile.role === 'Client'){
+    history.replaceState(null, '', location.pathname + location.search + '#sec-opportunities');
+    syncNavMenu();
+    jumpToHash();
+  }
+}
+
 function bindProfileForm(){
   bindStrengthRateInputs();
 
@@ -901,6 +927,7 @@ function bindProfileForm(){
       if(currentProfile.role === 'Coach'){ await refreshCredentials(); await refreshOpportunities(); await refreshLeads(); }
       if(currentProfile.role === 'Client'){ await refreshMyPostings(); await refreshPostingApplications(); }
       renderRoot();
+      scrollToPostFormIfWanted();
       return;
     }
     if(error){ showToast('Error: ' + error.message); return; }
@@ -918,6 +945,7 @@ function bindProfileForm(){
     }
     if(currentProfile.role === 'Client'){ await refreshMyPostings(); await refreshPostingApplications(); }
     renderRoot();
+    scrollToPostFormIfWanted();
   });
 }
 
@@ -2089,19 +2117,23 @@ async function loadProfileForUser(){
 async function init(){
   if(!isConfigured){ renderRoot(); return; }
 
+  postIntent = new URLSearchParams(window.location.search).get('post') === '1';
   const { data:{ session } } = await sb.auth.getSession();
   if(!session){
-    window.location.href = 'login.html';
+    window.location.href = postIntent ? 'login.html?post=1' : 'login.html';
     return;
   }
   currentUser = session.user;
+  wantsToPost = postIntent || currentUser.user_metadata?.intent === 'post';
   document.getElementById('signout-btn').style.display = 'inline-block';
 
   // Default which onboarding flow a brand-new (no-profile-yet) user sees,
   // from the role they picked on the signup screen (login.html stores this
   // as user_metadata.intended_role). Either can switch to the other from
   // the onboarding screen itself.
-  onboardingMode = currentUser.user_metadata?.intended_role === 'Client' ? 'quiz' : 'form';
+  // A hiring user who came to post an opportunity skips the athlete-oriented
+  // match quiz and goes straight to the profile form (defaulting to Client).
+  onboardingMode = (!wantsToPost && currentUser.user_metadata?.intended_role === 'Client') ? 'quiz' : 'form';
   if(onboardingMode === 'quiz'){ obAnswers = { email: currentUser.email }; }
 
   if(new URLSearchParams(window.location.search).get('billing') === 'success'){

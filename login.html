@@ -206,6 +206,12 @@ document.querySelectorAll('[data-goto]').forEach(link => {
   link.addEventListener('click', (e) => { e.preventDefault(); showView(link.dataset.goto); });
 });
 
+/* Arriving from a "Post an Opportunity" link (?post=1): preselect the hiring
+   role and, after sign-in, land on the posting form rather than the default
+   dashboard view. */
+const postIntent = new URLSearchParams(window.location.search).get('post') === '1';
+const AFTER_LOGIN = postIntent ? 'dashboard.html?post=1#sec-opportunities' : 'dashboard.html';
+
 let selectedRole = 'Coach';
 document.getElementById('role-coach').addEventListener('click', ()=>selectRole('Coach'));
 document.getElementById('role-client').addEventListener('click', ()=>selectRole('Client'));
@@ -213,6 +219,11 @@ function selectRole(role){
   selectedRole = role;
   document.getElementById('role-coach').classList.toggle('active', role==='Coach');
   document.getElementById('role-client').classList.toggle('active', role==='Client');
+}
+if(postIntent){
+  selectRole('Client');
+  const signinSub = document.querySelector('[data-view="signin"] .sub');
+  if(signinSub) signinSub.textContent = 'Sign in to post your opportunity — or create a free hiring account.';
 }
 
 function setStatus(id, msg, kind){
@@ -243,7 +254,7 @@ document.getElementById('signin-form').addEventListener('submit', async (e)=>{
     setStatus('signin-status', error.message, 'error');
     return;
   }
-  window.location.href = 'dashboard.html';
+  window.location.href = AFTER_LOGIN;
 });
 
 /* ---------------- CREATE ACCOUNT ---------------- */
@@ -271,7 +282,10 @@ document.getElementById('signup-form').addEventListener('submit', async (e)=>{
     password,
     options: {
       emailRedirectTo: redirectTo,
-      data: { intended_role: selectedRole }
+      data: {
+        intended_role: selectedRole,
+        ...(postIntent && selectedRole === 'Client' ? { intent: 'post' } : {})
+      }
     }
   });
 
@@ -285,7 +299,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e)=>{
 
   if(data.session){
     // Email confirmation is off — already signed in.
-    window.location.href = 'dashboard.html';
+    window.location.href = AFTER_LOGIN;
     return;
   }
 
@@ -321,7 +335,7 @@ document.getElementById('forgot-form').addEventListener('submit', async (e)=>{
 (async function checkExistingSession(){
   if(!isConfigured) return;
   const { data:{ session } } = await sb.auth.getSession();
-  if(session){ window.location.href = 'dashboard.html'; }
+  if(session){ window.location.href = AFTER_LOGIN; }
 })();
 </script>
 

@@ -481,7 +481,7 @@
         <div class="eyebrow">Coaching Opportunities</div>
         <h2 class="display">Open jobs on the board.</h2>
       </div>
-      <a href="dashboard.html" class="btn btn-dark">Post an Opportunity</a>
+      <a href="dashboard.html?post=1#sec-opportunities" class="btn btn-dark">Post an Opportunity</a>
     </div>
     <div class="opp-list" id="opp-list">
       <div class="opp-row"><div class="opp-title">Loading…</div></div>
@@ -576,7 +576,7 @@
     <p>Join the network built for coaches — free to start, no long-term commitment.</p>
     <div class="cta-actions">
       <a href="login.html" class="btn btn-gold">Join as a Coach</a>
-      <a href="dashboard.html" class="btn btn-ghost">Post an Opportunity</a>
+      <a href="dashboard.html?post=1#sec-opportunities" class="btn btn-ghost">Post an Opportunity</a>
     </div>
   </div>
 </section>
@@ -600,7 +600,7 @@
         </ul>
         <ul><h4>Clients</h4>
           <li><a href="coaches.html">Find a Coach</a></li>
-          <li><a href="dashboard.html">Post an Opportunity</a></li>
+          <li><a href="dashboard.html?post=1#sec-opportunities">Post an Opportunity</a></li>
           <li><a href="#how">How Hiring Works</a></li>
         </ul>
         <ul><h4>Company</h4>
@@ -807,7 +807,7 @@ const SAMPLE_STATS = { paid:127400, projects:86, athletes:31, coaches:42 };
           <span class="opp-budget">${budgetLabel(o.min * 100, o.max ? o.max * 100 : null)}</span>
           <span class="sample-chip">Sample</span>
         </div>`).join('') +
-        `<div style="text-align:center; padding:18px 0 0; font-size:14px;">No real postings yet — <a href="dashboard.html" style="text-decoration:underline;">post the first one</a>.</div>`;
+        `<div style="text-align:center; padding:18px 0 0; font-size:14px;">No real postings yet — <a href="dashboard.html?post=1#sec-opportunities" style="text-decoration:underline;">post the first one</a>.</div>`;
     }
   } catch (e) { console.error('opportunities load failed', e); }
 })();
