@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create an Organization Account — Remedy Coaching</title>
+<link rel="canonical" href="https://remedycoachinggroup.com/org-signup.html">
+<meta name="description" content="Schools, teams, clubs and programs: create an organization account and find qualified sports coaches and consultants.">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --field:#16342A; --field-light:#20493A; --turf:#2F6B4F;
+    --chalk:#F5F3EA; --chalk-dim:#E7E2D3; --ink:#1C1B18;
+    --gold:#D4A72C; --gold-dim:#E9C868; --line:rgba(245,243,234,0.16);
+    --err:#b5453f;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh;}
+  a{color:inherit;}
+  button{font-family:inherit; cursor:pointer;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:1;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  header{background:var(--field); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:14px 20px; max-width:880px; margin:0 auto; gap:12px;}
+  .logo{display:flex; align-items:center; gap:10px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:17px; text-decoration:none; white-space:nowrap;}
+  .logo-mark{width:34px; height:34px; flex-shrink:0;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:420px){ .logo-word{display:none;} }
+  .nav a.signin{color:var(--chalk-dim); font-size:13.5px; text-decoration:none;}
+  .nav a.signin:hover{color:var(--gold);}
+
+  main{max-width:880px; margin:0 auto; padding:28px 20px 80px;}
+
+  /* progress */
+  .progress{display:flex; align-items:flex-start; margin-bottom:26px;}
+  .pstep{flex:1; text-align:center; position:relative; font-size:12.5px; font-weight:600; color:#8a8878;}
+  .pstep::before{content:""; position:absolute; top:15px; left:-50%; width:100%; height:3px; background:rgba(28,27,24,.12); z-index:0;}
+  .pstep:first-child::before{display:none;}
+  .pstep .dot{position:relative; z-index:1; width:32px; height:32px; border-radius:50%; margin:0 auto 6px; display:flex; align-items:center; justify-content:center; background:#fff; border:2px solid rgba(28,27,24,.18); font-family:'IBM Plex Mono',monospace; font-size:13px;}
+  .pstep.done .dot{background:var(--turf); border-color:var(--turf); color:#fff;}
+  .pstep.done::before, .pstep.active::before{background:var(--turf);}
+  .pstep.active .dot{border-color:var(--field); background:var(--field); color:var(--chalk);}
+  .pstep.active, .pstep.done{color:var(--field);}
+  .progress-note{font-size:12.5px; color:#8a8878; text-align:center; margin:-12px 0 20px;}
+
+  .card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:16px; padding:28px 26px; box-shadow:0 10px 30px -18px rgba(0,0,0,.25);}
+  @media (max-width:560px){ .card{padding:22px 16px; border-radius:12px;} }
+  h1{font-size:clamp(26px,5vw,34px); color:var(--field);}
+  .lede{color:#6b6a63; margin-top:8px; font-size:14.5px; max-width:560px;}
+  h2.sec{font-family:'Anton',sans-serif; text-transform:uppercase; font-size:19px; color:var(--field); margin:30px 0 4px; font-weight:400;}
+  .sec-hint{font-size:13px; color:#8a8878; margin-bottom:12px;}
+  .req{color:var(--err);}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .grid3{display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:14px;}
+  @media (max-width:620px){ .grid2, .grid3{grid-template-columns:1fr;} }
+  .field{margin-top:16px;}
+  label.lbl{display:block; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin-bottom:6px;}
+  .opt{font-weight:500; text-transform:none; letter-spacing:0; color:#8a8878;}
+  input[type=text], input[type=email], input[type=tel], input[type=password], input[type=number], input[type=url], select, textarea{
+    width:100%; border:1.5px solid rgba(28,27,24,.18); border-radius:8px; padding:12px; min-height:46px;
+    font-family:inherit; font-size:16px; color:var(--ink); background:#fdfcf9;
+  }
+  textarea{min-height:130px; resize:vertical;}
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--turf);}
+  [aria-invalid="true"]{border-color:var(--err) !important; background:#fff7f6;}
+  .hint{font-size:12px; color:#8a8878; margin-top:5px;}
+  .field-error{font-size:12.5px; color:var(--err); margin-top:5px; font-weight:600;}
+  .counter{font-size:12px; color:#8a8878; text-align:right; margin-top:4px;}
+  .counter.warn{color:var(--err);}
+
+  .checkline{display:flex; gap:10px; align-items:flex-start; margin-top:18px; font-size:14px;}
+  .checkline input{width:20px; height:20px; margin-top:2px; flex-shrink:0; accent-color:var(--turf);}
+
+  /* chips + option grids */
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{position:relative;}
+  .chip input{position:absolute; opacity:0; inset:0; width:100%; height:100%; cursor:pointer; margin:0;}
+  .chip span{display:inline-block; padding:10px 16px; border-radius:999px; border:1.5px solid rgba(28,27,24,.18); background:#fff; font-size:14px; font-weight:600; transition:all .12s;}
+  .chip input:checked + span{background:var(--field); border-color:var(--field); color:var(--chalk);}
+  .chip input:focus-visible + span{outline:3px solid var(--gold); outline-offset:2px;}
+  .optgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px;}
+  .opt-item{display:flex; gap:10px; align-items:center; padding:11px 12px; border:1.5px solid rgba(28,27,24,.14); border-radius:8px; background:#fdfcf9; font-size:14px; cursor:pointer; min-height:46px;}
+  .opt-item:has(input:checked){border-color:var(--turf); background:rgba(47,107,79,.08);}
+  .opt-item input{width:18px; height:18px; accent-color:var(--turf); flex-shrink:0;}
+  .expertise-block{margin-top:14px; padding:14px; background:var(--chalk); border-radius:10px; border:1px solid rgba(28,27,24,.06);}
+  .expertise-block h3{font-size:14px; color:var(--field); margin-bottom:10px;}
+  .radio-row{display:flex; gap:8px; flex-wrap:wrap;}
+
+  /* logo */
+  .logo-row{display:flex; gap:16px; align-items:center; flex-wrap:wrap;}
+  .logo-preview{width:84px; height:84px; border-radius:12px; border:1.5px dashed rgba(28,27,24,.25); display:flex; align-items:center; justify-content:center; overflow:hidden; background:#fdfcf9; color:#a8a596; font-size:11px; text-align:center; flex-shrink:0;}
+  .logo-preview img{width:100%; height:100%; object-fit:contain;}
+
+  details.verify{margin-top:26px; border:1.5px solid rgba(28,27,24,.12); border-radius:10px; padding:14px 16px; background:#fdfcf9;}
+  details.verify summary{cursor:pointer; font-weight:700; color:var(--field); font-size:14.5px;}
+  details.verify .inner{margin-top:6px;}
+
+  /* actions */
+  .actions{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:30px; flex-wrap:wrap;}
+  .btn{font-weight:700; font-size:15px; padding:13px 24px; border-radius:8px; border:1.5px solid transparent; min-height:48px; transition:transform .12s, background .15s; text-decoration:none; display:inline-flex; align-items:center; justify-content:center;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
+  .btn-gold{background:var(--gold); color:var(--ink);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-ghost{background:none; border-color:rgba(28,27,24,.22); color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--turf); color:var(--turf);}
+  .btn-dark{background:var(--field); color:var(--chalk);}
+  @media (max-width:560px){ .actions .btn{flex:1;} }
+
+  .summary-error{background:#fff1ef; border:1.5px solid var(--err); color:var(--err); border-radius:10px; padding:12px 14px; font-size:14px; margin-top:18px; font-weight:600;}
+  .notice{border-radius:12px; padding:16px 18px; margin-top:22px; font-size:14.5px;}
+  .notice.gold{background:#fffaf0; border:1.5px solid var(--gold);}
+  .notice.info{background:var(--chalk); border:1px solid rgba(28,27,24,.08);}
+  .saved{font-size:12px; color:#8a8878; text-align:right; margin-bottom:6px; min-height:16px;}
+
+  /* complete screen */
+  .welcome-actions{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:26px;}
+  @media (max-width:700px){ .welcome-actions{grid-template-columns:1fr;} }
+  .action-card{display:block; text-decoration:none; background:var(--chalk); border:1.5px solid rgba(28,27,24,.1); border-radius:12px; padding:18px; transition:border-color .15s, transform .15s;}
+  .action-card:hover{border-color:var(--turf); transform:translateY(-2px);}
+  .action-card h3{font-size:16px; color:var(--field); margin-bottom:4px;}
+  .action-card p{font-size:13.5px; color:#6b6a63;}
+  .ready{margin-top:30px; background:var(--field); color:var(--chalk); border-radius:14px; padding:26px 22px; text-align:center;}
+  .ready h2{font-size:26px; color:var(--chalk); font-weight:400;}
+  .ready p{color:var(--chalk-dim); margin-top:6px; font-size:14.5px;}
+  .ready .row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px;}
+  .ready .btn-ghost{border-color:rgba(245,243,234,.4); color:var(--chalk);}
+  .ready .btn-ghost:hover{border-color:var(--gold); color:var(--gold);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </a>
+    <a class="signin" id="nav-signin" href="login.html?next=org-dashboard.html">Already have an account? Sign in</a>
+  </div>
+</header>
+
+<main>
+  <nav class="progress" id="progress" aria-label="Sign-up progress"></nav>
+  <div class="progress-note" id="progress-note">About 3–5 minutes. Your progress saves automatically.</div>
+  <div class="card" id="stage" aria-live="polite"><p>Loading…</p></div>
+</main>
+
+<script>
+/* ======================================================================
+   Organization sign-up wizard.
+   Step 1 Account -> Step 2 Organization -> Step 3 Needs -> Step 4 Complete.
+
+   Because email confirmation is on, the account can't be used until the
+   address is verified. So nothing is written to the organizations tables
+   during the wizard: the answers ride along in the new user's metadata
+   (org_draft) and org-dashboard.html turns them into a real organization
+   the moment the verified user first lands there. (Signed-in users skip
+   step 1 and the organization is created right away.)
+   ====================================================================== */
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DRAFT_KEY = 'remedy_org_signup_v1';
+const LOGO_KEY = 'remedy_org_logo_v1';
+const ANON_KEY = 'remedy_anon_id';
+const STEP_LABELS = ['Account', 'Organization', 'Needs', 'Complete'];
+
+const ORG_TYPES = ['High School','Middle School','College / University','Professional Sports Organization','Youth Sports Organization','Travel / Club Team','Athletic Department','Sports Camp','Training Facility','Nonprofit','Sports Business','Community Organization','Individual Team','Other'];
+const NEEDS = ['Player Development','Team Development','Coaching Development','Recruiting','Program Development','Practice Planning','Game Strategy','Film Analysis','Strength & Conditioning','Leadership','Team Culture','Youth Development','Staff Training','Tournament Preparation','Athletic Program Evaluation','Other'];
+const SIZES = ['1–10','11–25','26–50','51–100','101–250','251–500','500+'];
+const FORMATS = [{v:'virtual',l:'Virtual'},{v:'in_person',l:'In Person'},{v:'either',l:'Either'}];
+const COUNTRIES = ['United States','Canada','United Kingdom','Australia','Other'];
+const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+
+const EMPTY = {
+  first_name:'', last_name:'', job_title:'', email:'', phone:'', terms:false,
+  org_name:'', org_type:'', website:'', org_email:'', org_phone:'', address:'', city:'', state:'', zip:'', country:'United States', description:'',
+  sports:[], other_sport:'', expertise:{}, needs:[], other_need:'', format:'', employee_count:'', athlete_count:'', budget_min:'', budget_max:'',
+  v_social:'', v_registration:'', v_district:'', v_athletic:''
+};
+
+let state = { step:1, submitted:false, data:{...EMPTY} };
+let memPassword = '', memPassword2 = '';       // never persisted
+let session = null;                            // set when the visitor is already signed in
+let catalog = { sports:[], expertise:{} };     // loaded from the database
+let anonId = null;
+let busy = false;
+
+/* ---------------- utilities ---------------- */
+function esc(s){ const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
+
+function getAnonId(){
+  try{
+    let id = localStorage.getItem(ANON_KEY);
+    if(!id){ id = 'a_' + [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2,'0')).join(''); localStorage.setItem(ANON_KEY, id); }
+    return id;
+  }catch(e){ return 'a_' + Math.random().toString(16).slice(2, 18); }
+}
+
+function saveDraft(){
+  try{
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ step:state.step, submitted:state.submitted, data:state.data, savedAt:Date.now() }));
+    const el = document.getElementById('saved'); if(el) el.textContent = 'Progress saved on this device';
+  }catch(e){}
+}
+function loadDraft(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+    if(raw && raw.data){ state = { step: raw.step || 1, submitted: !!raw.submitted, data: { ...EMPTY, ...raw.data } }; }
+  }catch(e){}
+}
+function clearDraft(){ try{ localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(LOGO_KEY); }catch(e){} }
+
+/* Analytics. Must never break the flow, so every failure is swallowed. */
+async function track(name, props = {}, dedupe = null, orgId = null){
+  try{
+    const { data:{ session:s } } = await sb.auth.getSession();
+    const row = { event_name:name, anonymous_id:anonId, properties:props, user_id:s?.user?.id ?? null, organization_id:orgId };
+    if(dedupe){ row.dedupe_key = dedupe; await sb.from('analytics_events').insert(row); /* a repeat is rejected by the unique dedupe_key — that's the point */ }
+    else { await sb.from('analytics_events').insert(row); }
+  }catch(e){}
+}
+
+/* ---------------- progress bar ---------------- */
+function renderProgress(){
+  const el = document.getElementById('progress');
+  el.innerHTML = STEP_LABELS.map((label, i) => {
+    const n = i + 1;
+    const cls = n < state.step ? 'done' : n === state.step ? 'active' : '';
+    return `<div class="pstep ${cls}" ${n === state.step ? 'aria-current="step"' : ''}><div class="dot">${n < state.step ? '✓' : n}</div>${esc(label)}</div>`;
+  }).join('');
+  document.getElementById('progress-note').style.display = state.step === 4 ? 'none' : '';
+}
+
+/* ---------------- validation ---------------- */
+function normalizeWebsite(v){
+  v = (v || '').trim(); if(!v) return '';
+  if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(v)) v = 'https://' + v;
+  return v;
+}
+function validWebsite(v){
+  try{ const u = new URL(v); return /^https?:$/.test(u.protocol) && u.hostname.includes('.'); }catch(e){ return false; }
+}
+function passwordErrors(){
+  const e = {};
+  if(!memPassword || memPassword.length < 8 || !/[A-Za-z]/.test(memPassword) || !/\d/.test(memPassword)) e.password = 'Use at least 8 characters, with a letter and a number.';
+  else if(memPassword !== memPassword2) e.password2 = 'Passwords don\'t match.';
+  return e;
+}
+function validate(step){
+  const d = state.data, e = {};
+  if(step === 1){
+    if(!d.first_name.trim()) e.first_name = 'Enter your first name.';
+    if(!d.last_name.trim()) e.last_name = 'Enter your last name.';
+    if(!d.job_title.trim()) e.job_title = 'Enter your job title or role.';
+    if(!EMAIL_RE.test(d.email.trim())) e.email = 'Enter a valid work email, like name@school.org.';
+    if(d.phone.replace(/\D/g,'').length < 10) e.phone = 'Enter a phone number with area code.';
+    Object.assign(e, passwordErrors());
+    if(!d.terms) e.terms = 'Please agree to the Terms of Service and Privacy Policy.';
+  }
+  if(step === 2){
+    if(d.org_name.trim().length < 2) e.org_name = 'Enter your organization\'s name.';
+    if(!d.org_type) e.org_type = 'Choose the type that fits best.';
+    if(d.website.trim() && !validWebsite(normalizeWebsite(d.website))) e.website = 'Enter a valid website, like www.yourschool.org.';
+    if(d.org_email.trim() && !EMAIL_RE.test(d.org_email.trim())) e.org_email = 'Enter a valid email address.';
+    if(d.org_phone.trim() && d.org_phone.replace(/\D/g,'').length < 10) e.org_phone = 'Enter a phone number with area code.';
+    if(!d.city.trim()) e.city = 'Enter a city.';
+    if(!d.state) e.state = 'Choose a state.';
+    if(d.country === 'United States' && !/^\d{5}(-\d{4})?$/.test(d.zip.trim())) e.zip = 'Enter a 5-digit ZIP code.';
+    else if(d.country !== 'United States' && !d.zip.trim()) e.zip = 'Enter a postal code.';
+  }
+  if(step === 3){
+    if(!d.sports.length) e.sports = 'Choose at least one sport.';
+    if(d.sports.includes('Other') && !d.other_sport.trim()) e.other_sport = 'Tell us which other sport.';
+    if(!d.needs.length) e.needs = 'Choose at least one thing you need help with.';
+    if(d.needs.includes('Other') && !d.other_need.trim()) e.other_need = 'Describe the other need.';
+    if(!d.format) e.format = 'Choose how you\'d like to work with a coach.';
+    if(!d.employee_count) e.employee_count = 'Choose a range.';
+    if(!d.athlete_count) e.athlete_count = 'Choose a range.';
+    if(d.budget_min && d.budget_max && Number(d.budget_max) < Number(d.budget_min)) e.budget_max = 'Maximum must be at least the minimum.';
+    // Passwords are never saved to disk, so after a reload they must be re-entered here.
+    if(!session) Object.assign(e, passwordErrors());
+  }
+  return e;
+}
+function showErrors(errors){
+  document.querySelectorAll('.field-error').forEach(n => n.remove());
+  document.querySelectorAll('[aria-invalid]').forEach(n => n.removeAttribute('aria-invalid'));
+  const keys = Object.keys(errors);
+  keys.forEach(k => {
+    const holder = document.querySelector(`[data-err="${k}"]`);
+    if(!holder) return;
+    const input = holder.querySelector('input,select,textarea');
+    if(input) input.setAttribute('aria-invalid', 'true');
+    const msg = document.createElement('div');
+    msg.className = 'field-error'; msg.setAttribute('role', 'alert'); msg.textContent = errors[k];
+    holder.appendChild(msg);
+  });
+  const top = document.getElementById('summary-error');
+  if(top){
+    top.style.display = keys.length ? 'block' : 'none';
+    if(keys.length) top.textContent = keys.length === 1 ? 'Please fix the highlighted field to continue.' : `Please fix the ${keys.length} highlighted fields to continue.`;
+  }
+  if(keys.length){
+    const first = document.querySelector(`[data-err="${keys[0]}"]`);
+    if(first){ first.scrollIntoView({ behavior:'smooth', block:'center' }); const i = first.querySelector('input,select,textarea'); if(i) setTimeout(() => i.focus({preventScroll:true}), 300); }
+  }
+}
+
+/* ---------------- field helpers ---------------- */
+function field(label, key, opts = {}){
+  const { type = 'text', required = false, placeholder = '', hint = '', autocomplete = '', inputmode = '', maxlength = '' } = opts;
+  const value = opts.value !== undefined ? opts.value : state.data[key];
+  return `
+    <div class="field" data-err="${key}">
+      <label class="lbl" for="f-${key}">${esc(label)} ${required ? '<span class="req" aria-hidden="true">*</span>' : '<span class="opt">(optional)</span>'}</label>
+      <input id="f-${key}" type="${type}" data-field="${key}" value="${esc(value)}" placeholder="${esc(placeholder)}"
+        ${autocomplete ? `autocomplete="${autocomplete}"` : ''} ${inputmode ? `inputmode="${inputmode}"` : ''} ${maxlength ? `maxlength="${maxlength}"` : ''} ${required ? 'required aria-required="true"' : ''}>
+      ${hint ? `<div class="hint">${esc(hint)}</div>` : ''}
+    </div>`;
+}
+function selectField(label, key, options, opts = {}){
+  const { required = false, placeholder = 'Select…', autocomplete = '' } = opts;
+  return `
+    <div class="field" data-err="${key}">
+      <label class="lbl" for="f-${key}">${esc(label)} ${required ? '<span class="req" aria-hidden="true">*</span>' : '<span class="opt">(optional)</span>'}</label>
+      <select id="f-${key}" data-field="${key}" ${autocomplete ? `autocomplete="${autocomplete}"` : ''} ${required ? 'required aria-required="true"' : ''}>
+        <option value="">${esc(placeholder)}</option>
+        ${options.map(o => `<option value="${esc(o)}" ${state.data[key] === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}
+      </select>
+    </div>`;
+}
+
+/* ---------------- step renderers ---------------- */
+function step1Html(){
+  const d = state.data;
+  return `
+    <h1 class="display">Create your account</h1>
+    <p class="lede">Start with you. Next we'll set up your organization's profile.</p>
+    <div id="summary-error" class="summary-error" role="alert" style="display:none"></div>
+    <div class="grid2">
+      ${field('First name','first_name',{required:true,autocomplete:'given-name'})}
+      ${field('Last name','last_name',{required:true,autocomplete:'family-name'})}
+    </div>
+    ${field('Job title / role','job_title',{required:true,placeholder:'e.g. Athletic Director, Head Coach, Program Manager',autocomplete:'organization-title'})}
+    ${field('Work email','email',{type:'email',required:true,placeholder:'name@yourschool.org',autocomplete:'email',inputmode:'email',hint:'We\'ll send a verification link here. You must verify before you can post opportunities.'})}
+    ${field('Phone number','phone',{type:'tel',required:true,placeholder:'(555) 555-0123',autocomplete:'tel',inputmode:'tel',hint:'Kept private — never shown on your public profile.'})}
+    <div class="grid2">
+      <div class="field" data-err="password">
+        <label class="lbl" for="f-password">Password <span class="req" aria-hidden="true">*</span></label>
+        <input id="f-password" type="password" data-password="1" autocomplete="new-password" required aria-required="true" value="${esc(memPassword)}">
+        <div class="hint">At least 8 characters, with a letter and a number.</div>
+      </div>
+      <div class="field" data-err="password2">
+        <label class="lbl" for="f-password2">Confirm password <span class="req" aria-hidden="true">*</span></label>
+        <input id="f-password2" type="password" data-password="2" autocomplete="new-password" required aria-required="true" value="${esc(memPassword2)}">
+      </div>
+    </div>
+    <div data-err="terms">
+      <label class="checkline"><input type="checkbox" data-field="terms" ${d.terms ? 'checked' : ''}>
+        <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. <span class="req" aria-hidden="true">*</span></span></label>
+    </div>
+    <div class="actions">
+      <span class="saved" id="saved"></span>
+      <button type="button" class="btn btn-gold" id="next-btn">Continue →</button>
+    </div>`;
+}
+
+function step2Html(){
+  const d = state.data;
+  const logo = (() => { try{ return JSON.parse(localStorage.getItem(LOGO_KEY) || 'null'); }catch(e){ return null; } })();
+  return `
+    <div class="saved" id="saved"></div>
+    <h1 class="display">Your organization</h1>
+    <p class="lede">This becomes your public profile — what coaches see when they look you up.</p>
+    <div id="summary-error" class="summary-error" role="alert" style="display:none"></div>
+
+    <h2 class="sec">Organization information</h2>
+    ${field('Organization name','org_name',{required:true,placeholder:'e.g. Lincoln High School Athletics',autocomplete:'organization',maxlength:120})}
+    ${selectField('Organization type','org_type',ORG_TYPES,{required:true,placeholder:'Select a type…'})}
+    <div class="grid2">
+      ${field('Website','website',{type:'text',placeholder:'www.yourschool.org',autocomplete:'url',inputmode:'url',hint:'Helps coaches (and our team) confirm who you are.'})}
+      ${field('Organization email','org_email',{type:'email',placeholder:'athletics@yourschool.org',inputmode:'email',hint:'Private. Not shown publicly.'})}
+    </div>
+    ${field('Organization phone','org_phone',{type:'tel',placeholder:'(555) 555-0100',inputmode:'tel',hint:'Private. Not shown publicly.'})}
+
+    <h2 class="sec">Location</h2>
+    <div class="sec-hint">Only your city and state are shown publicly.</div>
+    ${field('Street address','address',{placeholder:'123 Main Street',autocomplete:'street-address',maxlength:200})}
+    <div class="grid3">
+      ${field('City','city',{required:true,autocomplete:'address-level2',maxlength:80})}
+      <div class="field" data-err="state">
+        <label class="lbl" for="f-state">State <span class="req" aria-hidden="true">*</span></label>
+        <select id="f-state" data-field="state" autocomplete="address-level1" required aria-required="true">
+          <option value="">State…</option>
+          ${US_STATES.map(s => `<option ${d.state === s ? 'selected' : ''}>${s}</option>`).join('')}
+          <option value="Outside U.S." ${d.state === 'Outside U.S.' ? 'selected' : ''}>Outside U.S.</option>
+        </select>
+      </div>
+      ${field('ZIP / postal code','zip',{required:true,autocomplete:'postal-code',inputmode:'numeric',maxlength:12})}
+    </div>
+    ${selectField('Country','country',COUNTRIES,{required:true,autocomplete:'country-name'})}
+
+    <h2 class="sec">Logo</h2>
+    <div class="logo-row">
+      <div class="logo-preview" id="logo-preview">${logo ? `<img alt="Logo preview" src="${esc(logo.dataUrl)}">` : 'No logo yet'}</div>
+      <div>
+        <input type="file" id="logo-file" accept="image/png,image/jpeg,image/webp" style="max-width:100%">
+        <div class="hint">PNG, JPG or WebP, up to 2&nbsp;MB. Optional — you can add it later.</div>
+        <button type="button" class="btn btn-ghost" id="logo-remove" style="min-height:36px; padding:6px 12px; font-size:13px; margin-top:8px; ${logo ? '' : 'display:none'}">Remove logo</button>
+      </div>
+    </div>
+    <div class="hint" id="logo-error" style="color:var(--err); font-weight:600;"></div>
+
+    <h2 class="sec">About your organization</h2>
+    <div class="field" data-err="description">
+      <label class="lbl" for="f-description">Tell coaches about your organization <span class="opt">(optional)</span></label>
+      <textarea id="f-description" data-field="description" maxlength="1000" placeholder="Who you serve, your program's goals, what kind of coaching help would make the biggest difference…">${esc(d.description)}</textarea>
+      <div class="counter" id="desc-counter">${d.description.length} / 1000</div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-ghost" id="back-btn">← Back</button>
+      <button type="button" class="btn btn-gold" id="next-btn">Continue →</button>
+    </div>`;
+}
+
+function step3Html(){
+  const d = state.data;
+  const needsPassword = !session && !memPassword;
+  return `
+    <div class="saved" id="saved"></div>
+    <h1 class="display">What do you need?</h1>
+    <p class="lede">Tell us your sports and what you're looking for, and we'll recommend coaches who fit.</p>
+    <div id="summary-error" class="summary-error" role="alert" style="display:none"></div>
+
+    <h2 class="sec">What sports does your organization support? <span class="req" aria-hidden="true">*</span></h2>
+    <div class="sec-hint">Choose all that apply.</div>
+    <div data-err="sports"><div class="chips" id="sport-chips">
+      ${catalog.sports.map(s => `<label class="chip"><input type="checkbox" data-multi="sports" value="${esc(s)}" ${d.sports.includes(s) ? 'checked' : ''}><span>${esc(s)}</span></label>`).join('')}
+    </div></div>
+    <div id="other-sport-wrap" style="display:${d.sports.includes('Other') ? 'block' : 'none'}">
+      ${field('Which other sport?','other_sport',{required:true,placeholder:'e.g. Archery, Rowing, Golf',maxlength:60})}
+    </div>
+
+    <div id="expertise-area"></div>
+
+    <h2 class="sec">What can a coach or consultant help with? <span class="req" aria-hidden="true">*</span></h2>
+    <div class="sec-hint">Choose all that apply.</div>
+    <div data-err="needs"><div class="optgrid">
+      ${NEEDS.map(n => `<label class="opt-item"><input type="checkbox" data-multi="needs" value="${esc(n)}" ${d.needs.includes(n) ? 'checked' : ''}> ${esc(n)}</label>`).join('')}
+    </div></div>
+    <div id="other-need-wrap" style="display:${d.needs.includes('Other') ? 'block' : 'none'}">
+      ${field('Describe the other need','other_need',{required:true,placeholder:'In a few words',maxlength:120})}
+    </div>
+
+    <h2 class="sec">How would you like to work with a coach? <span class="req" aria-hidden="true">*</span></h2>
+    <div data-err="format"><div class="chips radio-row">
+      ${FORMATS.map(f => `<label class="chip"><input type="radio" name="format" data-radio="format" value="${f.v}" ${d.format === f.v ? 'checked' : ''}><span>${f.l}</span></label>`).join('')}
+    </div></div>
+
+    <h2 class="sec">Where are you located?</h2>
+    <div class="sec-hint">Pre-filled from your organization profile. Only a ZIP code is needed — no street address.</div>
+    <div class="grid3">
+      ${field('City','city',{required:true,autocomplete:'address-level2',maxlength:80})}
+      <div class="field" data-err="state">
+        <label class="lbl" for="f-state">State <span class="req" aria-hidden="true">*</span></label>
+        <select id="f-state" data-field="state" required>
+          <option value="">State…</option>
+          ${US_STATES.map(s => `<option ${d.state === s ? 'selected' : ''}>${s}</option>`).join('')}
+          <option value="Outside U.S." ${d.state === 'Outside U.S.' ? 'selected' : ''}>Outside U.S.</option>
+        </select>
+      </div>
+      ${field('ZIP / postal code','zip',{required:true,autocomplete:'postal-code',inputmode:'numeric',maxlength:12})}
+    </div>
+
+    <h2 class="sec">Organization size</h2>
+    <div class="grid2">
+      ${selectField('How large is your organization?','employee_count',SIZES,{required:true,placeholder:'Select a range…'})}
+      ${selectField('How many athletes do you currently serve?','athlete_count',SIZES,{required:true,placeholder:'Select a range…'})}
+    </div>
+
+    <h2 class="sec">Typical project budget</h2>
+    <div class="sec-hint">Optional. Helps us recommend coaches in your range. Never shown publicly.</div>
+    <div class="grid2">
+      ${field('Minimum ($)','budget_min',{type:'number',inputmode:'numeric',placeholder:'e.g. 500'})}
+      ${field('Maximum ($)','budget_max',{type:'number',inputmode:'numeric',placeholder:'e.g. 3000'})}
+    </div>
+
+    <details class="verify">
+      <summary>Get a Verified Organization ✓ badge (optional)</summary>
+      <div class="inner">
+        <p class="hint" style="margin-bottom:6px;">Verified organizations earn more trust and more visibility with coaches. Share any of the following and our team will review it — you can add supporting documents from your dashboard later.</p>
+        ${field('Social media profile','v_social',{type:'url',placeholder:'https://facebook.com/yourprogram'})}
+        ${field('Business / organization registration info','v_registration',{placeholder:'e.g. EIN, state registration number, nonprofit ID',maxlength:300})}
+        ${field('Athletic department information','v_athletic',{placeholder:'e.g. Athletic director name and directory page',maxlength:300})}
+        ${field('School district information','v_district',{placeholder:'e.g. District name and your school\'s page on the district site',maxlength:300})}
+      </div>
+    </details>
+
+    ${needsPassword ? `
+    <div class="notice info">
+      <strong>Re-enter your password to finish.</strong> For your security we never store it in your browser.
+      <div class="grid2">
+        <div class="field" data-err="password"><label class="lbl" for="f-password">Password</label><input id="f-password" type="password" data-password="1" autocomplete="new-password"></div>
+        <div class="field" data-err="password2"><label class="lbl" for="f-password2">Confirm password</label><input id="f-password2" type="password" data-password="2" autocomplete="new-password"></div>
+      </div>
+    </div>` : ''}
+
+    <div class="actions">
+      <button type="button" class="btn btn-ghost" id="back-btn">← Back</button>
+      <button type="button" class="btn btn-gold" id="next-btn">${session ? 'Create my organization' : 'Create my organization account'}</button>
+    </div>`;
+}
+
+function renderExpertise(){
+  const area = document.getElementById('expertise-area');
+  if(!area) return;
+  const d = state.data;
+  const sports = d.sports.filter(s => s !== 'Other' && (catalog.expertise[s] || []).length);
+  if(!sports.length){ area.innerHTML = ''; return; }
+  area.innerHTML = `
+    <h2 class="sec">Areas of expertise you need</h2>
+    <div class="sec-hint">Optional. These options change with the sports you picked.</div>
+    ${sports.map(s => `
+      <div class="expertise-block">
+        <h3>${esc(s)}</h3>
+        <div class="optgrid">
+          ${catalog.expertise[s].map(x => `
+            <label class="opt-item"><input type="checkbox" data-expertise="${esc(s)}" value="${esc(x)}" ${(d.expertise[s] || []).includes(x) ? 'checked' : ''}> ${esc(x)}</label>`).join('')}
+        </div>
+      </div>`).join('')}`;
+}
+
+function step4Html(){
+  const d = state.data;
+  const verified = !!session;
+  return `
+    <h1 class="display" style="font-size:clamp(28px,6vw,40px);">Welcome to Remedy Coaching Group!</h1>
+    <p class="lede" style="font-size:16px;">Find the experience you need. Connect with coaches who have done it before.</p>
+
+    ${verified ? '' : `
+    <div class="notice gold" role="status">
+      <strong>One last step — verify your email.</strong><br>
+      We sent a link to <strong>${esc(d.email)}</strong>. Click it to activate your account — your organization profile is created automatically when you do.
+      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn btn-ghost" id="resend-btn" style="min-height:40px; padding:8px 14px; font-size:13.5px;">Resend email</button>
+        <button type="button" class="btn btn-ghost" id="restart-btn" style="min-height:40px; padding:8px 14px; font-size:13.5px;">Wrong email? Start over</button>
+      </div>
+      <div class="hint" id="resend-status" role="status" style="margin-top:8px;"></div>
+    </div>`}
+
+    <div class="welcome-actions">
+      <a class="action-card" href="org-dashboard.html#find"><h3>Find a Coach</h3><p>Search our professional network.</p></a>
+      <a class="action-card" href="org-dashboard.html#post"><h3>Post an Opportunity</h3><p>Tell qualified coaches what you need.</p></a>
+      <a class="action-card" href="org-dashboard.html#profile"><h3>Build Your Organization Profile</h3><p>Show coaches who you are and what you're looking for.</p></a>
+    </div>
+
+    ${verified ? `
+    <div class="ready">
+      <h2 class="display">Your organization is ready.</h2>
+      <p>Find the coaching expertise you need.</p>
+      <div class="row">
+        <a class="btn btn-gold" href="org-dashboard.html#find">Find a Coach</a>
+        <a class="btn btn-ghost" href="org-dashboard.html#post">Post an Opportunity</a>
+        <a class="btn btn-ghost" href="org-dashboard.html">Go to Dashboard</a>
+      </div>
+    </div>` : ''}`;
+}
+
+/* ---------------- rendering + events ---------------- */
+function render(){
+  renderProgress();
+  const stage = document.getElementById('stage');
+  stage.innerHTML = state.step === 1 ? step1Html() : state.step === 2 ? step2Html() : state.step === 3 ? step3Html() : step4Html();
+  if(state.step === 3) renderExpertise();
+  bindStep();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function bindStep(){
+  const stage = document.getElementById('stage');
+  const next = document.getElementById('next-btn'), back = document.getElementById('back-btn');
+  if(next) next.addEventListener('click', onNext);
+  if(back) back.addEventListener('click', () => { state.step = Math.max(session ? 2 : 1, state.step - 1); saveDraft(); render(); });
+
+  const counter = document.getElementById('desc-counter');
+  const desc = document.getElementById('f-description');
+  if(desc && counter){
+    const upd = () => { counter.textContent = `${desc.value.length} / 1000`; counter.classList.toggle('warn', desc.value.length > 950); };
+    desc.addEventListener('input', upd); upd();
+  }
+
+  const file = document.getElementById('logo-file');
+  if(file) file.addEventListener('change', onLogoPicked);
+  const rm = document.getElementById('logo-remove');
+  if(rm) rm.addEventListener('click', () => {
+    try{ localStorage.removeItem(LOGO_KEY); }catch(e){}
+    document.getElementById('logo-preview').textContent = 'No logo yet'; rm.style.display = 'none';
+  });
+
+  const resend = document.getElementById('resend-btn');
+  if(resend) resend.addEventListener('click', onResend);
+  const restart = document.getElementById('restart-btn');
+  if(restart) restart.addEventListener('click', () => { clearDraft(); state = { step:1, submitted:false, data:{...EMPTY} }; memPassword = memPassword2 = ''; render(); });
+}
+
+// One delegated listener keeps state in sync without re-rendering on every key.
+document.getElementById('stage').addEventListener('input', onFieldInput);
+document.getElementById('stage').addEventListener('change', onFieldInput);
+
+function onFieldInput(e){
+  const t = e.target;
+  if(t.dataset.password){ if(t.dataset.password === '1') memPassword = t.value; else memPassword2 = t.value; return; }
+  if(t.dataset.field){
+    const key = t.dataset.field;
+    state.data[key] = t.type === 'checkbox' ? t.checked : t.value;
+    // The city/state/ZIP inputs appear on both step 2 and step 3 — same underlying fields.
+    clearFieldError(key);
+  } else if(t.dataset.multi){
+    const key = t.dataset.multi, list = state.data[key];
+    if(t.checked){ if(!list.includes(t.value)) list.push(t.value); } else { state.data[key] = list.filter(v => v !== t.value); }
+    if(key === 'sports'){
+      // Drop expertise picked for sports that were just unselected.
+      Object.keys(state.data.expertise).forEach(s => { if(!state.data.sports.includes(s)) delete state.data.expertise[s]; });
+      document.getElementById('other-sport-wrap').style.display = state.data.sports.includes('Other') ? 'block' : 'none';
+      renderExpertise();
+    }
+    if(key === 'needs') document.getElementById('other-need-wrap').style.display = state.data.needs.includes('Other') ? 'block' : 'none';
+    clearFieldError(key);
+  } else if(t.dataset.expertise){
+    const s = t.dataset.expertise; const list = state.data.expertise[s] || [];
+    state.data.expertise[s] = t.checked ? [...new Set([...list, t.value])] : list.filter(v => v !== t.value);
+  } else if(t.dataset.radio){
+    state.data[t.dataset.radio] = t.value; clearFieldError(t.dataset.radio);
+  } else { return; }
+  saveDraft();
+}
+function clearFieldError(key){
+  const holder = document.querySelector(`[data-err="${key}"]`);
+  if(!holder) return;
+  const err = holder.querySelector('.field-error'); if(err) err.remove();
+  const i = holder.querySelector('[aria-invalid]'); if(i) i.removeAttribute('aria-invalid');
+}
+
+/* ---------------- logo ---------------- */
+function onLogoPicked(e){
+  const f = e.target.files && e.target.files[0];
+  const err = document.getElementById('logo-error'); err.textContent = '';
+  if(!f) return;
+  if(!/^image\/(png|jpeg|webp)$/.test(f.type)){ err.textContent = 'Please choose a PNG, JPG or WebP image.'; e.target.value = ''; return; }
+  if(f.size > 2 * 1024 * 1024){ err.textContent = 'That file is over 2 MB. Please choose a smaller image.'; e.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // Shrink so it fits comfortably in browser storage until the account is verified.
+      const max = 400, scale = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const dataUrl = c.toDataURL('image/png');
+      try{ localStorage.setItem(LOGO_KEY, JSON.stringify({ dataUrl, name:f.name })); }
+      catch(ex){ err.textContent = 'We couldn\'t save that image in your browser. You can add your logo from the dashboard instead.'; return; }
+      document.getElementById('logo-preview').innerHTML = `<img alt="Logo preview" src="${dataUrl}">`;
+      document.getElementById('logo-remove').style.display = '';
+    };
+    img.onerror = () => { err.textContent = 'We couldn\'t read that image. Try a different file.'; };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(f);
+}
+
+/* ---------------- payloads ---------------- */
+function budgetCents(v){ const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : null; }
+
+// Full payload for the create_organization() database function.
+function buildPayload(d){
+  return {
+    organization_name: d.org_name.trim(), organization_type: d.org_type,
+    description: d.description.trim(), website: normalizeWebsite(d.website),
+    email: d.org_email.trim(), phone: d.org_phone.trim(), address: d.address.trim(),
+    city: d.city.trim(), state: d.state, zip: d.zip.trim(), country: d.country,
+    employee_count: d.employee_count, athlete_count: d.athlete_count, preferred_format: d.format,
+    budget_min_cents: budgetCents(d.budget_min), budget_max_cents: budgetCents(d.budget_max),
+    member: { first_name: d.first_name.trim(), last_name: d.last_name.trim(), job_title: d.job_title.trim() },
+    sports: d.sports.map(s => s === 'Other' ? { name:'Other', custom:d.other_sport.trim() } : { name:s }),
+    expertise: Object.entries(d.expertise).flatMap(([sport, names]) => names.map(name => ({ sport, name }))),
+    needs: d.needs.map(n => n === 'Other' ? { type:'Other', custom:d.other_need.trim() } : { type:n })
+  };
+}
+
+// Compact copy stored in the new user's metadata (it rides inside every auth
+// token, so keep it small and never include the logo).
+function buildMetaDraft(d){
+  const out = { v:1, anon:anonId, payload:buildPayload(d) };
+  const verification = { social:d.v_social.trim(), registration:d.v_registration.trim(), athletic:d.v_athletic.trim(), district:d.v_district.trim() };
+  if(Object.values(verification).some(Boolean)) out.verification = verification;
+  return out;
+}
+
+/* ---------------- navigation ---------------- */
+async function onNext(){
+  if(busy) return;
+  const step = state.step;
+  const errors = validate(step);
+  showErrors(errors);
+  if(Object.keys(errors).length) return;
+
+  if(step === 1){ track('org_signup_step_completed', { step:1 }); state.step = 2; saveDraft(); render(); return; }
+
+  if(step === 2){
+    setBusy(true, 'Checking…');
+    const d = state.data;
+    try{
+      const { data, error } = await sb.rpc('organization_name_available', { p_name:d.org_name, p_city:d.city, p_state:d.state, p_website:normalizeWebsite(d.website) || null });
+      if(!error && data && data.available === false){
+        setBusy(false);
+        showErrors({ [data.field === 'website' ? 'website' : 'org_name']: data.reason });
+        return;
+      }
+    }catch(e){ /* the database enforces uniqueness again at creation time */ }
+    setBusy(false);
+    track('org_signup_step_completed', { step:2, organization_type:d.org_type });
+    state.step = 3; saveDraft(); render(); return;
+  }
+
+  if(step === 3) await submitAll();
+}
+
+function setBusy(on, label){
+  busy = on;
+  const next = document.getElementById('next-btn'), back = document.getElementById('back-btn');
+  if(next){ if(on){ next.dataset.label = next.textContent; next.textContent = label || 'Please wait…'; } else if(next.dataset.label){ next.textContent = next.dataset.label; } next.disabled = on; }
+  if(back) back.disabled = on;
+}
+
+function friendlyError(err){
+  const m = (err && (err.message || err)) + '';
+  if(m.includes('DUPLICATE_ORGANIZATION')) return 'An organization with this name or website already exists. Ask its owner to invite you to the team instead.';
+  if(/already registered|already been registered/i.test(m)) return 'That email already has an account. Sign in to finish creating your organization.';
+  if(/rate limit/i.test(m)) return 'Too many attempts right now. Please wait a few minutes and try again.';
+  if(/password/i.test(m) && /weak|short|least/i.test(m)) return 'Please choose a stronger password.';
+  return m.replace(/^[A-Z_]+:\s*/, '') || 'Something went wrong. Please try again.';
+}
+
+async function submitAll(){
+  const d = state.data;
+  setBusy(true, session ? 'Creating…' : 'Creating account…');
+
+  if(session){
+    // Already signed in (and email-verified): create the organization now.
+    const { data:orgId, error } = await sb.rpc('create_organization', { payload: buildPayload(d) });
+    if(error){ setBusy(false); showErrors({}); const top = document.getElementById('summary-error'); top.style.display = 'block'; top.textContent = friendlyError(error); return; }
+    await finishOrganization(orgId);
+    state.step = 4; state.submitted = true; saveDraft(); render();
+    return;
+  }
+
+  const redirectTo = new URL('org-dashboard.html', window.location.href).href;
+  const { data, error } = await sb.auth.signUp({
+    email: d.email.trim(), password: memPassword,
+    options: {
+      emailRedirectTo: redirectTo,
+      data: { first_name:d.first_name.trim(), last_name:d.last_name.trim(), job_title:d.job_title.trim(), phone:d.phone.trim(),
+              intended_role:'Client', intent:'org', org_draft: buildMetaDraft(d) }
+    }
+  });
+
+  if(error){
+    setBusy(false);
+    const top = document.getElementById('summary-error'); top.style.display = 'block'; top.textContent = friendlyError(error);
+    top.scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+  // Supabase answers "success" with no identities when the address already has an account.
+  if(data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0){
+    setBusy(false);
+    const top = document.getElementById('summary-error'); top.style.display = 'block';
+    top.innerHTML = 'That email already has an account. <a href="login.html?next=org-dashboard.html">Sign in</a> to finish creating your organization — your answers are saved on this device.';
+    return;
+  }
+
+  memPassword = memPassword2 = '';
+  track('org_signup_submitted', { organization_type:d.org_type, sports:d.sports.length }, 'org_signup_submitted:' + anonId);
+  if(data.session){
+    // Email confirmation is off: they're already signed in, so finish right away.
+    session = data.session;
+    const { data:orgId, error:e2 } = await sb.rpc('create_organization', { payload: buildPayload(d) });
+    if(!e2){ await finishOrganization(orgId); }
+  }
+  state.step = 4; state.submitted = true; saveDraft(); render();
+}
+
+// Post-creation chores for the signed-in path: upload the logo, file any
+// verification details, and clean up the local draft.
+async function finishOrganization(orgId){
+  try{
+    const logo = JSON.parse(localStorage.getItem(LOGO_KEY) || 'null');
+    if(logo && logo.dataUrl){
+      const blob = await (await fetch(logo.dataUrl)).blob();
+      const path = `${orgId}/logo.png`;
+      const up = await sb.storage.from('org-logos').upload(path, blob, { upsert:true, contentType:'image/png' });
+      if(!up.error){
+        const url = sb.storage.from('org-logos').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
+        await sb.from('organizations').update({ logo_url:url }).eq('id', orgId);
+      }
+    }
+  }catch(e){}
+  try{
+    const d = state.data;
+    const any = [d.v_social, d.v_registration, d.v_athletic, d.v_district].some(v => (v || '').trim());
+    if(any && session){
+      await sb.from('organization_verification_requests').insert({
+        organization_id:orgId, requested_by:session.user.id, website_url:normalizeWebsite(d.website) || null,
+        email_domain:(d.org_email.split('@')[1] || '').trim() || null,
+        social_url:d.v_social.trim() || null, registration_info:d.v_registration.trim() || null,
+        athletic_dept_info:d.v_athletic.trim() || null, district_info:d.v_district.trim() || null });
+    }
+  }catch(e){}
+  track('org_signup_completed', { organization_type:state.data.org_type, sports:state.data.sports.length }, 'org_signup_completed:' + (session ? session.user.id : anonId), orgId);
+  clearDraft();
+}
+
+async function onResend(){
+  const status = document.getElementById('resend-status');
+  status.textContent = 'Sending…';
+  const { error } = await sb.auth.resend({ type:'signup', email:state.data.email.trim(), options:{ emailRedirectTo:new URL('org-dashboard.html', window.location.href).href } });
+  status.textContent = error ? friendlyError(error) : 'Sent! Check your inbox (and spam folder).';
+}
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  anonId = getAnonId();
+  loadDraft();
+
+  try{
+    const { data:{ session:s } } = await sb.auth.getSession();
+    session = s || null;
+  }catch(e){}
+
+  // Signed-in visitors who already run an organization belong in the dashboard.
+  if(session){
+    const params = new URLSearchParams(location.search);
+    const { data:mine } = await sb.from('organization_members').select('organization_id').eq('user_id', session.user.id).limit(1);
+    if(mine && mine.length && params.get('new') !== '1'){ location.replace('org-dashboard.html' + (params.get('post') === '1' ? '#post' : '')); return; }
+    document.getElementById('nav-signin').textContent = 'Signed in as ' + (session.user.email || '');
+    document.getElementById('nav-signin').removeAttribute('href');
+    const md = session.user.user_metadata || {};
+    const d = state.data;
+    if(!d.first_name) d.first_name = md.first_name || '';
+    if(!d.last_name) d.last_name = md.last_name || '';
+    if(!d.job_title) d.job_title = md.job_title || '';
+    if(!d.email) d.email = session.user.email || '';
+    if(state.step < 2 || state.step === 4) { state.step = 2; state.submitted = false; }
+  } else if(state.submitted){
+    state.step = 4;
+  }
+
+  try{
+    const [{ data:sp, error:e1 }, { data:ex, error:e2 }] = await Promise.all([
+      sb.from('sports').select('name, sort_order').order('sort_order'),
+      sb.from('expertise').select('name, sports!inner(name)')
+    ]);
+    if(e1 || e2) throw (e1 || e2);
+    catalog.sports = sp.map(r => r.name);
+    ex.forEach(r => { (catalog.expertise[r.sports.name] ||= []).push(r.name); });
+    Object.values(catalog.expertise).forEach(list => list.sort());
+  }catch(e){
+    document.getElementById('stage').innerHTML = `<h1 class="display">Something went wrong</h1><p class="lede">We couldn't load the sign-up form. Check your connection and try again.</p><div class="actions"><span></span><button class="btn btn-gold" onclick="location.reload()">Try again</button></div>`;
+    return;
+  }
+
+  if(!session && state.step === 1 && !state.submitted){
+    track('org_signup_started', { source:(document.referrer ? new URL(document.referrer).hostname : 'direct'), post_intent:new URLSearchParams(location.search).get('post') === '1' }, 'org_signup_started:' + anonId);
+  }
+  // Passwords aren't saved, so a reload past step 1 resumes at the same step and re-asks only at the end.
+  render();
+}
+boot();
+</script>
+</body>
+</html>

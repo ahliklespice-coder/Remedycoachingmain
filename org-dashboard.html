@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organization Dashboard — Remedy Coaching</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --field:#16342A; --field-light:#20493A; --turf:#2F6B4F;
+    --chalk:#F5F3EA; --chalk-dim:#E7E2D3; --ink:#1C1B18;
+    --gold:#D4A72C; --gold-dim:#E9C868; --line:rgba(245,243,234,0.16); --err:#b5453f;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh;}
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit; cursor:pointer;}
+  .display{font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:.01em; line-height:1;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+
+  header{position:sticky; top:0; z-index:40; background:rgba(22,52,42,.97); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:12px 20px; max-width:1180px; margin:0 auto; gap:12px;}
+  .logo{display:flex; align-items:center; gap:10px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:17px; white-space:nowrap;}
+  .logo-mark{width:34px; height:34px;}
+  .logo-word b{color:var(--gold); font-weight:inherit;}
+  @media (max-width:520px){ .logo-word{display:none;} }
+  .nav-right{display:flex; align-items:center; gap:10px; min-width:0;}
+  .nav-right select{max-width:220px; background:rgba(245,243,234,.1); color:var(--chalk); border:1px solid var(--line); border-radius:6px; padding:7px 8px; font-size:13px;}
+  .nav-right select option{color:var(--ink);}
+  .nav-right a, .nav-right button.link{color:var(--chalk-dim); font-size:13px; background:none; border:none;}
+  .nav-right a:hover, .nav-right button.link:hover{color:var(--gold);}
+
+  .shell{max-width:1180px; margin:0 auto; padding:22px 20px 90px; display:grid; grid-template-columns:210px 1fr; gap:24px; align-items:start;}
+  @media (max-width:860px){ .shell{grid-template-columns:1fr; gap:14px; padding:14px 14px 80px;} }
+  .tabs{position:sticky; top:68px; display:flex; flex-direction:column; gap:4px;}
+  @media (max-width:860px){ .tabs{position:static; flex-direction:row; overflow-x:auto; gap:6px; padding-bottom:6px; -webkit-overflow-scrolling:touch;} }
+  .tab{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 14px; border-radius:8px; font-size:14px; font-weight:600; color:#4a4940; white-space:nowrap; background:none; border:none; text-align:left; min-height:42px;}
+  .tab:hover{background:rgba(28,27,24,.06);}
+  .tab.active{background:var(--field); color:var(--chalk);}
+  .tab .badge{background:var(--gold); color:var(--ink); border-radius:999px; font-size:11px; padding:1px 7px; font-weight:700;}
+  @media (max-width:860px){ .tab{border:1px solid rgba(28,27,24,.14); background:#fff;} .tab.active{border-color:var(--field);} }
+
+  .orghead{display:flex; align-items:center; gap:14px; margin-bottom:18px; flex-wrap:wrap;}
+  .org-logo{width:56px; height:56px; border-radius:12px; background:#fff; border:1px solid rgba(28,27,24,.1); display:flex; align-items:center; justify-content:center; overflow:hidden; font-family:'Anton',sans-serif; color:var(--field); font-size:20px; flex-shrink:0;}
+  .org-logo img{width:100%; height:100%; object-fit:contain;}
+  .orghead h1{font-size:clamp(22px,4vw,30px); color:var(--field);}
+  .vbadge{display:inline-flex; align-items:center; gap:5px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 10px; border-radius:999px; white-space:nowrap;}
+  .vbadge.verified{color:var(--turf); border:1px solid rgba(47,107,79,.35); background:rgba(47,107,79,.08);}
+  .vbadge.pending{color:#8a6a10; border:1px solid rgba(212,167,44,.4); background:rgba(212,167,44,.1);}
+  .vbadge.unverified, .vbadge.rejected{color:#6b6a63; border:1px solid rgba(28,27,24,.18); background:#fff;}
+
+  .card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; margin-bottom:16px;}
+  .card h2{font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; font-size:19px; color:var(--field); margin-bottom:12px;}
+  .card h3{font-size:15px; color:var(--field); margin-bottom:6px;}
+  .muted{color:#8a8878; font-size:13px;}
+  .sec-title{font-family:'Anton',sans-serif; text-transform:uppercase; font-size:21px; color:var(--field); font-weight:400; margin:6px 0 12px;}
+
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px;}
+  .stat{background:var(--field); color:var(--chalk); border-radius:12px; padding:16px;}
+  .stat .n{font-family:'Anton',sans-serif; font-size:30px; color:var(--gold); line-height:1.1;}
+  .stat .l{font-size:11.5px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:.05em; margin-top:4px;}
+  .stat .s{font-size:12px; color:var(--chalk-dim); margin-top:2px;}
+  .meter{height:8px; border-radius:99px; background:rgba(245,243,234,.2); margin-top:8px; overflow:hidden;}
+  .meter > i{display:block; height:100%; background:var(--gold);}
+
+  .btn{font-weight:700; font-size:14px; padding:10px 16px; border-radius:8px; border:1.5px solid transparent; min-height:42px; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:transform .12s, background .15s;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn:disabled{opacity:.5; cursor:not-allowed; transform:none;}
+  .btn-gold{background:var(--gold); color:var(--ink);} .btn-gold:hover{background:var(--gold-dim);}
+  .btn-dark{background:var(--field); color:var(--chalk);}
+  .btn-ghost{background:none; border-color:rgba(28,27,24,.22); color:var(--ink);} .btn-ghost:hover{border-color:var(--turf); color:var(--turf);}
+  .btn-danger{background:none; border-color:rgba(181,69,63,.35); color:var(--err);}
+  .btn-sm{font-size:12.5px; padding:6px 12px; min-height:34px;}
+
+  label.lbl{display:block; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--field); margin:14px 0 6px;}
+  .opt{font-weight:500; text-transform:none; letter-spacing:0; color:#8a8878;}
+  input[type=text], input[type=email], input[type=tel], input[type=number], input[type=date], input[type=url], select, textarea{
+    width:100%; border:1.5px solid rgba(28,27,24,.18); border-radius:8px; padding:11px 12px; min-height:44px; font-family:inherit; font-size:15px; color:var(--ink); background:#fdfcf9;
+  }
+  textarea{min-height:110px; resize:vertical;}
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--turf);}
+  [aria-invalid="true"]{border-color:var(--err) !important; background:#fff7f6;}
+  .hint{font-size:12px; color:#8a8878; margin-top:4px;}
+  .ferr{font-size:12.5px; color:var(--err); font-weight:600; margin-top:4px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;} .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;}
+  @media (max-width:700px){ .grid2, .grid3{grid-template-columns:1fr;} }
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{position:relative;} .chip input{position:absolute; opacity:0; inset:0; width:100%; height:100%; cursor:pointer; margin:0;}
+  .chip span{display:inline-block; padding:8px 14px; border-radius:999px; border:1.5px solid rgba(28,27,24,.18); background:#fff; font-size:13.5px; font-weight:600;}
+  .chip input:checked + span{background:var(--field); border-color:var(--field); color:var(--chalk);}
+  .chip input:focus-visible + span{outline:3px solid var(--gold); outline-offset:2px;}
+  .optgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:8px;}
+  .opt-item{display:flex; gap:9px; align-items:center; padding:9px 11px; border:1.5px solid rgba(28,27,24,.14); border-radius:8px; background:#fdfcf9; font-size:13.5px; cursor:pointer; min-height:42px;}
+  .opt-item:has(input:checked){border-color:var(--turf); background:rgba(47,107,79,.08);}
+  .opt-item input{width:17px; height:17px; accent-color:var(--turf);}
+
+  .coach-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:14px;}
+  .coach{background:#fff; border:1px solid rgba(28,27,24,.1); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:10px;}
+  .coach-top{display:flex; gap:12px; align-items:center;}
+  .avatar{width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--turf),var(--field-light)); color:var(--chalk); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:16px; flex-shrink:0;}
+  .coach h3{margin:0; font-size:15.5px;}
+  .headline{font-size:13px; color:#6b6a63;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:6px; font-size:12px;}
+  .pill{background:var(--chalk-dim); color:var(--field); border-radius:999px; padding:3px 9px; font-size:11.5px;}
+  .pill.good{background:rgba(47,107,79,.12); color:var(--turf);}
+  .pill.gold{background:rgba(212,167,44,.18); color:#7a5d0c;}
+  .coach .why{font-size:12px; color:var(--turf); font-weight:600;}
+  .coach .acts{display:flex; gap:6px; flex-wrap:wrap; margin-top:auto;}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-top:1px solid rgba(28,27,24,.07); flex-wrap:wrap;}
+  .row:first-child{border-top:none;}
+  .status{font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; padding:3px 10px; border-radius:999px; white-space:nowrap; font-weight:600;}
+  .st-pending, .st-draft{background:rgba(212,167,44,.16); color:#8a6a10;}
+  .st-accepted, .st-open, .st-verified{background:rgba(47,107,79,.15); color:var(--turf);}
+  .st-declined, .st-closed, .st-rejected{background:rgba(181,69,63,.12); color:var(--err);}
+  .st-completed, .st-filled{background:rgba(22,52,42,.12); color:var(--field);}
+  .empty{text-align:center; padding:30px 12px; color:#8a8878; font-size:14px;}
+  .empty b{display:block; font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; font-size:17px; color:var(--field); margin-bottom:4px;}
+
+  .welcome{background:var(--field); color:var(--chalk); border-radius:16px; padding:26px 22px; margin-bottom:18px;}
+  .welcome h2{color:var(--chalk); font-size:26px; margin-bottom:6px;}
+  .welcome p{color:var(--chalk-dim);}
+  .welcome .acts{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:18px;}
+  @media (max-width:700px){ .welcome .acts{grid-template-columns:1fr;} }
+  .welcome .act{background:rgba(245,243,234,.08); border:1px solid var(--line); border-radius:12px; padding:14px; text-align:left; color:var(--chalk);}
+  .welcome .act:hover{border-color:var(--gold);}
+  .welcome .act b{display:block; font-size:15px;} .welcome .act span{font-size:12.5px; color:var(--chalk-dim);}
+  .banner{border:1.5px solid var(--gold); background:#fffaf0; border-radius:12px; padding:14px 16px; margin-bottom:16px; font-size:14px;}
+
+  .checklist{list-style:none; display:grid; gap:6px; font-size:13.5px; margin-top:8px;}
+  .checklist li::before{content:"○ "; color:#a8a596;} .checklist li.done::before{content:"✓ "; color:var(--turf); font-weight:700;} .checklist li.done{color:#6b6a63;}
+
+  .thread{margin-top:10px; background:#fdfcf9; border:1px solid rgba(28,27,24,.08); border-radius:10px; padding:12px; width:100%;}
+  .msgs{display:flex; flex-direction:column; gap:7px; max-height:240px; overflow-y:auto; margin-bottom:10px;}
+  .bubble{max-width:82%; padding:8px 12px; border-radius:10px; font-size:13px; white-space:pre-wrap; word-break:break-word;}
+  .bubble.me{align-self:flex-end; background:var(--field); color:var(--chalk);} .bubble.them{align-self:flex-start; background:var(--chalk-dim);}
+  .bubble small{display:block; opacity:.65; font-size:10.5px; margin-top:3px;}
+  .composer{display:flex; gap:8px; align-items:flex-end;} .composer textarea{min-height:44px; max-height:100px;}
+
+  .modal-back{position:fixed; inset:0; background:rgba(15,36,28,.6); z-index:80; display:flex; align-items:center; justify-content:center; padding:16px; overflow-y:auto;}
+  .modal{background:#fff; border-radius:16px; padding:24px; max-width:560px; width:100%; max-height:92vh; overflow-y:auto;}
+  .modal h2{font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; font-size:22px; color:var(--field); margin-bottom:8px;}
+  .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--field); color:var(--chalk); padding:12px 20px; border-radius:30px; font-size:14px; z-index:99; transition:opacity .25s, transform .25s; pointer-events:none; max-width:90vw; text-align:center;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .spinner{padding:60px 0; text-align:center; color:#8a8878;}
+  table.tbl{width:100%; border-collapse:collapse; font-size:13px;} table.tbl th{text-align:left; padding:6px 8px; color:#8a8878; font-weight:600;} table.tbl td{padding:8px; border-top:1px solid rgba(28,27,24,.07);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo">
+        <circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)" stroke-width="1"/>
+        <path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="var(--gold)" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="var(--chalk)" text-anchor="middle">R</text>
+      </svg>
+      <span class="logo-word">REMEDY <b>COACHING</b></span>
+    </a>
+    <div class="nav-right">
+      <select id="org-switch" aria-label="Switch organization" style="display:none"></select>
+      <a href="coaches.html">Coach directory</a>
+      <button class="link" id="signout">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell" id="shell">
+  <div class="spinner" style="grid-column:1/-1">Loading your dashboard…</div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="modal-root"></div>
+
+<script>
+const SUPABASE_URL = 'https://gaeekblnbhxtcqdeesra.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DRAFT_KEY = 'remedy_org_signup_v1', LOGO_KEY = 'remedy_org_logo_v1', ANON_KEY = 'remedy_anon_id', ORG_KEY = 'remedy_current_org', WELCOME_KEY = 'remedy_org_welcome_dismissed';
+const ORG_TYPES = ['High School','Middle School','College / University','Professional Sports Organization','Youth Sports Organization','Travel / Club Team','Athletic Department','Sports Camp','Training Facility','Nonprofit','Sports Business','Community Organization','Individual Team','Other'];
+const NEEDS = ['Player Development','Team Development','Coaching Development','Recruiting','Program Development','Practice Planning','Game Strategy','Film Analysis','Strength & Conditioning','Leadership','Team Culture','Youth Development','Staff Training','Tournament Preparation','Athletic Program Evaluation','Other'];
+const SIZES = ['1–10','11–25','26–50','51–100','101–250','251–500','500+'];
+const COUNTRIES = ['United States','Canada','United Kingdom','Australia','Other'];
+const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+const COACH_SPECIALTIES = ['Skill Development','Strength & Conditioning','Mental Performance','Recruiting Guidance','Game Strategy','Injury Recovery','Team Building','Position-Specific Training'];
+const DURATIONS = ['One-time session','1–2 weeks','3–4 weeks','1–3 months','Season-long','Ongoing / retainer'];
+const LOCATION_TYPES = [{v:'virtual',l:'Virtual'},{v:'in_person',l:'In person'},{v:'hybrid',l:'Hybrid'}];
+const ROLES = [
+  {v:'owner', l:'Owner', d:'Full control, including owners and billing-level changes.'},
+  {v:'admin', l:'Administrator', d:'Manage the profile, team, opportunities and applicants.'},
+  {v:'hiring_manager', l:'Hiring Manager', d:'Post opportunities, manage applicants, contact coaches.'},
+  {v:'staff', l:'Coach / Staff', d:'View the dashboard and coach recommendations.'},
+  {v:'viewer', l:'Viewer', d:'Read-only access.'}
+];
+const ROLE_LABEL = Object.fromEntries(ROLES.map(r => [r.v, r.l]));
+const LEVELS_FOR_TYPE = {'High School':['High School'],'Middle School':['Middle School'],'College / University':['College'],'Professional Sports Organization':['Semi-Pro/Pro'],'Youth Sports Organization':['Youth'],'Sports Camp':['Youth'],'Travel / Club Team':['Youth','High School'],'Athletic Department':['High School','College']};
+// How each organization need maps onto the broad specialties coaches list on their profiles.
+const NEED_TO_SPECIALTY = {
+  'Player Development':['Skill Development','Position-Specific Training'], 'Team Development':['Team Building'],
+  'Coaching Development':['Team Building'], 'Recruiting':['Recruiting Guidance'], 'Program Development':['Team Building'],
+  'Practice Planning':['Skill Development','Game Strategy'], 'Game Strategy':['Game Strategy'], 'Film Analysis':['Game Strategy'],
+  'Strength & Conditioning':['Strength & Conditioning'], 'Leadership':['Team Building','Mental Performance'],
+  'Team Culture':['Team Building','Mental Performance'], 'Youth Development':['Skill Development'],
+  'Staff Training':['Team Building'], 'Tournament Preparation':['Game Strategy'],
+  'Athletic Program Evaluation':['Team Building','Game Strategy']
+};
+
+const S = {
+  user:null, memberships:[], org:null, member:null, perms:{}, plan:'free',
+  catalog:{ sports:[], expertise:{} },           // expertise: sport -> [{name, coach_specialty}]
+  opps:[], apps:[], invitations:[], inquiries:[], members:[], teamInvites:[], verifications:[], myInvites:[],
+  coaches:null, filters:{ sport:'', specialties:[], state:'', city:'', minYears:'', cert:'', accomplishments:'', availability:'', format:'', maxPrice:'', verifiedOnly:false },
+  results:null, resultLimit:24, tab:'overview', justCreated:false, editingOpp:null, oppForm:null, openThread:null, threadMsgs:[], threadWho:''
+};
+const TABS = [['overview','Overview'],['find','Find a Coach'],['post','Post an Opportunity'],['applications','Applications'],['invitations','Invitations & Messages'],['profile','Organization Profile'],['team','Team'],['verification','Verification']];
+
+/* ---------------- helpers ---------------- */
+function esc(s){ const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+function initials(n){ return (n||'').trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase()||'').join('') || '?'; }
+function fmtDate(d){
+  if(!d) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);   // date-only values are calendar days, not UTC instants
+  return (m ? new Date(+m[1], +m[2]-1, +m[3]) : new Date(d)).toLocaleDateString();
+}
+function money(c){ return c ? '$' + Math.round(c/100).toLocaleString() : ''; }
+function budgetLabel(min, max){ if(min && max && min !== max) return `${money(min)}–${money(max)}`; if(min) return money(min) + (max ? '' : '+'); return 'Budget TBD'; }
+function can(p){ return !!S.perms[p]; }
+function toast(m){ const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 3200); }
+function friendly(err){
+  const m = (err && (err.message || err)) + '';
+  if(m.includes('EMAIL_NOT_VERIFIED')) return 'Please verify your email before publishing an opportunity.';
+  if(m.includes('DUPLICATE_ORGANIZATION')) return 'An organization with this name or website already exists. Ask its owner to invite you to the team.';
+  if(m.includes('OWNER_REQUIRED')) return 'Only an organization owner can change owners or administrators.';
+  if(m.includes('LAST_OWNER')) return 'An organization must keep at least one owner.';
+  if(m.includes('MESSAGING_REQUIRES_PROFESSIONAL_PLAN')) return 'Sending messages requires a Professional or Elite plan.';
+  if(m.includes('RATE_LIMITED')) return 'Too many messages today — please try again tomorrow.';
+  if(m.includes('duplicate key')) return 'That already exists.';
+  if(m.includes('row-level security')) return 'You don\'t have permission to do that.';
+  return m.replace(/^[A-Z_]+:\s*/, '');
+}
+function anonId(){ try{ return localStorage.getItem(ANON_KEY); }catch(e){ return null; } }
+
+async function track(name, props = {}, dedupe = null, orgId = undefined){
+  try{
+    const row = { event_name:name, anonymous_id:anonId(), properties:props, user_id:S.user?.id ?? null, organization_id: orgId !== undefined ? orgId : (S.org?.id ?? null) };
+    if(dedupe){ row.dedupe_key = dedupe; await sb.from('analytics_events').insert(row); /* a repeat is rejected by the unique dedupe_key — that's the point */ }
+    else await sb.from('analytics_events').insert(row);
+  }catch(e){}
+}
+
+function openModal(html){
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `<div class="modal-back" id="modal-back"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  document.getElementById('modal-back').addEventListener('mousedown', e => { if(e.target.id === 'modal-back') closeModal(); });
+  const f = root.querySelector('textarea,input,select'); if(f) setTimeout(() => f.focus(), 50);
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML = ''; }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){ location.replace('login.html?next=' + encodeURIComponent('org-dashboard.html' + location.hash)); return; }
+  S.user = session.user;
+  document.getElementById('signout').addEventListener('click', async () => { await sb.auth.signOut(); location.href = 'index.html'; });
+  track('email_verified', {}, 'email_verified:' + S.user.id, null);
+
+  await loadCatalog();
+  await loadMemberships();
+
+  if(!S.memberships.length){
+    const created = await finalizeFromDraft();
+    if(created) await loadMemberships();
+  }
+  if(!S.memberships.length){ await renderNoOrg(); return; }
+
+  const saved = (() => { try{ return localStorage.getItem(ORG_KEY); }catch(e){ return null; } })();
+  const chosen = S.memberships.find(m => m.organization_id === saved) || S.memberships[0];
+  await selectOrg(chosen.organization_id);
+
+  window.addEventListener('hashchange', () => { setTab(location.hash.slice(1) || 'overview', false); });
+  S.tab = (location.hash.slice(1) || 'overview');
+  if(!TABS.some(t => t[0] === S.tab)) S.tab = 'overview';
+  render();
+}
+
+async function loadCatalog(){
+  const [{ data:sp }, { data:ex }] = await Promise.all([
+    sb.from('sports').select('name, sort_order').order('sort_order'),
+    sb.from('expertise').select('name, coach_specialty, sports!inner(name)')
+  ]);
+  S.catalog.sports = (sp || []).map(r => r.name);
+  S.catalog.expertise = {};
+  (ex || []).forEach(r => { (S.catalog.expertise[r.sports.name] ||= []).push({ name:r.name, coach_specialty:r.coach_specialty }); });
+  Object.values(S.catalog.expertise).forEach(l => l.sort((a,b) => a.name.localeCompare(b.name)));
+}
+
+async function loadMemberships(){
+  const { data } = await sb.from('organization_members')
+    .select('id, role, permissions, display_name, job_title, organization_id, organizations(id, organization_name, logo_url, verification_status)')
+    .eq('user_id', S.user.id);
+  S.memberships = data || [];
+  const sel = document.getElementById('org-switch');
+  if(S.memberships.length > 1){
+    sel.style.display = '';
+    sel.innerHTML = S.memberships.map(m => `<option value="${esc(m.organization_id)}">${esc(m.organizations?.organization_name || 'Organization')}</option>`).join('');
+    sel.onchange = async () => { await selectOrg(sel.value); render(); };
+  } else sel.style.display = 'none';
+}
+
+async function selectOrg(orgId){
+  const m = S.memberships.find(x => x.organization_id === orgId) || S.memberships[0];
+  S.member = m; S.perms = m.permissions || {};
+  try{ localStorage.setItem(ORG_KEY, m.organization_id); }catch(e){}
+  const sel = document.getElementById('org-switch'); if(sel) sel.value = m.organization_id;
+  S.coaches = null; S.results = null; S.oppForm = null; S.editingOpp = null; S.openThread = null;
+  await loadOrgData();
+}
+
+async function loadOrgData(){
+  const id = S.member.organization_id;
+  const { data:org } = await sb.from('organizations')
+    .select('*, organization_sports(custom_name, sports(id,name)), organization_expertise(expertise(id,name,coach_specialty,sports(name))), organization_needs(need_type,custom_text)')
+    .eq('id', id).single();
+  S.org = org;
+
+  const [opps, inv, inq, mem, ti, ver, sub] = await Promise.all([
+    sb.from('opportunities').select('*').eq('organization_id', id).order('created_at', { ascending:false }),
+    sb.from('consult_invitations').select('*').eq('organization_id', id).order('created_at', { ascending:false }),
+    sb.from('organization_inquiries').select('*').eq('organization_id', id).order('created_at', { ascending:false }),
+    sb.from('organization_members').select('*').eq('organization_id', id).order('created_at'),
+    sb.from('organization_invites').select('*').eq('organization_id', id).eq('status','pending').order('created_at', { ascending:false }),
+    sb.from('organization_verification_requests').select('*').eq('organization_id', id).order('created_at', { ascending:false }),
+    sb.from('subscriptions').select('plan,status').eq('user_id', S.user.id).maybeSingle()
+  ]);
+  S.opps = opps.data || []; S.invitations = inv.data || []; S.inquiries = inq.data || [];
+  S.members = mem.data || []; S.teamInvites = ti.data || []; S.verifications = ver.data || [];
+  S.plan = (sub.data && sub.data.status === 'active') ? sub.data.plan : 'free';
+
+  // Applicants across every opportunity, with the applying coach's public profile.
+  const oppIds = S.opps.map(o => o.id);
+  S.apps = [];
+  if(oppIds.length && (can('manage_applicants'))){
+    const { data:apps } = await sb.from('applications').select('*').in('opportunity_id', oppIds).order('created_at', { ascending:false });
+    S.apps = apps || [];
+  }
+  const ids = [...new Set([...S.apps.map(a => a.coach_id), ...S.invitations.map(i => i.coach_id), ...S.inquiries.map(q => q.from_user_id)])];
+  S.people = {};
+  if(ids.length){
+    const { data:ps } = await sb.from('profiles').select('id,name,sport,verified,headline').in('id', ids);
+    (ps || []).forEach(p => S.people[p.id] = p);
+  }
+  if(!S.justCreated) await loadMyInvites();
+  trackProfileCompletion();
+}
+
+async function loadMyInvites(){
+  const { data } = await sb.from('organization_invites').select('*').eq('status','pending').ilike('email', S.user.email || '');
+  S.myInvites = (data || []).filter(i => !S.memberships.some(m => m.organization_id === i.organization_id));
+  if(S.myInvites.length){
+    const ids = S.myInvites.map(i => i.organization_id);
+    const { data:orgs } = await sb.from('organizations_public').select('id,organization_name').in('id', ids);
+    S.myInviteOrgs = Object.fromEntries((orgs || []).map(o => [o.id, o.organization_name]));
+  }
+}
+
+/* ---------------- first run: turn the sign-up draft into a real organization ---------------- */
+async function finalizeFromDraft(){
+  let draft = S.user.user_metadata?.org_draft || null;
+  let fromMeta = !!draft;
+  if(!draft){
+    try{
+      const local = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+      if(local && local.data && local.data.org_name){ draft = localDraftToMeta(local.data); }
+    }catch(e){}
+  }
+  if(!draft || !draft.payload) return false;
+
+  const { data:orgId, error } = await sb.rpc('create_organization', { payload: draft.payload });
+  if(error){ S.draftError = friendly(error); return false; }
+
+  S.justCreated = true;
+  try{
+    const logo = JSON.parse(localStorage.getItem(LOGO_KEY) || 'null');
+    if(logo && logo.dataUrl){
+      const blob = await (await fetch(logo.dataUrl)).blob();
+      const path = `${orgId}/logo.png`;
+      const up = await sb.storage.from('org-logos').upload(path, blob, { upsert:true, contentType:'image/png' });
+      if(!up.error){
+        const url = sb.storage.from('org-logos').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
+        await sb.from('organizations').update({ logo_url:url }).eq('id', orgId);
+      }
+    }
+  }catch(e){}
+  try{
+    const v = draft.verification;
+    if(v){
+      const p = draft.payload;
+      await sb.from('organization_verification_requests').insert({
+        organization_id:orgId, requested_by:S.user.id, website_url:p.website || null,
+        email_domain:((p.email || '').split('@')[1] || '') || null,
+        social_url:v.social || null, registration_info:v.registration || null, athletic_dept_info:v.athletic || null, district_info:v.district || null });
+    }
+  }catch(e){}
+  track('org_signup_completed', { organization_type:draft.payload.organization_type }, 'org_signup_completed:' + S.user.id, orgId);
+  try{ localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(LOGO_KEY); }catch(e){}
+  if(fromMeta){ try{ await sb.auth.updateUser({ data:{ org_draft:null } }); }catch(e){} }
+  try{ localStorage.removeItem(WELCOME_KEY); }catch(e){}
+  return true;
+}
+function normalizeWebsite(v){ v = (v||'').trim(); if(!v) return ''; return /^[a-z][a-z0-9+.-]*:\/\//i.test(v) ? v : 'https://' + v; }
+function localDraftToMeta(d){
+  const c = v => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.round(n*100) : null; };
+  const md = S.user.user_metadata || {};
+  return { v:1, anon:anonId(), payload:{
+    organization_name:d.org_name.trim(), organization_type:d.org_type, description:(d.description||'').trim(), website:normalizeWebsite(d.website),
+    email:(d.org_email||'').trim(), phone:(d.org_phone||'').trim(), address:(d.address||'').trim(), city:(d.city||'').trim(), state:d.state, zip:(d.zip||'').trim(), country:d.country,
+    employee_count:d.employee_count, athlete_count:d.athlete_count, preferred_format:d.format, budget_min_cents:c(d.budget_min), budget_max_cents:c(d.budget_max),
+    member:{ first_name:d.first_name || md.first_name || '', last_name:d.last_name || md.last_name || '', job_title:d.job_title || md.job_title || '' },
+    sports:(d.sports||[]).map(s => s === 'Other' ? { name:'Other', custom:(d.other_sport||'').trim() } : { name:s }),
+    expertise:Object.entries(d.expertise||{}).flatMap(([sport,names]) => names.map(name => ({ sport, name }))),
+    needs:(d.needs||[]).map(n => n === 'Other' ? { type:'Other', custom:(d.other_need||'').trim() } : { type:n }) },
+    verification: [d.v_social,d.v_registration,d.v_athletic,d.v_district].some(Boolean) ? { social:d.v_social, registration:d.v_registration, athletic:d.v_athletic, district:d.v_district } : undefined };
+}
+
+async function renderNoOrg(){
+  await loadMyInvites();
+  const shell = document.getElementById('shell');
+  shell.style.gridTemplateColumns = '1fr';
+  shell.innerHTML = `<div style="max-width:680px; margin:30px auto; width:100%">
+    <div class="card">
+      <h2>No organization yet</h2>
+      ${S.draftError ? `<div class="banner" role="alert">We couldn't create your organization: ${esc(S.draftError)}</div>` : ''}
+      <p class="muted" style="font-size:14px">You're signed in as <b>${esc(S.user.email)}</b>. Create an organization account, or accept an invitation to join your team's.</p>
+      <div style="margin-top:14px"><a class="btn btn-gold" href="org-signup.html?new=1">Create an organization</a></div>
+    </div>
+    ${S.myInvites.length ? `<div class="card"><h2>Invitations for you</h2>${S.myInvites.map(inviteRow).join('')}</div>` : ''}
+  </div>`;
+  bindMyInvites();
+}
+function inviteRow(i){
+  return `<div class="row"><div><b>${esc((S.myInviteOrgs||{})[i.organization_id] || 'An organization')}</b><div class="muted">Invited as ${esc(ROLE_LABEL[i.role] || i.role)}</div></div>
+    <button class="btn btn-gold btn-sm" data-accept-invite="${esc(i.id)}">Accept invitation</button></div>`;
+}
+function bindMyInvites(){
+  document.querySelectorAll('[data-accept-invite]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    const { error } = await sb.rpc('accept_org_invite', { invite:b.dataset.acceptInvite });
+    if(error){ toast(friendly(error)); b.disabled = false; return; }
+    toast('Welcome to the team!'); setTimeout(() => location.reload(), 600);
+  }));
+}
+
+/* ---------------- profile completion + recommendations ---------------- */
+function orgSports(){ return (S.org.organization_sports || []).map(r => r.custom_name || r.sports?.name).filter(Boolean); }
+function orgExpertise(){ return (S.org.organization_expertise || []).map(r => r.expertise).filter(Boolean); }
+function orgNeeds(){ return (S.org.organization_needs || []).map(r => r.need_type); }
+
+function completion(){
+  const o = S.org;
+  const checks = [
+    ['Add your organization name and type', !!(o.organization_name && o.organization_type)],
+    ['Write a description (50+ characters)', (o.description || '').trim().length >= 50],
+    ['Upload your logo', !!o.logo_url],
+    ['Add your website', !!o.website],
+    ['Add your city and state', !!(o.city && o.state)],
+    ['Add an organization email or phone', !!(o.email || o.phone)],
+    ['Choose the sports you support', orgSports().length > 0],
+    ['Pick areas of expertise you need', orgExpertise().length > 0],
+    ['Choose what a coach can help with', orgNeeds().length > 0],
+    ['Say how large your organization is', !!(o.employee_count && o.athlete_count)],
+    ['Choose virtual, in-person or either', !!o.preferred_format]
+  ];
+  const done = checks.filter(c => c[1]).length;
+  return { pct:Math.round(done / checks.length * 100), checks };
+}
+function trackProfileCompletion(){
+  if(completion().pct >= 80) track('profile_completed', { pct:completion().pct }, 'profile_completed:' + S.org.id, S.org.id);
+}
+
+async function loadCoaches(){
+  if(S.coaches) return;
+  const { data } = await sb.from('profiles')
+    .select('id,name,sport,bio,verified,specialties,coaching_levels,session_formats,rate_min_cents,rate_max_cents,headline,years_experience,city,state,certifications,accomplishments,availability')
+    .eq('role','Coach').limit(500);
+  S.coaches = data || [];
+}
+
+function scoreCoach(c){
+  const o = S.org, reasons = []; let score = 0;
+  const sports = orgSports().map(s => s.toLowerCase());
+  if(c.sport && sports.includes(c.sport.toLowerCase())){ score += 40; reasons.push(`${c.sport} coach`); }
+
+  const wanted = new Set();
+  orgExpertise().forEach(x => x.coach_specialty && wanted.add(x.coach_specialty));
+  orgNeeds().forEach(n => (NEED_TO_SPECIALTY[n] || []).forEach(s => wanted.add(s)));
+  const overlap = (c.specialties || []).filter(s => wanted.has(s));
+  if(overlap.length){ score += Math.min(30, overlap.length * 10); reasons.push(overlap.slice(0,2).join(' & ')); }
+
+  const fmts = c.session_formats || [];
+  if(o.preferred_format === 'virtual' && (fmts.includes('virtual') || fmts.includes('hybrid'))){ score += 10; reasons.push('Works virtually'); }
+  else if(o.preferred_format === 'in_person' && (fmts.includes('in_person') || fmts.includes('hybrid'))){ score += 10; reasons.push('Works in person'); }
+  else if(o.preferred_format === 'either' && fmts.length){ score += 5; }
+
+  if(o.preferred_format !== 'virtual' && c.state && o.state && c.state === o.state){
+    score += 8; if(c.city && o.city && c.city.toLowerCase() === o.city.toLowerCase()){ score += 5; reasons.push('Local to you'); } else reasons.push(`In ${c.state}`);
+  }
+  if(o.budget_max_cents && c.rate_min_cents){ if(c.rate_min_cents <= o.budget_max_cents){ score += 8; reasons.push('Fits your budget'); } else score -= 10; }
+
+  const levels = LEVELS_FOR_TYPE[o.organization_type] || [];
+  if(levels.length && (c.coaching_levels || []).some(l => levels.includes(l))){ score += 8; reasons.push(`Coaches ${o.organization_type.toLowerCase()} level`); }
+  if(c.verified){ score += 8; reasons.push('Verified'); }
+  if(c.availability === 'available') score += 4; else if(c.availability === 'unavailable') score -= 15;
+  return { score, reasons:[...new Set(reasons)].slice(0,3) };
+}
+function recommended(limit = 6){
+  return (S.coaches || []).map(c => ({ c, ...scoreCoach(c) })).filter(x => x.score > 0).sort((a,b) => b.score - a.score).slice(0, limit);
+}
+
+function coachCard(c, why){
+  const rate = c.rate_min_cents ? `From ${money(c.rate_min_cents)}` : '';
+  const loc = [c.city, c.state].filter(Boolean).join(', ');
+  return `<article class="coach">
+    <div class="coach-top"><div class="avatar" aria-hidden="true">${esc(initials(c.name))}</div>
+      <div><h3>${esc(c.name)}</h3><div class="headline">${esc(c.headline || (c.sport ? c.sport + ' coach' : 'Coach'))}</div></div></div>
+    <div class="meta-row">
+      ${c.sport ? `<span class="pill">${esc(c.sport)}</span>` : ''}
+      ${c.verified ? `<span class="pill good">✓ Verified</span>` : ''}
+      ${c.years_experience != null ? `<span class="pill">${esc(c.years_experience)} yrs experience</span>` : ''}
+      ${c.availability === 'available' ? `<span class="pill gold">Available</span>` : c.availability === 'limited' ? `<span class="pill">Limited availability</span>` : ''}
+      ${rate ? `<span class="pill">${esc(rate)}</span>` : ''}
+      ${loc ? `<span class="pill">${esc(loc)}</span>` : ''}
+    </div>
+    ${c.accomplishments ? `<div class="muted" style="font-size:12.5px"><b>Accomplishments:</b> ${esc(c.accomplishments.slice(0,110))}${c.accomplishments.length > 110 ? '…' : ''}</div>` : ''}
+    ${c.certifications ? `<div class="muted" style="font-size:12.5px"><b>Certifications:</b> ${esc(c.certifications.slice(0,90))}${c.certifications.length > 90 ? '…' : ''}</div>` : ''}
+    ${(c.specialties || []).length ? `<div class="meta-row">${c.specialties.slice(0,4).map(s => `<span class="pill">${esc(s)}</span>`).join('')}</div>` : ''}
+    ${why && why.length ? `<div class="why">Why recommended: ${esc(why.join(' · '))}</div>` : ''}
+    <div class="acts">
+      <a class="btn btn-ghost btn-sm" href="profile.html?id=${encodeURIComponent(c.id)}" target="_blank" rel="noopener" data-view-coach="${esc(c.id)}">View Profile</a>
+      <button class="btn btn-dark btn-sm" data-contact-coach="${esc(c.id)}" data-kind="message" ${can('contact_coaches') ? '' : 'disabled title="Your role can\'t contact coaches"'}>Message Coach</button>
+      <button class="btn btn-gold btn-sm" data-contact-coach="${esc(c.id)}" data-kind="consult" ${can('contact_coaches') ? '' : 'disabled title="Your role can\'t contact coaches"'}>Invite to Consult</button>
+    </div></article>`;
+}
+
+/* ---------------- shell + tabs ---------------- */
+function setTab(t, pushHash = true){
+  if(!TABS.some(x => x[0] === t)) t = 'overview';
+  S.tab = t;
+  if(pushHash && location.hash.slice(1) !== t) history.replaceState(null, '', '#' + t);
+  render();
+  window.scrollTo({ top:0 });
+}
+
+function render(){
+  const shell = document.getElementById('shell');
+  shell.style.gridTemplateColumns = '';
+  const o = S.org;
+  const pendingApps = S.apps.filter(a => a.status === 'pending').length;
+  const badges = { applications:pendingApps, invitations:S.inquiries.length };
+  shell.innerHTML = `
+    <nav class="tabs" aria-label="Dashboard sections">
+      ${TABS.map(([k,l]) => `<button class="tab ${S.tab === k ? 'active' : ''}" data-tab="${k}">${esc(l)}${badges[k] ? `<span class="badge">${badges[k]}</span>` : ''}</button>`).join('')}
+    </nav>
+    <section aria-live="polite">
+      <div class="orghead">
+        <div class="org-logo">${o.logo_url ? `<img alt="" src="${esc(o.logo_url)}">` : esc(initials(o.organization_name))}</div>
+        <div><h1 class="display">${esc(o.organization_name)}</h1>
+          <div style="margin-top:6px; display:flex; gap:8px; align-items:center; flex-wrap:wrap">${vbadge(o.verification_status)}<span class="muted">${esc(ROLE_LABEL[S.member.role] || S.member.role)} · ${esc(o.organization_type)}</span></div></div>
+        <div style="margin-left:auto"><a class="btn btn-ghost btn-sm" href="org.html?id=${encodeURIComponent(o.id)}" target="_blank" rel="noopener">View public profile ↗</a></div>
+      </div>
+      ${S.myInvites.length ? `<div class="banner">You've been invited to join another organization. ${S.myInvites.map(i => `<b>${esc((S.myInviteOrgs||{})[i.organization_id] || 'An organization')}</b> <button class="btn btn-gold btn-sm" data-accept-invite="${esc(i.id)}">Accept</button>`).join(' ')}</div>` : ''}
+      <div id="panel"></div>
+    </section>`;
+  shell.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  bindMyInvites();
+  const panel = document.getElementById('panel');
+  const fn = { overview:viewOverview, find:viewFind, post:viewPost, applications:viewApplications, invitations:viewInvitations, profile:viewProfile, team:viewTeam, verification:viewVerification }[S.tab];
+  Promise.resolve(fn(panel)).catch(e => { panel.innerHTML = `<div class="card"><div class="empty"><b>Something went wrong</b>${esc(friendly(e))}</div></div>`; console.error(e); });
+}
+function vbadge(st){
+  const label = { verified:'✓ Verified Organization', pending:'Verification pending', unverified:'Not verified', rejected:'Verification declined' }[st] || st;
+  return `<span class="vbadge ${esc(st)}">${esc(label)}</span>`;
+}
+
+/* ---------------- Overview ---------------- */
+async function viewOverview(panel){
+  panel.innerHTML = '<div class="spinner">Loading…</div>';
+  await loadCoaches();
+  const comp = completion();
+  const openOpps = S.opps.filter(o => o.status === 'open').length;
+  const accepted = S.invitations.filter(i => i.kind === 'consult' && i.status === 'accepted');
+  const rec = recommended(6);
+  const showWelcome = S.justCreated || (() => { try{ return !localStorage.getItem(WELCOME_KEY) && (Date.now() - new Date(S.org.created_at)) < 3*86400000; }catch(e){ return false; } })();
+  panel.innerHTML = `
+    ${showWelcome ? `<div class="welcome">
+      <h2 class="display">Welcome to Remedy Coaching Group!</h2>
+      <p>Find the experience you need. Connect with coaches who have done it before.</p>
+      <div class="acts">
+        <button class="act" data-go="find"><b>Find a Coach</b><span>Search our professional network.</span></button>
+        <button class="act" data-go="post"><b>Post an Opportunity</b><span>Tell qualified coaches what you need.</span></button>
+        <button class="act" data-go="profile"><b>Build Your Organization Profile</b><span>Show coaches who you are and what you're looking for.</span></button>
+      </div>
+      <div style="margin-top:14px"><button class="btn btn-ghost btn-sm" id="dismiss-welcome" style="color:var(--chalk); border-color:rgba(245,243,234,.4)">Dismiss</button></div>
+    </div>` : ''}
+
+    <div class="stats">
+      <div class="stat"><div class="n">${comp.pct}%</div><div class="l">Profile complete</div><div class="meter"><i style="width:${comp.pct}%"></i></div></div>
+      <div class="stat"><div class="n">${openOpps}</div><div class="l">Active opportunities</div><div class="s">${S.opps.filter(o => o.status === 'draft').length} draft(s)</div></div>
+      <div class="stat"><div class="n">${S.apps.length}</div><div class="l">Applications received</div><div class="s">${S.apps.filter(a => a.status === 'pending').length} awaiting review</div></div>
+      <div class="stat"><div class="n">${S.inquiries.length}</div><div class="l">Messages</div><div class="s">from coaches</div></div>
+      <div class="stat"><div class="n">${accepted.length}</div><div class="l">Upcoming consultations</div><div class="s">${S.invitations.filter(i => i.status === 'pending').length} invitation(s) pending</div></div>
+    </div>
+
+    ${comp.pct < 100 ? `<div class="card"><h2>Finish your profile</h2>
+      <p class="muted">Complete profiles earn more trust — and better coach recommendations.</p>
+      <ul class="checklist">${comp.checks.map(([l,d]) => `<li class="${d ? 'done' : ''}">${esc(l)}</li>`).join('')}</ul>
+      <div style="margin-top:12px"><button class="btn btn-gold btn-sm" data-go="profile">Complete my profile</button></div></div>` : ''}
+
+    <div class="sec-title">Coaches recommended for you</div>
+    ${rec.length ? `<div class="coach-grid">${rec.map(r => coachCard(r.c, r.reasons)).join('')}</div>
+      <div style="margin-top:14px"><button class="btn btn-ghost" data-go="find">Search all coaches →</button></div>`
+      : `<div class="card"><div class="empty"><b>No matches yet</b>${(S.coaches||[]).length ? 'Add your sports and needs to your profile and we\'ll recommend coaches.' : 'Our coach roster is just getting started — check back soon, or post an opportunity so coaches can come to you.'}
+        <div style="margin-top:12px"><button class="btn btn-gold btn-sm" data-go="post">Post an opportunity</button></div></div></div>`}`;
+  panel.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => setTab(b.dataset.go)));
+  const dis = document.getElementById('dismiss-welcome');
+  if(dis) dis.addEventListener('click', () => { try{ localStorage.setItem(WELCOME_KEY, '1'); }catch(e){} S.justCreated = false; viewOverview(panel); });
+  bindCoachButtons(panel);
+}
+
+/* ---------------- Find a Coach ---------------- */
+async function viewFind(panel){
+  panel.innerHTML = '<div class="spinner">Loading coaches…</div>';
+  await loadCoaches();
+  if(S.results === null) runSearch(false);
+  const f = S.filters, mySports = orgSports();
+  const sportOptions = [...new Set([...mySports, ...S.catalog.sports.filter(s => s !== 'Other')])];
+  panel.innerHTML = `
+    <div class="sec-title">Find a coach</div>
+    <form class="card" id="find-form" autocomplete="off">
+      <div class="grid3">
+        <div><label class="lbl" for="q-sport">Sport</label><select id="q-sport"><option value="">Any sport</option>${sportOptions.map(s => `<option ${f.sport === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
+        <div><label class="lbl" for="q-format">Virtual / in person</label><select id="q-format"><option value="">Either</option><option value="virtual" ${f.format==='virtual'?'selected':''}>Virtual</option><option value="in_person" ${f.format==='in_person'?'selected':''}>In person</option></select></div>
+        <div><label class="lbl" for="q-avail">Availability</label><select id="q-avail"><option value="">Any</option><option value="available" ${f.availability==='available'?'selected':''}>Available now</option><option value="limited" ${f.availability==='limited'?'selected':''}>Limited</option></select></div>
+      </div>
+      <label class="lbl">Expertise</label>
+      <div class="chips">${COACH_SPECIALTIES.map(s => `<label class="chip"><input type="checkbox" name="q-spec" value="${esc(s)}" ${f.specialties.includes(s) ? 'checked' : ''}><span>${esc(s)}</span></label>`).join('')}</div>
+      <div class="grid3">
+        <div><label class="lbl" for="q-state">State</label><select id="q-state"><option value="">Anywhere</option>${US_STATES.map(s => `<option ${f.state===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        <div><label class="lbl" for="q-city">City <span class="opt">(optional)</span></label><input id="q-city" type="text" value="${esc(f.city)}"></div>
+        <div><label class="lbl" for="q-years">Years of experience</label><select id="q-years"><option value="">Any</option>${[2,5,10,15,20].map(y => `<option value="${y}" ${String(f.minYears)===String(y)?'selected':''}>${y}+ years</option>`).join('')}</select></div>
+      </div>
+      <div class="grid3">
+        <div><label class="lbl" for="q-cert">Certifications</label><input id="q-cert" type="text" value="${esc(f.cert)}" placeholder="e.g. CSCS, USA Wrestling"></div>
+        <div><label class="lbl" for="q-acc">Accomplishments</label><input id="q-acc" type="text" value="${esc(f.accomplishments)}" placeholder="e.g. state champion"></div>
+        <div><label class="lbl" for="q-price">Max starting rate ($)</label><input id="q-price" type="number" min="0" value="${esc(f.maxPrice)}" placeholder="Any"></div>
+      </div>
+      <label class="opt-item" style="margin-top:14px; max-width:280px"><input type="checkbox" id="q-verified" ${f.verifiedOnly ? 'checked' : ''}> Verified coaches only</label>
+      <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap"><button class="btn btn-gold" type="submit">Search coaches</button><button class="btn btn-ghost" type="button" id="q-reset">Reset</button></div>
+    </form>
+    <div id="results"></div>`;
+  document.getElementById('find-form').addEventListener('submit', e => { e.preventDefault(); readFilters(); runSearch(true); renderResults(); });
+  document.getElementById('q-reset').addEventListener('click', () => { S.filters = { sport:'', specialties:[], state:'', city:'', minYears:'', cert:'', accomplishments:'', availability:'', format:'', maxPrice:'', verifiedOnly:false }; S.results = null; viewFind(panel); });
+  renderResults();
+}
+function readFilters(){
+  S.filters = {
+    sport:document.getElementById('q-sport').value, format:document.getElementById('q-format').value, availability:document.getElementById('q-avail').value,
+    specialties:[...document.querySelectorAll('input[name="q-spec"]:checked')].map(i => i.value),
+    state:document.getElementById('q-state').value, city:document.getElementById('q-city').value.trim(), minYears:document.getElementById('q-years').value,
+    cert:document.getElementById('q-cert').value.trim(), accomplishments:document.getElementById('q-acc').value.trim(), maxPrice:document.getElementById('q-price').value,
+    verifiedOnly:document.getElementById('q-verified').checked
+  };
+  S.resultLimit = 24;
+}
+function runSearch(tracked){
+  const f = S.filters, has = (hay, needle) => (hay || '').toLowerCase().includes(needle.toLowerCase());
+  let list = (S.coaches || []).filter(c => {
+    if(f.sport && (c.sport || '').toLowerCase() !== f.sport.toLowerCase()) return false;
+    if(f.specialties.length && !f.specialties.every(s => (c.specialties || []).includes(s))) return false;
+    if(f.state && c.state !== f.state) return false;
+    if(f.city && !has(c.city, f.city)) return false;
+    if(f.minYears && !(c.years_experience >= Number(f.minYears))) return false;
+    if(f.cert && !has(c.certifications, f.cert)) return false;
+    if(f.accomplishments && !has(c.accomplishments, f.accomplishments)) return false;
+    if(f.availability && c.availability !== f.availability) return false;
+    if(f.format){ const fm = c.session_formats || []; if(!(fm.includes(f.format) || fm.includes('hybrid'))) return false; }
+    if(f.maxPrice && !(c.rate_min_cents != null && c.rate_min_cents <= Number(f.maxPrice) * 100)) return false;
+    if(f.verifiedOnly && !c.verified) return false;
+    return true;
+  }).map(c => ({ c, ...scoreCoach(c) }));
+  // Verified coaches first, then best match.
+  list.sort((a,b) => (b.c.verified - a.c.verified) || (b.score - a.score) || a.c.name.localeCompare(b.c.name));
+  S.results = list;
+  if(tracked){
+    const used = Object.entries(f).filter(([k,v]) => Array.isArray(v) ? v.length : v).map(([k]) => k);
+    track('coach_search_performed', { filters:used, results:list.length });
+  }
+}
+function renderResults(){
+  const el = document.getElementById('results'); if(!el) return;
+  const list = S.results || [];
+  el.innerHTML = list.length
+    ? `<div class="muted" style="margin:4px 0 12px">${list.length} coach${list.length === 1 ? '' : 'es'} found</div>
+       <div class="coach-grid">${list.slice(0, S.resultLimit).map(r => coachCard(r.c, S.org && r.score > 0 ? r.reasons : [])).join('')}</div>
+       ${list.length > S.resultLimit ? `<div style="text-align:center; margin-top:16px"><button class="btn btn-ghost" id="more">Show more</button></div>` : ''}`
+    : `<div class="card"><div class="empty"><b>${(S.coaches||[]).length ? 'No coaches match yet' : 'Be the first to find a coach here'}</b>${(S.coaches||[]).length ? 'Try removing a filter or two.' : 'The coach roster is just getting started. Post an opportunity and coaches can come to you.'}</div></div>`;
+  const more = document.getElementById('more'); if(more) more.addEventListener('click', () => { S.resultLimit += 24; renderResults(); });
+  bindCoachButtons(el);
+}
+function bindCoachButtons(root){
+  root.querySelectorAll('[data-view-coach]').forEach(a => a.addEventListener('click', () => track('coach_profile_viewed', { coach_id:a.dataset.viewCoach })));
+  root.querySelectorAll('[data-contact-coach]').forEach(b => b.addEventListener('click', () => openContactModal(b.dataset.contactCoach, b.dataset.kind)));
+}
+function openContactModal(coachId, kind){
+  const c = (S.coaches || []).find(x => x.id === coachId); if(!c) return;
+  const open = S.opps.filter(o => o.status === 'open');
+  openModal(`
+    <h2>${kind === 'consult' ? 'Invite to consult' : 'Message'} ${esc(c.name)}</h2>
+    <p class="muted">${kind === 'consult' ? 'Invite this coach to talk about your needs.' : 'Introduce your organization and what you\'re looking for.'} They'll see it on their dashboard and can reply with their preferred way to connect.</p>
+    <label class="lbl" for="cm-msg">Your message</label>
+    <textarea id="cm-msg" maxlength="1000" placeholder="Hi ${esc(c.name.split(' ')[0])}, we're ${esc(S.org.organization_name)} and we'd love your help with…"></textarea>
+    ${open.length ? `<label class="lbl" for="cm-opp">Related opportunity <span class="opt">(optional)</span></label><select id="cm-opp"><option value="">None</option>${open.map(o => `<option value="${esc(o.id)}">${esc(o.title)}</option>`).join('')}</select>` : ''}
+    <div id="cm-err" class="ferr"></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px"><button class="btn btn-ghost" id="cm-cancel">Cancel</button><button class="btn btn-gold" id="cm-send">${kind === 'consult' ? 'Send invitation' : 'Send message'}</button></div>`);
+  document.getElementById('cm-cancel').addEventListener('click', closeModal);
+  document.getElementById('cm-send').addEventListener('click', async () => {
+    const msg = document.getElementById('cm-msg').value.trim();
+    const err = document.getElementById('cm-err');
+    if(!msg){ err.textContent = 'Please write a short message.'; return; }
+    const btn = document.getElementById('cm-send'); btn.disabled = true; btn.textContent = 'Sending…';
+    const opp = document.getElementById('cm-opp');
+    const { error } = await sb.from('consult_invitations').insert({ organization_id:S.org.id, coach_id:coachId, invited_by:S.user.id, kind, message:msg, opportunity_id: opp && opp.value ? opp.value : null });
+    if(error){
+      btn.disabled = false; btn.textContent = kind === 'consult' ? 'Send invitation' : 'Send message';
+      err.textContent = error.message.includes('duplicate key') ? `You already have a pending ${kind === 'consult' ? 'invitation' : 'message'} with this coach.` : friendly(error); return;
+    }
+    track('coach_contacted', { kind, coach_id:coachId });
+    closeModal(); toast(kind === 'consult' ? 'Invitation sent' : 'Message sent');
+    const { data } = await sb.from('consult_invitations').select('*').eq('organization_id', S.org.id).order('created_at', { ascending:false });
+    S.invitations = data || [];
+    S.people[coachId] = S.people[coachId] || { id:coachId, name:c.name, sport:c.sport, verified:c.verified };
+  });
+}
+
+/* ---------------- Post an Opportunity ---------------- */
+function blankOpp(){
+  const o = S.org;
+  return { title:'', sport: orgSports().find(s => S.catalog.sports.includes(s)) || '', expertise:[], description:'', budget_min:'', budget_max:'', duration:'', location_type: o.preferred_format === 'in_person' ? 'in_person' : o.preferred_format === 'either' ? 'hybrid' : 'virtual',
+           location_text: [o.city, o.state].filter(Boolean).join(', '), start_date:'', deadline:'', experience:'' };
+}
+function oppToForm(o){
+  return { title:o.title, sport:o.sport, expertise:o.expertise_needed || [], description:o.description || '', budget_min:o.budget_min_cents ? o.budget_min_cents/100 : '', budget_max:o.budget_max_cents ? o.budget_max_cents/100 : '',
+           duration:o.duration_label || '', location_type:o.location_type, location_text:o.location_text || '', start_date:o.start_date || '', deadline:o.application_deadline || '', experience:o.experience_requirements || '' };
+}
+async function viewPost(panel){
+  if(!can('post_opportunities')){
+    panel.innerHTML = `<div class="sec-title">Post an opportunity</div><div class="card"><div class="empty"><b>Your role can't post opportunities</b>Ask an owner or administrator to make you a Hiring Manager.</div></div>`;
+    return;
+  }
+  if(!S.oppForm) S.oppForm = blankOpp();
+  const f = S.oppForm, exp = (S.catalog.expertise[f.sport] || []);
+  panel.innerHTML = `
+    <div class="sec-title">${S.editingOpp ? 'Edit opportunity' : 'Post an opportunity'}</div>
+    <div class="card">
+      <div id="opp-summary" class="ferr" role="alert" style="margin-bottom:8px"></div>
+      <div data-err="title"><label class="lbl" for="o-title">Opportunity title <span class="req">*</span></label><input id="o-title" type="text" maxlength="100" value="${esc(f.title)}" placeholder="e.g. Quarterback development consultant for varsity football"></div>
+      <div class="grid2">
+        <div data-err="sport"><label class="lbl" for="o-sport">Sport <span class="req">*</span></label><select id="o-sport"><option value="">Select a sport…</option>${S.catalog.sports.map(s => `<option ${f.sport === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
+        <div data-err="duration"><label class="lbl" for="o-duration">Project duration <span class="req">*</span></label><select id="o-duration"><option value="">Select…</option>${DURATIONS.map(d => `<option ${f.duration === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select></div>
+      </div>
+      <div id="o-expertise">${expertiseBlock(f, exp)}</div>
+      <div data-err="description"><label class="lbl" for="o-desc">Description <span class="req">*</span></label><textarea id="o-desc" maxlength="600" placeholder="What the work involves, what success looks like, who the coach will work with…">${esc(f.description)}</textarea><div class="hint"><span id="o-desc-n">${f.description.length}</span> / 600</div></div>
+      <div class="grid2">
+        <div data-err="budget_min"><label class="lbl" for="o-bmin">Budget — minimum ($) <span class="req">*</span></label><input id="o-bmin" type="number" min="1" value="${esc(f.budget_min)}" placeholder="e.g. 800"></div>
+        <div data-err="budget_max"><label class="lbl" for="o-bmax">Budget — maximum ($) <span class="opt">(optional)</span></label><input id="o-bmax" type="number" min="1" value="${esc(f.budget_max)}" placeholder="e.g. 1500"></div>
+      </div>
+      <div class="grid2">
+        <div><label class="lbl" for="o-type">Virtual / in person <span class="req">*</span></label><select id="o-type">${LOCATION_TYPES.map(t => `<option value="${t.v}" ${f.location_type === t.v ? 'selected' : ''}>${t.l}</option>`).join('')}</select></div>
+        <div data-err="location_text"><label class="lbl" for="o-loc">Location <span class="opt" id="o-loc-opt">${f.location_type === 'virtual' ? '(optional)' : ''}</span></label><input id="o-loc" type="text" maxlength="120" value="${esc(f.location_text)}" placeholder="City, State"></div>
+      </div>
+      <div class="grid2">
+        <div><label class="lbl" for="o-start">Start date <span class="opt">(optional)</span></label><input id="o-start" type="date" value="${esc(f.start_date)}"></div>
+        <div data-err="deadline"><label class="lbl" for="o-deadline">Application deadline <span class="opt">(optional)</span></label><input id="o-deadline" type="date" value="${esc(f.deadline)}"></div>
+      </div>
+      <div><label class="lbl" for="o-exp">Experience requirements <span class="opt">(optional)</span></label><textarea id="o-exp" maxlength="600" style="min-height:70px" placeholder="e.g. 5+ years coaching high school QBs; certification preferred">${esc(f.experience)}</textarea></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px">
+        <button class="btn btn-ghost" id="o-draft">${S.editingOpp && S.editingOpp.status === 'open' ? 'Save changes' : 'Save draft'}</button>
+        <button class="btn btn-ghost" id="o-preview">Preview</button>
+        ${S.editingOpp && S.editingOpp.status === 'open' ? '' : `<button class="btn btn-gold" id="o-publish">Publish opportunity</button>`}
+        ${S.editingOpp ? `<button class="btn btn-ghost" id="o-cancel">Cancel editing</button>` : ''}
+      </div>
+    </div>
+    <div class="sec-title" style="margin-top:26px">Your opportunities</div>
+    <div class="card" id="opp-list">${oppList()}</div>`;
+  bindOppForm(panel);
+}
+function expertiseBlock(f, exp){
+  if(!exp.length) return '';
+  return `<label class="lbl">Expertise needed <span class="opt">(optional)</span></label><div class="optgrid">${exp.map(x => `<label class="opt-item"><input type="checkbox" name="o-exp" value="${esc(x.name)}" ${f.expertise.includes(x.name) ? 'checked' : ''}> ${esc(x.name)}</label>`).join('')}</div>`;
+}
+function readOppForm(){
+  const g = id => document.getElementById(id).value;
+  S.oppForm = { title:g('o-title').trim(), sport:g('o-sport'), duration:g('o-duration'), description:g('o-desc').trim(), budget_min:g('o-bmin'), budget_max:g('o-bmax'),
+    location_type:g('o-type'), location_text:g('o-loc').trim(), start_date:g('o-start'), deadline:g('o-deadline'), experience:g('o-exp').trim(),
+    expertise:[...document.querySelectorAll('input[name="o-exp"]:checked')].map(i => i.value) };
+  return S.oppForm;
+}
+function validateOpp(f, publish){
+  const e = {};
+  if(!f.title) e.title = 'Give the opportunity a title.';
+  if(!f.sport) e.sport = 'Choose a sport.';
+  if(publish){
+    if(!f.duration) e.duration = 'Choose a project duration.';
+    if(f.description.length < 20) e.description = 'Describe the work in at least a sentence or two (20+ characters).';
+    if(!(Number(f.budget_min) > 0)) e.budget_min = 'Enter a minimum budget.';
+    if(f.location_type !== 'virtual' && !f.location_text) e.location_text = 'Add a location for in-person or hybrid work.';
+  }
+  if(f.budget_min && f.budget_max && Number(f.budget_max) < Number(f.budget_min)) e.budget_max = 'Maximum must be at least the minimum.';
+  if(f.start_date && f.deadline && f.deadline > f.start_date) e.deadline = 'The deadline should be on or before the start date.';
+  return e;
+}
+function showOppErrors(errs){
+  document.querySelectorAll('#panel .ferr[data-gen]').forEach(n => n.remove());
+  document.querySelectorAll('#panel [aria-invalid]').forEach(n => n.removeAttribute('aria-invalid'));
+  const keys = Object.keys(errs);
+  keys.forEach(k => {
+    const h = document.querySelector(`#panel [data-err="${k}"]`); if(!h) return;
+    const i = h.querySelector('input,select,textarea'); if(i) i.setAttribute('aria-invalid','true');
+    const m = document.createElement('div'); m.className = 'ferr'; m.dataset.gen = '1'; m.setAttribute('role','alert'); m.textContent = errs[k]; h.appendChild(m);
+  });
+  document.getElementById('opp-summary').textContent = keys.length ? 'Please fix the highlighted fields.' : '';
+  if(keys.length){ const h = document.querySelector(`#panel [data-err="${keys[0]}"]`); if(h) h.scrollIntoView({ behavior:'smooth', block:'center' }); }
+}
+function oppRow(f, status){
+  return { organization_id:S.org.id, client_id:S.user.id, title:f.title, sport:f.sport, description:f.description || null, location_type:f.location_type,
+    duration_label:f.duration || null, budget_min_cents:Number(f.budget_min) > 0 ? Math.round(Number(f.budget_min)*100) : null,
+    budget_max_cents:Number(f.budget_max) > 0 ? Math.round(Number(f.budget_max)*100) : null, status,
+    expertise_needed:f.expertise, start_date:f.start_date || null, application_deadline:f.deadline || null,
+    experience_requirements:f.experience || null, location_text:f.location_text || null };
+}
+async function saveOpp(status){
+  const f = readOppForm(); const errs = validateOpp(f, status === 'open');
+  showOppErrors(errs); if(Object.keys(errs).length) return;
+  const keepStatus = S.editingOpp && S.editingOpp.status === 'open' && status !== 'open' ? 'open' : status;
+  const row = oppRow(f, keepStatus);
+  let res;
+  if(S.editingOpp){ const { client_id, organization_id, ...patch } = row; res = await sb.from('opportunities').update(patch).eq('id', S.editingOpp.id).select().single(); }
+  else res = await sb.from('opportunities').insert(row).select().single();
+  if(res.error){ document.getElementById('opp-summary').textContent = friendly(res.error); return; }
+  const saved = res.data;
+  if(!S.editingOpp) track('opportunity_created', { status:keepStatus, sport:f.sport }, 'opportunity_created:' + saved.id);
+  if(keepStatus === 'open' && (!S.editingOpp || S.editingOpp.status !== 'open')) track('opportunity_published', { sport:f.sport, budget_min:Number(f.budget_min) }, 'opportunity_published:' + saved.id);
+  toast(keepStatus === 'open' ? (S.editingOpp && S.editingOpp.status === 'open' ? 'Changes saved' : 'Opportunity published!') : 'Draft saved');
+  S.oppForm = null; S.editingOpp = null;
+  const { data } = await sb.from('opportunities').select('*').eq('organization_id', S.org.id).order('created_at', { ascending:false });
+  S.opps = data || [];
+  viewPost(document.getElementById('panel'));
+}
+function bindOppForm(panel){
+  const sport = document.getElementById('o-sport');
+  sport.addEventListener('change', () => { const f = readOppForm(); f.expertise = []; document.getElementById('o-expertise').innerHTML = expertiseBlock(f, S.catalog.expertise[f.sport] || []); });
+  document.getElementById('o-type').addEventListener('change', e => { document.getElementById('o-loc-opt').textContent = e.target.value === 'virtual' ? '(optional)' : ''; });
+  const desc = document.getElementById('o-desc'); desc.addEventListener('input', () => document.getElementById('o-desc-n').textContent = desc.value.length);
+  document.getElementById('o-draft').addEventListener('click', e => { e.preventDefault(); saveOpp('draft'); });
+  document.getElementById('o-preview').addEventListener('click', e => { e.preventDefault(); previewOpp(); });
+  const pub = document.getElementById('o-publish'); if(pub) pub.addEventListener('click', e => { e.preventDefault(); saveOpp('open'); });
+  const cancel = document.getElementById('o-cancel'); if(cancel) cancel.addEventListener('click', () => { S.oppForm = null; S.editingOpp = null; viewPost(panel); });
+  bindOppList(panel);
+}
+function previewOpp(){
+  const f = readOppForm(); const errs = validateOpp(f, false); showOppErrors(errs); if(Object.keys(errs).length) return;
+  const budget = budgetLabel(Number(f.budget_min) > 0 ? Math.round(f.budget_min*100) : null, Number(f.budget_max) > 0 ? Math.round(f.budget_max*100) : null);
+  openModal(`
+    <h2>Preview</h2><p class="muted">This is how coaches will see your opportunity.</p>
+    <div class="card" style="margin:12px 0 0">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px"><span class="pill">${esc(f.sport)}</span>${S.org.verification_status === 'verified' ? '<span class="pill good">✓ Verified Organization</span>' : ''}</div>
+      <h3 style="font-size:18px">${esc(f.title)}</h3>
+      <div class="muted" style="margin-bottom:10px">${esc(S.org.organization_name)} · ${esc(LOCATION_TYPES.find(t => t.v === f.location_type).l)}${f.location_text ? ' · ' + esc(f.location_text) : ''}${f.duration ? ' · ' + esc(f.duration) : ''}</div>
+      <div style="font-weight:700; color:var(--turf); margin-bottom:10px">${esc(budget)}</div>
+      ${f.description ? `<p style="font-size:14px; white-space:pre-wrap">${esc(f.description)}</p>` : '<p class="muted">(No description yet)</p>'}
+      ${f.expertise.length ? `<div class="meta-row" style="margin-top:10px">${f.expertise.map(x => `<span class="pill">${esc(x)}</span>`).join('')}</div>` : ''}
+      ${f.experience ? `<p style="font-size:13px; margin-top:10px"><b>Experience:</b> ${esc(f.experience)}</p>` : ''}
+      <p class="muted" style="margin-top:10px">${f.start_date ? 'Starts ' + esc(f.start_date) + '. ' : ''}${f.deadline ? 'Apply by ' + esc(f.deadline) + '.' : ''}</p>
+    </div>
+    <div style="text-align:right; margin-top:14px"><button class="btn btn-gold" id="pv-close">Close preview</button></div>`);
+  document.getElementById('pv-close').addEventListener('click', closeModal);
+}
+function oppList(){
+  if(!S.opps.length) return `<div class="empty"><b>Nothing posted yet</b>Your drafts and published opportunities will show up here.</div>`;
+  return S.opps.map(o => {
+    const n = S.apps.filter(a => a.opportunity_id === o.id).length;
+    return `<div class="row"><div style="min-width:0"><div style="font-weight:700">${esc(o.title)}</div>
+      <div class="muted">${esc(o.sport)} · ${esc(budgetLabel(o.budget_min_cents, o.budget_max_cents))}${o.application_deadline ? ' · apply by ' + esc(fmtDate(o.application_deadline)) : ''} · ${n} applicant${n === 1 ? '' : 's'}</div></div>
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap"><span class="status st-${esc(o.status)}">${esc(o.status)}</span>
+        <button class="btn btn-ghost btn-sm" data-edit-opp="${esc(o.id)}">Edit</button>
+        ${o.status === 'draft' ? `<button class="btn btn-gold btn-sm" data-publish-opp="${esc(o.id)}">Publish</button>` : ''}
+        ${o.status === 'open' ? `<button class="btn btn-ghost btn-sm" data-close-opp="${esc(o.id)}">Close</button>` : ''}
+        ${o.status === 'closed' ? `<button class="btn btn-ghost btn-sm" data-reopen-opp="${esc(o.id)}">Reopen</button>` : ''}
+        <button class="btn btn-danger btn-sm" data-delete-opp="${esc(o.id)}">Delete</button></div></div>`;
+  }).join('');
+}
+async function refreshOpps(){
+  const { data } = await sb.from('opportunities').select('*').eq('organization_id', S.org.id).order('created_at', { ascending:false });
+  S.opps = data || [];
+}
+function bindOppList(panel){
+  const act = (sel, fn) => panel.querySelectorAll(sel).forEach(b => b.addEventListener('click', () => fn(b)));
+  act('[data-edit-opp]', b => { const o = S.opps.find(x => x.id === b.dataset.editOpp); S.editingOpp = o; S.oppForm = oppToForm(o); viewPost(panel); window.scrollTo({ top:0, behavior:'smooth' }); });
+  act('[data-publish-opp]', async b => {
+    const o = S.opps.find(x => x.id === b.dataset.publishOpp);
+    const f = oppToForm(o), errs = validateOpp(f, true);
+    if(Object.keys(errs).length){ S.editingOpp = o; S.oppForm = f; await viewPost(panel); showOppErrors(errs); toast('Finish the missing details, then publish.'); return; }
+    const { error } = await sb.from('opportunities').update({ status:'open' }).eq('id', o.id);
+    if(error){ toast(friendly(error)); return; }
+    track('opportunity_published', { sport:o.sport }, 'opportunity_published:' + o.id);
+    toast('Opportunity published!'); await refreshOpps(); viewPost(panel);
+  });
+  const setStatus = async (b, key, status, msg) => { const { error } = await sb.from('opportunities').update({ status }).eq('id', b.dataset[key]); if(error){ toast(friendly(error)); return; } toast(msg); await refreshOpps(); viewPost(panel); };
+  act('[data-close-opp]', b => setStatus(b, 'closeOpp', 'closed', 'Opportunity closed'));
+  act('[data-reopen-opp]', b => setStatus(b, 'reopenOpp', 'open', 'Opportunity reopened'));
+  act('[data-delete-opp]', async b => {
+    if(!confirm('Delete this opportunity? Applications to it will no longer be reachable.')) return;
+    const { error } = await sb.from('opportunities').delete().eq('id', b.dataset.deleteOpp);
+    if(error){ toast(friendly(error)); return; }
+    toast('Deleted'); await refreshOpps(); viewPost(panel);
+  });
+}
+
+/* ---------------- Applications (+ messaging) ---------------- */
+async function viewApplications(panel){
+  if(!can('manage_applicants')){
+    panel.innerHTML = `<div class="sec-title">Applications</div><div class="card"><div class="empty"><b>Applicants are visible to hiring managers</b>Ask an owner or administrator if you need access.</div></div>`;
+    return;
+  }
+  const byOpp = {}; S.apps.forEach(a => (byOpp[a.opportunity_id] ||= []).push(a));
+  const opps = S.opps.filter(o => byOpp[o.id]);
+  panel.innerHTML = `<div class="sec-title">Applications received</div>` + (opps.length ? opps.map(o => `
+    <div class="card"><h2 style="font-size:17px">${esc(o.title)} <span class="status st-${esc(o.status)}" style="vertical-align:middle">${esc(o.status)}</span></h2>
+      ${byOpp[o.id].map(appRow).join('')}</div>`).join('') : `<div class="card"><div class="empty"><b>No applications yet</b>${S.opps.some(o => o.status === 'open') ? 'Coaches will appear here as they apply.' : 'Publish an opportunity and coaches can start applying.'}
+        <div style="margin-top:12px"><button class="btn btn-gold btn-sm" id="go-post">Post an opportunity</button></div></div></div>`);
+  const gp = document.getElementById('go-post'); if(gp) gp.addEventListener('click', () => setTab('post'));
+  bindAppButtons(panel);
+}
+function appRow(a){
+  const p = S.people[a.coach_id] || {};
+  return `<div class="row" style="flex-direction:column; align-items:stretch" data-app="${esc(a.id)}">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap">
+      <div><b>${esc(p.name || 'Coach')}</b> <span class="muted">${esc(p.sport || '')}${p.verified ? ' · ✓ Verified' : ''} · applied ${esc(fmtDate(a.created_at))}</span>${p.headline ? `<div class="muted">${esc(p.headline)}</div>` : ''}</div>
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap"><span class="status st-${esc(a.status)}">${esc(a.status)}</span>
+        <a class="btn btn-ghost btn-sm" href="profile.html?id=${encodeURIComponent(a.coach_id)}" target="_blank" rel="noopener">Profile</a>
+        ${a.status === 'pending' ? `<button class="btn btn-gold btn-sm" data-app-act="accepted" data-id="${esc(a.id)}">Accept</button><button class="btn btn-danger btn-sm" data-app-act="declined" data-id="${esc(a.id)}">Decline</button>` : ''}
+        ${a.status === 'accepted' ? `<button class="btn btn-ghost btn-sm" data-app-act="completed" data-id="${esc(a.id)}">Mark completed</button>` : ''}
+        <button class="btn btn-ghost btn-sm" data-thread="${esc(a.id)}" data-who="${esc(p.name || 'the coach')}">${S.openThread === a.id ? 'Hide' : 'Message'}</button></div></div>
+    ${S.openThread === a.id ? threadHtml(a.id) : ''}</div>`;
+}
+function bindAppButtons(panel){
+  panel.querySelectorAll('[data-app-act]').forEach(b => b.addEventListener('click', async () => {
+    const { error } = await sb.from('applications').update({ status:b.dataset.appAct }).eq('id', b.dataset.id);
+    if(error){ toast(friendly(error)); return; }
+    const a = S.apps.find(x => x.id === b.dataset.id); if(a) a.status = b.dataset.appAct;
+    toast({ accepted:'Coach accepted', declined:'Application declined', completed:'Marked completed' }[b.dataset.appAct]);
+    viewApplications(panel);
+  }));
+  panel.querySelectorAll('[data-thread]').forEach(b => b.addEventListener('click', async () => {
+    if(S.openThread === b.dataset.thread){ S.openThread = null; viewApplications(panel); return; }
+    S.openThread = b.dataset.thread; S.threadWho = b.dataset.who; S.threadMsgs = []; viewApplications(panel);
+    const { data } = await sb.from('messages').select('*').eq('application_id', S.openThread).order('created_at');
+    S.threadMsgs = data || []; if(S.openThread === b.dataset.thread) viewApplications(panel);
+  }));
+  const form = panel.querySelector('[data-send-thread]');
+  if(form) form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const ta = form.querySelector('textarea'), body = ta.value.trim(); if(!body) return;
+    const btn = form.querySelector('button'); btn.disabled = true;
+    const { error } = await sb.from('messages').insert({ application_id:form.dataset.sendThread, sender_id:S.user.id, body });
+    if(error){ toast(friendly(error)); btn.disabled = false; return; }
+    const { data } = await sb.from('messages').select('*').eq('application_id', form.dataset.sendThread).order('created_at');
+    S.threadMsgs = data || []; viewApplications(panel);
+  });
+}
+function threadHtml(appId){
+  return `<div class="thread"><div class="msgs">${S.threadMsgs.length ? S.threadMsgs.map(m => `<div class="bubble ${m.sender_id === S.user.id ? 'me' : 'them'}">${esc(m.body)}<small>${m.sender_id === S.user.id ? 'You' : esc(S.threadWho)} · ${esc(new Date(m.created_at).toLocaleString())}</small></div>`).join('') : '<div class="muted">No messages yet — say hello.</div>'}</div>
+    ${S.plan === 'free'
+      ? `<div class="muted" style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center"><span>Sending messages requires a Professional or Elite plan.</span><a class="btn btn-gold btn-sm" href="index.html#pricing">Upgrade to reply</a></div>`
+      : `<form class="composer" data-send-thread="${esc(appId)}"><textarea maxlength="2000" placeholder="Write a message…" required></textarea><button class="btn btn-gold btn-sm" type="submit">Send</button></form>`}</div>`;
+}
+
+/* ---------------- Invitations & messages ---------------- */
+async function viewInvitations(panel){
+  const rowInv = i => { const p = S.people[i.coach_id] || {}; const opp = S.opps.find(o => o.id === i.opportunity_id);
+    return `<div class="row"><div style="min-width:0"><b>${esc(p.name || 'Coach')}</b> <span class="muted">· ${i.kind === 'consult' ? 'Consult invitation' : 'Message'} · ${esc(fmtDate(i.created_at))}${opp ? ' · re: ' + esc(opp.title) : ''}</span>
+      <div style="font-size:13.5px; margin-top:4px; white-space:pre-wrap">${esc(i.message)}</div>
+      ${i.response_message ? `<div style="font-size:13.5px; margin-top:6px; padding:8px 10px; background:var(--chalk); border-radius:8px"><b>${esc(p.name || 'Coach')} replied:</b> ${esc(i.response_message)}</div>` : ''}</div>
+      <div style="display:flex; gap:6px; align-items:center"><span class="status st-${esc(i.status)}">${esc(i.status)}</span>
+        <a class="btn btn-ghost btn-sm" href="profile.html?id=${encodeURIComponent(i.coach_id)}" target="_blank" rel="noopener">Profile</a>
+        ${i.status === 'pending' && can('contact_coaches') ? `<button class="btn btn-danger btn-sm" data-withdraw-inv="${esc(i.id)}">Withdraw</button>` : ''}</div></div>`; };
+  panel.innerHTML = `<div class="sec-title">Invitations &amp; messages</div>
+    <div class="card"><h2>Sent to coaches</h2>${S.invitations.length ? S.invitations.map(rowInv).join('') : '<div class="empty"><b>Nothing sent yet</b>Use “Message Coach” or “Invite to Consult” on any coach card.</div>'}</div>
+    <div class="card"><h2>Inquiries from coaches</h2>${S.inquiries.length ? S.inquiries.map(q => { const p = S.people[q.from_user_id] || {};
+      return `<div class="row"><div><b>${esc(p.name || 'Coach')}</b> <span class="muted">${esc(p.sport || '')}${p.verified ? ' · ✓ Verified' : ''} · ${esc(fmtDate(q.created_at))}</span><div style="font-size:13.5px; margin-top:4px; white-space:pre-wrap">${esc(q.message)}</div></div>
+        <div style="display:flex; gap:6px"><a class="btn btn-ghost btn-sm" href="profile.html?id=${encodeURIComponent(q.from_user_id)}" target="_blank" rel="noopener">View profile</a>
+        ${can('contact_coaches') ? `<button class="btn btn-gold btn-sm" data-reply-coach="${esc(q.from_user_id)}">Invite to consult</button>` : ''}</div></div>`; }).join('') : '<div class="empty"><b>No inquiries yet</b>Coaches can contact you from your public profile.</div>'}</div>`;
+  panel.querySelectorAll('[data-withdraw-inv]').forEach(b => b.addEventListener('click', async () => {
+    const { error } = await sb.from('consult_invitations').delete().eq('id', b.dataset.withdrawInv);
+    if(error){ toast(friendly(error)); return; }
+    S.invitations = S.invitations.filter(i => i.id !== b.dataset.withdrawInv); toast('Withdrawn'); viewInvitations(panel);
+  }));
+  panel.querySelectorAll('[data-reply-coach]').forEach(b => b.addEventListener('click', async () => {
+    await loadCoaches();
+    if(!S.coaches.find(c => c.id === b.dataset.replyCoach)){ const { data } = await sb.from('profiles').select('id,name,sport,verified').eq('id', b.dataset.replyCoach).maybeSingle(); if(data) S.coaches.push(data); }
+    openContactModal(b.dataset.replyCoach, 'consult');
+  }));
+}
+
+/* ---------------- Organization profile ---------------- */
+function chipsFor(list, name, selected){ return list.map(v => `<label class="chip"><input type="checkbox" name="${name}" value="${esc(v)}" ${selected.includes(v) ? 'checked' : ''}><span>${esc(v)}</span></label>`).join(''); }
+async function viewProfile(panel){
+  const o = S.org, editable = can('manage_org');
+  const mySports = (o.organization_sports || []).map(r => r.sports?.name).filter(Boolean);
+  const custom = (o.organization_sports || []).find(r => r.sports?.name === 'Other')?.custom_name || '';
+  const needs = orgNeeds(), otherNeed = (o.organization_needs || []).find(r => r.need_type === 'Other')?.custom_text || '';
+  const expByName = {}; orgExpertise().forEach(x => { (expByName[x.sports.name] ||= []).push(x.name); });
+  const dis = editable ? '' : 'disabled';
+  panel.innerHTML = `
+    <div class="sec-title">Organization profile</div>
+    ${editable ? '' : '<div class="banner">You have view-only access to the organization profile.</div>'}
+    <div id="prof-error" class="ferr" role="alert"></div>
+    <div class="card"><h2>Logo</h2>
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap">
+        <div class="org-logo" style="width:84px; height:84px">${o.logo_url ? `<img alt="" src="${esc(o.logo_url)}">` : esc(initials(o.organization_name))}</div>
+        <div><input type="file" id="logo-file" accept="image/png,image/jpeg,image/webp" ${dis}><div class="hint">PNG, JPG or WebP, up to 2 MB.</div><div class="ferr" id="logo-err"></div></div></div></div>
+    <div class="card"><h2>Organization information</h2>
+      <div data-err="organization_name"><label class="lbl" for="p-name">Organization name</label><input id="p-name" type="text" maxlength="120" value="${esc(o.organization_name)}" ${dis}></div>
+      <label class="lbl" for="p-type">Organization type</label><select id="p-type" ${dis}>${ORG_TYPES.map(t => `<option ${o.organization_type === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
+      <div class="grid2"><div data-err="website"><label class="lbl" for="p-web">Website</label><input id="p-web" type="text" value="${esc(o.website || '')}" ${dis}></div>
+      <div><label class="lbl" for="p-email">Organization email <span class="opt">(private)</span></label><input id="p-email" type="email" value="${esc(o.email || '')}" ${dis}></div></div>
+      <label class="lbl" for="p-phone">Organization phone <span class="opt">(private)</span></label><input id="p-phone" type="tel" value="${esc(o.phone || '')}" ${dis}>
+      <label class="lbl" for="p-desc">Tell coaches about your organization</label><textarea id="p-desc" maxlength="1000" ${dis}>${esc(o.description || '')}</textarea><div class="hint"><span id="p-desc-n">${(o.description || '').length}</span> / 1000</div></div>
+    <div class="card"><h2>Location</h2><div class="hint" style="margin-bottom:6px">Only city and state are public.</div>
+      <label class="lbl" for="p-addr">Street address <span class="opt">(private, optional)</span></label><input id="p-addr" type="text" value="${esc(o.address || '')}" ${dis}>
+      <div class="grid3"><div data-err="city"><label class="lbl" for="p-city">City</label><input id="p-city" type="text" value="${esc(o.city || '')}" ${dis}></div>
+        <div><label class="lbl" for="p-state">State</label><select id="p-state" ${dis}><option value="">State…</option>${US_STATES.map(s => `<option ${o.state === s ? 'selected' : ''}>${s}</option>`).join('')}<option ${o.state === 'Outside U.S.' ? 'selected' : ''}>Outside U.S.</option></select></div>
+        <div><label class="lbl" for="p-zip">ZIP <span class="opt">(private)</span></label><input id="p-zip" type="text" value="${esc(o.zip || '')}" ${dis}></div></div>
+      <label class="lbl" for="p-country">Country</label><select id="p-country" ${dis}>${COUNTRIES.map(c => `<option ${o.country === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></div>
+    <div class="card"><h2>Sports &amp; needs</h2>
+      <label class="lbl">Sports your organization supports</label><div class="chips" id="p-sports">${chipsFor(S.catalog.sports, 'p-sport', mySports)}</div>
+      <div id="p-other-sport-wrap" style="display:${mySports.includes('Other') ? 'block' : 'none'}"><label class="lbl" for="p-other-sport">Which other sport?</label><input id="p-other-sport" type="text" maxlength="60" value="${esc(custom)}" ${dis}></div>
+      <div id="p-expertise"></div>
+      <label class="lbl">What can a coach help with?</label><div class="optgrid">${NEEDS.map(n => `<label class="opt-item"><input type="checkbox" name="p-need" value="${esc(n)}" ${needs.includes(n) ? 'checked' : ''} ${dis}> ${esc(n)}</label>`).join('')}</div>
+      <div id="p-other-need-wrap" style="display:${needs.includes('Other') ? 'block' : 'none'}"><label class="lbl" for="p-other-need">Describe the other need</label><input id="p-other-need" type="text" maxlength="120" value="${esc(otherNeed)}" ${dis}></div>
+      <label class="lbl">How would you like to work with a coach?</label>
+      <div class="chips">${[['virtual','Virtual'],['in_person','In Person'],['either','Either']].map(([v,l]) => `<label class="chip"><input type="radio" name="p-format" value="${v}" ${o.preferred_format === v ? 'checked' : ''} ${dis}><span>${l}</span></label>`).join('')}</div></div>
+    <div class="card"><h2>Size &amp; budget</h2>
+      <div class="grid2"><div><label class="lbl" for="p-emp">Organization size</label><select id="p-emp" ${dis}><option value="">Select…</option>${SIZES.map(s => `<option ${o.employee_count === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+      <div><label class="lbl" for="p-ath">Athletes served</label><select id="p-ath" ${dis}><option value="">Select…</option>${SIZES.map(s => `<option ${o.athlete_count === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div></div>
+      <div class="grid2"><div><label class="lbl" for="p-bmin">Typical budget — minimum ($) <span class="opt">(private)</span></label><input id="p-bmin" type="number" min="1" value="${o.budget_min_cents ? o.budget_min_cents/100 : ''}" ${dis}></div>
+      <div data-err="budget"><label class="lbl" for="p-bmax">Typical budget — maximum ($) <span class="opt">(private)</span></label><input id="p-bmax" type="number" min="1" value="${o.budget_max_cents ? o.budget_max_cents/100 : ''}" ${dis}></div></div></div>
+    ${editable ? `<div style="display:flex; gap:8px; flex-wrap:wrap"><button class="btn btn-gold" id="p-save">Save profile</button><a class="btn btn-ghost" href="org.html?id=${encodeURIComponent(o.id)}" target="_blank" rel="noopener">Preview public profile ↗</a></div>` : ''}`;
+  renderProfileExpertise(expByName);
+  const d = document.getElementById('p-desc'); d.addEventListener('input', () => document.getElementById('p-desc-n').textContent = d.value.length);
+  if(!editable) return;
+  document.getElementById('p-sports').addEventListener('change', () => {
+    const picked = [...document.querySelectorAll('input[name="p-sport"]:checked')].map(i => i.value);
+    document.getElementById('p-other-sport-wrap').style.display = picked.includes('Other') ? 'block' : 'none';
+    const cur = readProfileExpertise(); renderProfileExpertise(cur);
+  });
+  document.querySelectorAll('input[name="p-need"]').forEach(i => i.addEventListener('change', () => { document.getElementById('p-other-need-wrap').style.display = [...document.querySelectorAll('input[name="p-need"]:checked')].some(x => x.value === 'Other') ? 'block' : 'none'; }));
+  document.getElementById('logo-file').addEventListener('change', onLogoUpload);
+  document.getElementById('p-save').addEventListener('click', saveProfile);
+}
+function renderProfileExpertise(sel){
+  const el = document.getElementById('p-expertise'); if(!el) return;
+  const picked = [...document.querySelectorAll('input[name="p-sport"]:checked')].map(i => i.value).filter(s => s !== 'Other' && (S.catalog.expertise[s] || []).length);
+  el.innerHTML = picked.length ? `<label class="lbl">Areas of expertise you need</label>` + picked.map(s => `<div style="margin:8px 0 12px"><div class="muted" style="font-weight:700; margin-bottom:6px">${esc(s)}</div><div class="optgrid">${S.catalog.expertise[s].map(x => `<label class="opt-item"><input type="checkbox" data-pexp="${esc(s)}" value="${esc(x.name)}" ${(sel[s] || []).includes(x.name) ? 'checked' : ''} ${can('manage_org') ? '' : 'disabled'}> ${esc(x.name)}</label>`).join('')}</div></div>`).join('') : '';
+}
+function readProfileExpertise(){ const out = {}; document.querySelectorAll('input[data-pexp]:checked').forEach(i => { (out[i.dataset.pexp] ||= []).push(i.value); }); return out; }
+async function onLogoUpload(e){
+  const f = e.target.files[0], err = document.getElementById('logo-err'); err.textContent = '';
+  if(!f) return;
+  if(!/^image\/(png|jpeg|webp)$/.test(f.type)){ err.textContent = 'Please choose a PNG, JPG or WebP image.'; return; }
+  if(f.size > 2*1024*1024){ err.textContent = 'That file is over 2 MB.'; return; }
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(f); }).catch(() => null);
+  if(!img){ err.textContent = 'We couldn\'t read that image.'; return; }
+  const scale = Math.min(1, 512 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+  c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  const path = `${S.org.id}/logo.png`;
+  const up = await sb.storage.from('org-logos').upload(path, blob, { upsert:true, contentType:'image/png' });
+  if(up.error){ err.textContent = friendly(up.error); return; }
+  const url = sb.storage.from('org-logos').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
+  const { error } = await sb.from('organizations').update({ logo_url:url }).eq('id', S.org.id);
+  if(error){ err.textContent = friendly(error); return; }
+  S.org.logo_url = url; toast('Logo updated'); render();
+}
+async function saveProfile(){
+  const g = id => document.getElementById(id).value.trim(), err = document.getElementById('prof-error');
+  err.textContent = '';
+  const name = g('p-name'), city = g('p-city'), site = normalizeWebsite(g('p-web'));
+  if(name.length < 2){ err.textContent = 'Enter your organization name.'; return; }
+  if(!city){ err.textContent = 'Enter a city.'; return; }
+  if(site){ try{ const u = new URL(site); if(!u.hostname.includes('.')) throw 0; }catch(e){ err.textContent = 'Enter a valid website.'; return; } }
+  const bmin = Number(g('p-bmin')), bmax = Number(g('p-bmax'));
+  if(bmin && bmax && bmax < bmin){ err.textContent = 'Maximum budget must be at least the minimum.'; return; }
+  const sports = [...document.querySelectorAll('input[name="p-sport"]:checked')].map(i => i.value);
+  if(sports.includes('Other') && !g('p-other-sport')){ err.textContent = 'Tell us which other sport.'; return; }
+  const needs = [...document.querySelectorAll('input[name="p-need"]:checked')].map(i => i.value);
+  if(needs.includes('Other') && !g('p-other-need')){ err.textContent = 'Describe the other need.'; return; }
+  const btn = document.getElementById('p-save'); btn.disabled = true; btn.textContent = 'Saving…';
+  const fmt = document.querySelector('input[name="p-format"]:checked');
+  const patch = { organization_name:name, organization_type:g('p-type'), website:site || null, email:g('p-email') || null, phone:g('p-phone') || null,
+    description:g('p-desc') || null, address:g('p-addr') || null, city, state:document.getElementById('p-state').value || null, zip:g('p-zip') || null, country:g('p-country'),
+    employee_count:g('p-emp') || null, athlete_count:g('p-ath') || null, preferred_format:fmt ? fmt.value : null,
+    budget_min_cents:bmin > 0 ? Math.round(bmin*100) : null, budget_max_cents:bmax > 0 ? Math.round(bmax*100) : null };
+  const up = await sb.from('organizations').update(patch).eq('id', S.org.id);
+  if(up.error){ btn.disabled = false; btn.textContent = 'Save profile'; err.textContent = up.error.message.includes('duplicate key') ? 'Another organization already uses that name in this city, or that website.' : friendly(up.error); window.scrollTo({ top:0, behavior:'smooth' }); return; }
+
+  // Replace the child rows (sports, expertise, needs) with the current selections.
+  const oid = S.org.id, exp = readProfileExpertise();
+  await Promise.all([sb.from('organization_sports').delete().eq('organization_id', oid), sb.from('organization_expertise').delete().eq('organization_id', oid), sb.from('organization_needs').delete().eq('organization_id', oid)]);
+  const { data:sportRows } = await sb.from('sports').select('id,name').in('name', sports.length ? sports : ['__none__']);
+  const sid = Object.fromEntries((sportRows || []).map(r => [r.name, r.id]));
+  if(sports.length) await sb.from('organization_sports').insert(sports.filter(s => sid[s]).map(s => ({ organization_id:oid, sport_id:sid[s], custom_name: s === 'Other' ? g('p-other-sport') : null })));
+  const wantedExp = Object.entries(exp).filter(([s]) => sports.includes(s));
+  if(wantedExp.length){
+    const { data:exRows } = await sb.from('expertise').select('id,name,sports!inner(name)').in('sports.name', wantedExp.map(([s]) => s));
+    const ids = (exRows || []).filter(r => (exp[r.sports.name] || []).includes(r.name)).map(r => ({ organization_id:oid, expertise_id:r.id }));
+    if(ids.length) await sb.from('organization_expertise').insert(ids);
+  }
+  if(needs.length) await sb.from('organization_needs').insert(needs.map(n => ({ organization_id:oid, need_type:n, custom_text: n === 'Other' ? g('p-other-need') : null })));
+  S.coaches = null; S.results = null;
+  await loadOrgData(); await loadMemberships();
+  toast('Profile saved'); render();
+}
+
+/* ---------------- Team ---------------- */
+async function viewTeam(panel){
+  const manage = can('manage_members'), amOwner = S.member.role === 'owner';
+  const assignable = ROLES.filter(r => r.v !== 'owner' || amOwner);
+  panel.innerHTML = `<div class="sec-title">Team</div>
+    <div class="card"><h2>Members</h2>
+      ${S.members.map(m => { const me = m.user_id === S.user.id;
+        const locked = !manage || (['owner','admin'].includes(m.role) && !amOwner);
+        return `<div class="row"><div><b>${esc(m.display_name || 'Team member')}${me ? ' (you)' : ''}</b><div class="muted">${esc(m.job_title || '')}${m.job_title ? ' · ' : ''}joined ${esc(fmtDate(m.created_at))}</div></div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <select data-role-for="${esc(m.id)}" ${locked ? 'disabled' : ''} aria-label="Role" style="min-height:36px; padding:6px 8px; width:auto">${ROLES.map(r => `<option value="${r.v}" ${m.role === r.v ? 'selected' : ''} ${(r.v === 'owner' && !amOwner) ? 'disabled' : ''}>${esc(r.l)}</option>`).join('')}</select>
+            ${(me || (manage && !locked)) ? `<button class="btn btn-danger btn-sm" data-remove-member="${esc(m.id)}">${me ? 'Leave' : 'Remove'}</button>` : ''}</div></div>`; }).join('')}
+    </div>
+    ${manage ? `<div class="card"><h2>Invite a teammate</h2>
+      <div class="grid2"><div><label class="lbl" for="inv-email">Their email</label><input id="inv-email" type="email" placeholder="name@yourschool.org"></div>
+      <div><label class="lbl" for="inv-role">Role</label><select id="inv-role">${assignable.filter(r => r.v !== 'owner').map(r => `<option value="${r.v}" ${r.v === 'hiring_manager' ? 'selected' : ''}>${esc(r.l)}</option>`).join('')}</select></div></div>
+      <div id="inv-err" class="ferr"></div>
+      <div style="margin-top:12px"><button class="btn btn-gold" id="inv-send">Create invitation</button></div>
+      <p class="hint" style="margin-top:10px">We'll record the invitation. Ask your teammate to create an account (or sign in) at <b>${esc(location.origin)}/login.html</b> with <b>that email address</b> — they'll see the invitation on their dashboard and can accept it.</p>
+      ${S.teamInvites.length ? `<h3 style="margin-top:16px">Pending invitations</h3>${S.teamInvites.map(i => `<div class="row"><div><b>${esc(i.email)}</b><div class="muted">${esc(ROLE_LABEL[i.role])} · invited ${esc(fmtDate(i.created_at))}</div></div><button class="btn btn-danger btn-sm" data-revoke-invite="${esc(i.id)}">Revoke</button></div>`).join('')}` : ''}
+    </div>` : ''}
+    <div class="card"><h2>What each role can do</h2><table class="tbl"><thead><tr><th>Role</th><th>Access</th></tr></thead><tbody>${ROLES.map(r => `<tr><td><b>${esc(r.l)}</b></td><td>${esc(r.d)}</td></tr>`).join('')}</tbody></table></div>`;
+  panel.querySelectorAll('[data-role-for]').forEach(sel => sel.addEventListener('change', async () => {
+    const { error } = await sb.from('organization_members').update({ role:sel.value }).eq('id', sel.dataset.roleFor);
+    if(error){ toast(friendly(error)); await loadOrgData(); viewTeam(panel); return; }
+    toast('Role updated'); await loadOrgData(); viewTeam(panel);
+  }));
+  panel.querySelectorAll('[data-remove-member]').forEach(b => b.addEventListener('click', async () => {
+    const m = S.members.find(x => x.id === b.dataset.removeMember), me = m.user_id === S.user.id;
+    if(!confirm(me ? 'Leave this organization?' : `Remove ${m.display_name || 'this member'} from the team?`)) return;
+    const { error } = await sb.from('organization_members').delete().eq('id', m.id);
+    if(error){ toast(friendly(error)); return; }
+    if(me){ toast('You left the organization'); setTimeout(() => location.reload(), 600); return; }
+    toast('Member removed'); await loadOrgData(); viewTeam(panel);
+  }));
+  const send = document.getElementById('inv-send');
+  if(send) send.addEventListener('click', async () => {
+    const email = document.getElementById('inv-email').value.trim().toLowerCase(), err = document.getElementById('inv-err'); err.textContent = '';
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)){ err.textContent = 'Enter a valid email address.'; return; }
+    if(S.members.length && S.teamInvites.some(i => i.email.toLowerCase() === email)){ err.textContent = 'That address already has a pending invitation.'; return; }
+    send.disabled = true;
+    const { error } = await sb.from('organization_invites').insert({ organization_id:S.org.id, email, role:document.getElementById('inv-role').value, invited_by:S.user.id });
+    send.disabled = false;
+    if(error){ err.textContent = error.message.includes('duplicate key') ? 'That address already has a pending invitation.' : friendly(error); return; }
+    track('org_invite_sent', { role:document.getElementById('inv-role').value });
+    toast('Invitation created'); await loadOrgData(); viewTeam(panel);
+  });
+  panel.querySelectorAll('[data-revoke-invite]').forEach(b => b.addEventListener('click', async () => {
+    const { error } = await sb.from('organization_invites').update({ status:'revoked' }).eq('id', b.dataset.revokeInvite);
+    if(error){ toast(friendly(error)); return; }
+    toast('Invitation revoked'); await loadOrgData(); viewTeam(panel);
+  }));
+}
+
+/* ---------------- Verification ---------------- */
+async function viewVerification(panel){
+  const o = S.org, last = S.verifications[0], pending = last && last.status === 'pending', manage = can('manage_org');
+  panel.innerHTML = `<div class="sec-title">Verification</div>
+    <div class="card"><div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">${vbadge(o.verification_status)}</div>
+      <p style="margin-top:10px; font-size:14px">Verified organizations display a <b>Verified Organization ✓</b> badge and earn more trust and visibility with coaches. Verification is optional and reviewed by our team.</p>
+      ${o.verification_status === 'verified' ? '<p class="muted" style="margin-top:8px">Your organization is verified. Thank you!</p>' : ''}
+      ${pending ? `<p class="muted" style="margin-top:8px">Your request was submitted ${esc(fmtDate(last.created_at))} and is under review.</p>` : ''}
+      ${last && last.status === 'rejected' ? `<div class="banner" style="margin-top:12px"><b>Your last request wasn't approved.</b>${last.reviewer_note ? ' ' + esc(last.reviewer_note) : ''} You can submit a new request below.</div>` : ''}
+    </div>
+    ${(o.verification_status !== 'verified' && !pending) ? (manage ? `
+    <div class="card"><h2>Request verification</h2>
+      <p class="muted">Share whatever applies — the more we can confirm, the faster the review.</p>
+      <div id="vr-err" class="ferr" role="alert"></div>
+      <div class="grid2"><div><label class="lbl" for="vr-web">Official website</label><input id="vr-web" type="text" value="${esc(o.website || '')}"></div>
+      <div><label class="lbl" for="vr-domain">Organization email domain</label><input id="vr-domain" type="text" value="${esc((o.email || '').split('@')[1] || '')}" placeholder="yourschool.org"></div></div>
+      <label class="lbl" for="vr-social">Social media profile</label><input id="vr-social" type="url" placeholder="https://facebook.com/yourprogram">
+      <label class="lbl" for="vr-reg">Business / organization registration info</label><textarea id="vr-reg" maxlength="1000" style="min-height:70px" placeholder="e.g. EIN, state registration number, nonprofit ID"></textarea>
+      <label class="lbl" for="vr-ath">Athletic department information</label><textarea id="vr-ath" maxlength="1000" style="min-height:70px" placeholder="e.g. athletic director's name and a staff directory link"></textarea>
+      <label class="lbl" for="vr-dist">School district information</label><textarea id="vr-dist" maxlength="1000" style="min-height:70px" placeholder="e.g. district name and your school's page on the district site"></textarea>
+      <label class="lbl" for="vr-docs">Supporting documents <span class="opt">(PDF, PNG or JPG, up to 10 MB each — private)</span></label><input id="vr-docs" type="file" multiple accept="application/pdf,image/png,image/jpeg">
+      <div style="margin-top:16px"><button class="btn btn-gold" id="vr-submit">Submit for review</button></div></div>`
+      : `<div class="card"><div class="empty"><b>Only owners and administrators can request verification</b></div></div>`) : ''}`;
+  const submit = document.getElementById('vr-submit');
+  if(submit) submit.addEventListener('click', async () => {
+    const g = id => document.getElementById(id).value.trim(), err = document.getElementById('vr-err'); err.textContent = '';
+    const data = { web:g('vr-web'), domain:g('vr-domain'), social:g('vr-social'), reg:g('vr-reg'), ath:g('vr-ath'), dist:g('vr-dist') };
+    const files = [...document.getElementById('vr-docs').files];
+    if(!Object.values(data).some(Boolean) && !files.length){ err.textContent = 'Add at least one detail or document so we have something to review.'; return; }
+    for(const f of files){ if(f.size > 10*1024*1024){ err.textContent = `${f.name} is over 10 MB.`; return; } if(!/^(application\/pdf|image\/png|image\/jpeg)$/.test(f.type)){ err.textContent = `${f.name} isn't a PDF, PNG or JPG.`; return; } }
+    submit.disabled = true; submit.textContent = 'Submitting…';
+    const paths = [];
+    for(const f of files){
+      const path = `${S.org.id}/${crypto.randomUUID()}-${f.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const up = await sb.storage.from('org-verification').upload(path, f, { contentType:f.type });
+      if(up.error){ err.textContent = `Couldn't upload ${f.name}: ${friendly(up.error)}`; submit.disabled = false; submit.textContent = 'Submit for review'; return; }
+      paths.push(path);
+    }
+    const { error } = await sb.from('organization_verification_requests').insert({ organization_id:S.org.id, requested_by:S.user.id, website_url:normalizeWebsite(data.web) || null, email_domain:data.domain || null,
+      social_url:data.social || null, registration_info:data.reg || null, athletic_dept_info:data.ath || null, district_info:data.dist || null, document_paths:paths });
+    if(error){ err.textContent = friendly(error); submit.disabled = false; submit.textContent = 'Submit for review'; return; }
+    track('organization_verification_requested', { documents:paths.length });
+    toast('Submitted — we\'ll review it soon'); await loadOrgData(); render();
+  });
+}
+
+boot().catch(e => { console.error(e); document.getElementById('shell').innerHTML = `<div class="card" style="grid-column:1/-1"><div class="empty"><b>Something went wrong</b>Please refresh the page. ${esc(e && e.message || '')}</div></div>`; });
+</script>
+</body>
+</html>

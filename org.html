@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organization — Remedy Coaching</title>
+<link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{ --field:#16342A; --field-light:#20493A; --turf:#2F6B4F; --chalk:#F5F3EA; --chalk-dim:#E7E2D3; --ink:#1C1B18; --gold:#D4A72C; --gold-dim:#E9C868; --line:rgba(245,243,234,0.16); --err:#b5453f; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--chalk); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.55; -webkit-font-smoothing:antialiased; min-height:100vh;}
+  a{color:inherit; text-decoration:none;} button{font-family:inherit; cursor:pointer;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+  header{background:var(--field); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:12px 20px; max-width:900px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:10px; color:var(--chalk); font-family:'Anton',sans-serif; font-size:17px;}
+  .logo svg{width:34px; height:34px;} .logo b{color:var(--gold); font-weight:inherit;}
+  .nav a.l{color:var(--chalk-dim); font-size:13px;} .nav a.l:hover{color:var(--gold);}
+  main{max-width:900px; margin:0 auto; padding:24px 16px 80px;}
+  .hero{background:var(--field); color:var(--chalk); border-radius:16px; padding:26px 22px; display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:16px;}
+  .logo-box{width:84px; height:84px; border-radius:14px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; font-family:'Anton',sans-serif; font-size:28px; color:var(--field); flex-shrink:0;}
+  .logo-box img{width:100%; height:100%; object-fit:contain;}
+  h1{font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; font-size:clamp(26px,5vw,38px); line-height:1.05;}
+  .sub{color:var(--chalk-dim); font-size:14px; margin-top:6px;}
+  .vbadge{display:inline-flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 10px; border-radius:999px; margin-top:10px; background:rgba(233,200,104,.16); color:var(--gold-dim); border:1px solid rgba(233,200,104,.4);}
+  .card{background:#fff; border:1px solid rgba(28,27,24,.08); border-radius:14px; padding:20px; margin-bottom:14px;}
+  .card h2{font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; font-size:19px; color:var(--field); margin-bottom:10px;}
+  .pills{display:flex; flex-wrap:wrap; gap:7px;} .pill{background:var(--chalk-dim); color:var(--field); border-radius:999px; padding:4px 12px; font-size:13px;}
+  .facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px;} .fact .k{font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:#8a8878;} .fact .v{font-weight:600;}
+  .btn{font-weight:700; font-size:14px; padding:10px 18px; border-radius:8px; border:1.5px solid transparent; min-height:44px; display:inline-flex; align-items:center; justify-content:center; background:var(--gold); color:var(--ink);}
+  .btn:hover{background:var(--gold-dim);} .btn.ghost{background:none; border-color:rgba(28,27,24,.22);} .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .opp{padding:12px 0; border-top:1px solid rgba(28,27,24,.07);} .opp:first-of-type{border-top:none;} .opp b{display:block;} .muted{color:#8a8878; font-size:13px;}
+  textarea{width:100%; min-height:110px; border:1.5px solid rgba(28,27,24,.18); border-radius:8px; padding:11px 12px; font:inherit; font-size:15px; resize:vertical; background:#fdfcf9;}
+  .ferr{color:var(--err); font-size:13px; font-weight:600; margin-top:6px;} .ok{color:var(--turf); font-weight:600;}
+  .empty{text-align:center; padding:60px 16px; color:#8a8878;} .empty b{display:block; font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; color:var(--field); font-size:22px; margin-bottom:6px;}
+  .modal-back{position:fixed; inset:0; background:rgba(15,36,28,.6); z-index:80; display:flex; align-items:center; justify-content:center; padding:16px;}
+  .modal{background:#fff; border-radius:16px; padding:24px; max-width:520px; width:100%;} .modal h3{font-family:'Anton',sans-serif; text-transform:uppercase; font-weight:400; font-size:21px; color:var(--field); margin-bottom:6px;}
+</style>
+</head>
+<body>
+<header><div class="nav">
+  <a href="index.html" class="logo">
+    <svg viewBox="0 0 60 60" role="img" aria-label="Remedy Coaching logo"><circle cx="30" cy="30" r="28" fill="#0F241C" stroke="rgba(245,243,234,0.16)"/><path d="M45,17 A19,19 0 1 0 45,43" fill="none" stroke="#D4A72C" stroke-width="4.5" stroke-linecap="round"/><text x="27" y="41" font-family="Anton, sans-serif" font-size="30" fill="#F5F3EA" text-anchor="middle">R</text></svg>
+    <span>REMEDY <b>COACHING</b></span></a>
+  <a class="l" href="index.html">Home</a>
+</div></header>
+<main id="main"><div class="empty">Loading…</div></main>
+
+<script>
+const sb = supabase.createClient('https://gaeekblnbhxtcqdeesra.supabase.co', 'sb_publishable_D04JKsI8CJOUihOiQFr8xA_HCMt5Hhs');
+const ANON_KEY = 'remedy_anon_id';
+const FORMAT = { virtual:'Virtual', in_person:'In person', either:'Virtual or in person' };
+const LOCATION = { virtual:'Virtual', in_person:'In person', hybrid:'Hybrid' };
+function esc(s){ const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+function initials(n){ return (n||'').trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase()||'').join('') || '?'; }
+function money(c){ return c ? '$' + Math.round(c/100).toLocaleString() : ''; }
+function safeUrl(u){ try{ const x = new URL(/^[a-z]+:\/\//i.test(u) ? u : 'https://' + u); return /^https?:$/.test(x.protocol) ? x.href : null; }catch(e){ return null; } }
+function dayLabel(d){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? new Date(+m[1], +m[2]-1, +m[3]).toLocaleDateString() : ''; }
+function pills(list){ return list && list.length ? `<div class="pills">${list.map(x => `<span class="pill">${esc(x)}</span>`).join('')}</div>` : '<p class="muted">Not specified yet.</p>'; }
+
+async function track(name, props, orgId){
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    let anon = null; try{ anon = localStorage.getItem(ANON_KEY); }catch(e){}
+    await sb.from('analytics_events').insert({ event_name:name, anonymous_id:anon, user_id:session?.user.id ?? null, organization_id:orgId, properties:props });
+  }catch(e){}
+}
+
+(async function(){
+  const main = document.getElementById('main');
+  const id = new URLSearchParams(location.search).get('id');
+  const notFound = () => { main.innerHTML = '<div class="empty"><b>Organization not found</b>This profile may have been removed. <a href="index.html" style="text-decoration:underline">Back to home</a></div>'; };
+  if(!id || !/^[0-9a-f-]{36}$/i.test(id)) return notFound();
+  const { data:o } = await sb.from('organizations_public').select('*').eq('id', id).maybeSingle();
+  if(!o) return notFound();
+  document.title = `${o.organization_name} — Remedy Coaching`;
+  const { data:opps } = await sb.from('opportunities').select('id,title,sport,location_type,location_text,duration_label,budget_min_cents,budget_max_cents,application_deadline').eq('organization_id', id).eq('status','open').order('created_at', { ascending:false });
+  const { data:{ session } } = await sb.auth.getSession();
+  let isCoach = false, isMember = false;
+  if(session){
+    const [{ data:p }, { data:m }] = await Promise.all([
+      sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle(),
+      sb.from('organization_members').select('id').eq('organization_id', id).eq('user_id', session.user.id).maybeSingle()
+    ]);
+    isCoach = p?.role === 'Coach'; isMember = !!m;
+  }
+  const site = o.website ? safeUrl(o.website) : null;
+  const where = [o.city, o.state].filter(Boolean).join(', ');
+  main.innerHTML = `
+    <section class="hero">
+      <div class="logo-box">${o.logo_url ? `<img alt="${esc(o.organization_name)} logo" src="${esc(o.logo_url)}">` : esc(initials(o.organization_name))}</div>
+      <div><h1>${esc(o.organization_name)}</h1>
+        <div class="sub">${esc(o.organization_type)}${where ? ' · ' + esc(where) : ''}${o.country && o.country !== 'United States' ? ', ' + esc(o.country) : ''}</div>
+        ${o.verification_status === 'verified' ? '<span class="vbadge">✓ Verified Organization</span>' : ''}</div>
+    </section>
+    <section class="card"><h2>About</h2>${o.description ? `<p style="white-space:pre-wrap">${esc(o.description)}</p>` : '<p class="muted">This organization hasn\'t added a description yet.</p>'}</section>
+    <section class="card"><h2>Sports</h2>${pills(o.sports)}</section>
+    <section class="card"><h2>Areas of expertise needed</h2>${pills(o.expertise)}</section>
+    <section class="card"><h2>Consulting opportunities</h2>
+      ${(o.needs || []).length ? `<p class="muted" style="margin-bottom:8px">Looking for help with:</p>${pills(o.needs)}` : ''}
+      ${(opps || []).length ? `<div style="margin-top:${(o.needs || []).length ? 14 : 0}px">${opps.map(x => `<div class="opp"><b>${esc(x.title)}</b>
+        <span class="muted">${esc(x.sport)} · ${esc(LOCATION[x.location_type] || '')}${x.location_text ? ' · ' + esc(x.location_text) : ''}${x.duration_label ? ' · ' + esc(x.duration_label) : ''} · ${esc(x.budget_min_cents ? money(x.budget_min_cents) + (x.budget_max_cents && x.budget_max_cents !== x.budget_min_cents ? '–' + money(x.budget_max_cents) : '+') : 'Budget TBD')}${x.application_deadline ? ' · apply by ' + esc(dayLabel(x.application_deadline)) : ''}</span></div>`).join('')}
+        <div style="margin-top:12px"><a class="btn ghost" href="dashboard.html#sec-opportunities">View &amp; apply on the job board</a></div></div>`
+        : (o.needs || []).length ? '' : '<p class="muted">No open opportunities right now.</p>'}
+    </section>
+    <section class="card"><h2>Organization size</h2><div class="facts">
+      <div class="fact"><div class="k">Team size</div><div class="v">${esc(o.employee_count || '—')}</div></div>
+      <div class="fact"><div class="k">Athletes served</div><div class="v">${esc(o.athlete_count || '—')}</div></div>
+      <div class="fact"><div class="k">Prefers</div><div class="v">${esc(FORMAT[o.preferred_format] || '—')}</div></div>
+      <div class="fact"><div class="k">Website</div><div class="v">${site ? `<a href="${esc(site)}" target="_blank" rel="noopener noreferrer nofollow" style="text-decoration:underline; word-break:break-all">${esc(o.website)}</a>` : '—'}</div></div></div></section>
+    <section class="card"><h2>Contact organization</h2><div id="contact"></div></section>`;
+
+  const c = document.getElementById('contact');
+  if(isMember) c.innerHTML = `<p class="muted">This is your organization's public profile. <a href="org-dashboard.html" style="text-decoration:underline">Go to your dashboard</a></p>`;
+  else if(!session) c.innerHTML = `<p style="margin-bottom:12px">Sign in as a coach to send this organization a message.</p><a class="btn" href="login.html?next=${encodeURIComponent('org.html')}">Sign in to contact</a>`;
+  else if(!isCoach) c.innerHTML = `<p class="muted">Only coach accounts can contact organizations. Create a coach profile from your <a href="dashboard.html" style="text-decoration:underline">dashboard</a>.</p>`;
+  else c.innerHTML = `<button class="btn" id="open-contact">Contact organization</button><span id="sent" class="ok" style="margin-left:12px"></span>`;
+  const open = document.getElementById('open-contact');
+  if(open) open.addEventListener('click', () => {
+    const root = document.createElement('div'); root.className = 'modal-back';
+    root.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h3>Message ${esc(o.organization_name)}</h3><p class="muted" style="margin-bottom:10px">Introduce yourself and how you could help. The organization's team will see your message and your coach profile.</p>
+      <textarea id="cmsg" maxlength="1000" placeholder="Hi, I'm a coach with experience in…"></textarea><div id="cerr" class="ferr"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px"><button class="btn ghost" id="ccancel">Cancel</button><button class="btn" id="csend">Send message</button></div></div>`;
+    document.body.appendChild(root); document.getElementById('cmsg').focus();
+    const close = () => root.remove();
+    root.addEventListener('mousedown', e => { if(e.target === root) close(); });
+    document.getElementById('ccancel').addEventListener('click', close);
+    document.getElementById('csend').addEventListener('click', async () => {
+      const msg = document.getElementById('cmsg').value.trim(), err = document.getElementById('cerr');
+      if(!msg){ err.textContent = 'Please write a short message.'; return; }
+      const btn = document.getElementById('csend'); btn.disabled = true;
+      const { error } = await sb.from('organization_inquiries').insert({ organization_id:id, from_user_id:session.user.id, message:msg });
+      if(error){ btn.disabled = false; err.textContent = /RATE_LIMITED/.test(error.message) ? 'You\'ve contacted organizations a lot today — please try again tomorrow.' : 'We couldn\'t send that. Please try again.'; return; }
+      track('coach_inquiry_sent', {}, id);
+      close(); document.getElementById('sent').textContent = '✓ Message sent'; open.disabled = true;
+    });
+  });
+  track('organization_profile_viewed', {}, id);
+})().catch(e => { console.error(e); document.getElementById('main').innerHTML = '<div class="empty"><b>Something went wrong</b>Please refresh the page.</div>'; });
+</script>
+</body>
+</html>

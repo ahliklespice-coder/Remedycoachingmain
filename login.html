@@ -210,7 +210,11 @@ document.querySelectorAll('[data-goto]').forEach(link => {
    role and, after sign-in, land on the posting form rather than the default
    dashboard view. */
 const postIntent = new URLSearchParams(window.location.search).get('post') === '1';
-const AFTER_LOGIN = postIntent ? 'dashboard.html?post=1#sec-opportunities' : 'dashboard.html';
+// `next` lets other pages (org sign-up / dashboard) send people back where they started.
+// Only same-site page names are accepted, so it can't be used as an open redirect.
+const nextParam = new URLSearchParams(window.location.search).get('next');
+const safeNext = nextParam && /^[a-z0-9-]+\.html(#[\w-]+)?$/.test(nextParam) ? nextParam : null;
+const AFTER_LOGIN = safeNext || (postIntent ? 'dashboard.html?post=1#sec-opportunities' : 'dashboard.html');
 
 let selectedRole = 'Coach';
 document.getElementById('role-coach').addEventListener('click', ()=>selectRole('Coach'));
