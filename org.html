@@ -65,7 +65,8 @@ async function track(name, props, orgId){
   try{
     const { data:{ session } } = await sb.auth.getSession();
     let anon = null; try{ anon = localStorage.getItem(ANON_KEY); }catch(e){}
-    await sb.from('analytics_events').insert({ event_name:name, anonymous_id:anon, user_id:session?.user.id ?? null, organization_id:orgId, properties:props });
+    // The organization_id column is reserved for the org's own members; visitors identify the org in properties.
+    await sb.from('analytics_events').insert({ event_name:name, anonymous_id:anon, user_id:session?.user.id ?? null, properties:{ ...props, organization_id:orgId } });
   }catch(e){}
 }
 

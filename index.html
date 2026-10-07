@@ -481,7 +481,7 @@
         <div class="eyebrow">Coaching Opportunities</div>
         <h2 class="display">Open jobs on the board.</h2>
       </div>
-      <a href="dashboard.html?post=1#sec-opportunities" class="btn btn-dark">Post an Opportunity</a>
+      <a href="org-signup.html?post=1" class="btn btn-dark">Post an Opportunity</a>
     </div>
     <div class="opp-list" id="opp-list">
       <div class="opp-row"><div class="opp-title">Loading…</div></div>
@@ -576,7 +576,7 @@
     <p>Join the network built for coaches — free to start, no long-term commitment.</p>
     <div class="cta-actions">
       <a href="login.html" class="btn btn-gold">Join as a Coach</a>
-      <a href="dashboard.html?post=1#sec-opportunities" class="btn btn-ghost">Post an Opportunity</a>
+      <a href="org-signup.html?post=1" class="btn btn-ghost">Post an Opportunity</a>
     </div>
   </div>
 </section>
@@ -600,7 +600,7 @@
         </ul>
         <ul><h4>Clients</h4>
           <li><a href="coaches.html">Find a Coach</a></li>
-          <li><a href="dashboard.html?post=1#sec-opportunities">Post an Opportunity</a></li>
+          <li><a href="org-signup.html?post=1">Post an Opportunity</a></li>
           <li><a href="#how">How Hiring Works</a></li>
         </ul>
         <ul><h4>Company</h4>
@@ -783,10 +783,25 @@ const SAMPLE_STATS = { paid:127400, projects:86, athletes:31, coaches:42 };
 
     const { data: opps, error: oppsError } = await sb
       .from('opportunities')
-      .select('id, sport, title, location_type, duration_label, budget_min_cents, budget_max_cents, created_at')
+      .select('id, sport, title, location_type, duration_label, budget_min_cents, budget_max_cents, created_at, organization_id')
       .eq('status', 'open')
       .order('created_at', { ascending: false })
-      .limit(6);
+      .limit(30);
+
+    // Verified organizations get first billing. If the organizations
+    // migration isn't live yet, this quietly does nothing.
+    if (opps && opps.length) {
+      try {
+        const orgIds = [...new Set(opps.map(o => o.organization_id).filter(Boolean))];
+        if (orgIds.length) {
+          const { data: orgs } = await sb.from('organizations_public').select('id, organization_name, verification_status').in('id', orgIds);
+          const byId = Object.fromEntries((orgs || []).map(o => [o.id, o]));
+          opps.forEach(o => { const g = byId[o.organization_id]; if (g) { o.orgName = g.organization_name; o.orgVerified = g.verification_status === 'verified'; } });
+          opps.sort((a, b) => (b.orgVerified ? 1 : 0) - (a.orgVerified ? 1 : 0));   // stable: keeps newest-first within each group
+        }
+      } catch (e) { console.error(e); }
+      opps.splice(6);
+    }
 
     const list = document.getElementById('opp-list');
     if (oppsError) {
@@ -795,7 +810,7 @@ const SAMPLE_STATS = { paid:127400, projects:86, athletes:31, coaches:42 };
       list.innerHTML = opps.map(o => `
         <div class="opp-row">
           <span class="opp-sport">${esc(o.sport)}</span>
-          <div><div class="opp-title">${esc(o.title)}</div><div class="opp-meta">${esc(LOCATION_LABELS[o.location_type] || o.location_type)}${o.duration_label ? ' · ' + esc(o.duration_label) : ''} · Posted ${daysAgo(o.created_at)}</div></div>
+          <div><div class="opp-title">${esc(o.title)}</div><div class="opp-meta">${o.orgName ? `<a href="org.html?id=${encodeURIComponent(o.organization_id)}" style="text-decoration:underline;">${esc(o.orgName)}</a>${o.orgVerified ? ' ✓ Verified' : ''} · ` : ''}${esc(LOCATION_LABELS[o.location_type] || o.location_type)}${o.duration_label ? ' · ' + esc(o.duration_label) : ''} · Posted ${daysAgo(o.created_at)}</div></div>
           <span class="opp-budget">${budgetLabel(o.budget_min_cents, o.budget_max_cents)}</span>
           <a href="dashboard.html" class="btn btn-ghost" style="color:var(--ink); border-color:rgba(28,27,24,.2);">View</a>
         </div>`).join('');
@@ -807,7 +822,7 @@ const SAMPLE_STATS = { paid:127400, projects:86, athletes:31, coaches:42 };
           <span class="opp-budget">${budgetLabel(o.min * 100, o.max ? o.max * 100 : null)}</span>
           <span class="sample-chip">Sample</span>
         </div>`).join('') +
-        `<div style="text-align:center; padding:18px 0 0; font-size:14px;">No real postings yet — <a href="dashboard.html?post=1#sec-opportunities" style="text-decoration:underline;">post the first one</a>.</div>`;
+        `<div style="text-align:center; padding:18px 0 0; font-size:14px;">No real postings yet — <a href="org-signup.html?post=1" style="text-decoration:underline;">post the first one</a>.</div>`;
     }
   } catch (e) { console.error('opportunities load failed', e); }
 })();

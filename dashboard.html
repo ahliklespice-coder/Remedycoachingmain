@@ -337,6 +337,7 @@
           <a role="menuitem" href="dashboard.html#sec-activity" data-sec="sec-activity">Applications / Postings</a>
           <a role="menuitem" href="dashboard.html#sec-opportunities" data-sec="sec-opportunities">Opportunities</a>
           <a role="menuitem" href="dashboard.html#sec-verification" data-sec="sec-verification">Verification</a>
+          <a role="menuitem" href="dashboard.html#sec-invitations" data-sec="sec-invitations">Invitations</a>
           <a role="menuitem" href="dashboard.html#sec-leads" data-sec="sec-leads">Leads</a>
         </div>
       </div>
@@ -455,7 +456,8 @@ function mapOpportunity(o){
     title: o.title,
     meta: `${LOCATION_LABELS[o.location_type] || o.location_type}${o.duration_label ? ' · ' + o.duration_label : ''}`,
     budget: budgetLabel(o.budget_min_cents, o.budget_max_cents),
-    value: o.budget_min_cents ? Math.round(o.budget_min_cents / 100) : 0
+    value: o.budget_min_cents ? Math.round(o.budget_min_cents / 100) : 0,
+    orgId: o.organization_id || null
   };
 }
 
@@ -468,6 +470,7 @@ let applicationsTableMissing = false;
 let credentials = [];        // rows from public.credentials for the current user
 let credentialsSetupMissing = false; // true if the table/bucket from supabase-setup-verification.sql isn't set up yet
 let leads = [];               // rows from public.match_leads addressed to the current coach
+let orgInvitations = [];      // rows from public.consult_invitations addressed to the current coach (+ orgName)
 let leadsTableMissing = false; // true if supabase-setup-match-quiz.sql hasn't been run yet
 let currentPlan = 'free';    // from public.subscriptions, kept in sync by the Stripe webhook
 
@@ -614,6 +617,12 @@ function renderRoot(){
             <h2>Verification</h2>
           </div>
           ${verificationSectionHtml()}
+        </div>
+        <div class="section-block" id="sec-invitations">
+          <div class="section-head">
+            <h2>Invitations From Organizations</h2>
+          </div>
+          ${orgInvitationsHtml()}
         </div>
         <div class="section-block" id="sec-leads">
           <div class="section-head">
@@ -798,7 +807,29 @@ function coachMatchingFieldsHtml(p){
       <div><input id="pf-rate-min" type="number" min="1" placeholder="Min" value="${p.rate_min_cents ? Math.round(p.rate_min_cents/100) : ''}"></div>
       <div><input id="pf-rate-max" type="number" min="1" placeholder="Max" value="${p.rate_max_cents ? Math.round(p.rate_max_cents/100) : ''}"></div>
     </div>
-    <div class="field-hint">Per session or project — used to match your budget fit in the quiz.</div>`;
+    <div class="field-hint">Per session or project — used to match your budget fit in the quiz.</div>
+
+    <label style="margin-top:22px;" for="pf-headline">Headline <span style="font-weight:400; opacity:.7;">(optional)</span></label>
+    <input id="pf-headline" type="text" maxlength="120" placeholder="e.g. Former D1 defensive coordinator" value="${escapeHtml(p.headline || '')}">
+    <div class="rate-row" style="margin-top:12px;">
+      <div><label for="pf-city">City</label><input id="pf-city" type="text" maxlength="80" value="${escapeHtml(p.city || '')}"></div>
+      <div><label for="pf-state">State</label><input id="pf-state" type="text" maxlength="2" placeholder="NY" style="text-transform:uppercase;" value="${escapeHtml(p.state || '')}"></div>
+    </div>
+    <div class="rate-row" style="margin-top:12px;">
+      <div><label for="pf-years">Years of experience</label><input id="pf-years" type="number" min="0" max="70" value="${p.years_experience != null ? p.years_experience : ''}"></div>
+      <div><label for="pf-availability">Availability</label>
+        <select id="pf-availability">
+          <option value="">Not specified</option>
+          <option value="available" ${p.availability==='available'?'selected':''}>Available now</option>
+          <option value="limited" ${p.availability==='limited'?'selected':''}>Limited availability</option>
+          <option value="unavailable" ${p.availability==='unavailable'?'selected':''}>Not taking new clients</option>
+        </select></div>
+    </div>
+    <label style="margin-top:12px;" for="pf-certs">Certifications <span style="font-weight:400; opacity:.7;">(optional)</span></label>
+    <input id="pf-certs" type="text" maxlength="300" placeholder="e.g. CSCS, USA Football Level 2" value="${escapeHtml(p.certifications || '')}">
+    <label style="margin-top:12px;" for="pf-accomplishments">Accomplishments <span style="font-weight:400; opacity:.7;">(optional)</span></label>
+    <textarea id="pf-accomplishments" maxlength="500" rows="3" placeholder="Championships, athletes placed, programs built…">${escapeHtml(p.accomplishments || '')}</textarea>
+    <div class="field-hint">Organizations can search coaches by these.</div>`;
 }
 
 function strengthRateRowHtml(s, val){
@@ -912,6 +943,18 @@ function bindProfileForm(){
       payload.rate_max_cents = rateMaxEl.value ? Math.round(parseFloat(rateMaxEl.value) * 100) : null;
     }
 
+    if(document.getElementById('pf-headline')){
+      const v = id => document.getElementById(id).value.trim();
+      const yrs = v('pf-years');
+      payload.headline = v('pf-headline') || null;
+      payload.city = v('pf-city') || null;
+      payload.state = v('pf-state').toUpperCase() || null;
+      payload.years_experience = yrs === '' ? null : Math.max(0, Math.min(70, parseInt(yrs, 10) || 0));
+      payload.availability = document.getElementById('pf-availability').value || null;
+      payload.certifications = v('pf-certs') || null;
+      payload.accomplishments = v('pf-accomplishments') || null;
+    }
+
     const { error } = await sb.from('profiles').upsert(payload);
     if(error && error.code === '42703'){
       // Column doesn't exist yet — supabase-setup-match-quiz.sql hasn't been
@@ -919,6 +962,7 @@ function bindProfileForm(){
       delete payload.coaching_levels; delete payload.specialties;
       delete payload.session_formats; delete payload.rate_min_cents; delete payload.rate_max_cents;
       delete payload.specialty_ratings;
+      ['headline','city','state','years_experience','availability','certifications','accomplishments'].forEach(k => delete payload[k]);
       const retry = await sb.from('profiles').upsert(payload);
       if(retry.error){ showToast('Error: ' + retry.error.message); return; }
       showToast('Profile saved (coach-matching fields need supabase-setup-match-quiz.sql)');
@@ -1661,6 +1705,23 @@ async function refreshOpportunities(){
   }
   opportunitiesTableMissing = false;
   OPPORTUNITIES = (data||[]).map(mapOpportunity);
+
+  // Show who is posting, and put verified organizations first. Wrapped so the
+  // list still works if the organizations migration hasn't been run.
+  try{
+    const orgIds = [...new Set(OPPORTUNITIES.map(o => o.orgId).filter(Boolean))];
+    if(orgIds.length){
+      const { data:orgs } = await sb.from('organizations_public').select('id,organization_name,verification_status').in('id', orgIds);
+      const byId = Object.fromEntries((orgs || []).map(o => [o.id, o]));
+      OPPORTUNITIES.forEach(o => {
+        const org = byId[o.orgId];
+        if(org){ o.orgName = org.organization_name; o.orgVerified = org.verification_status === 'verified'; }
+      });
+      OPPORTUNITIES = OPPORTUNITIES.map((o, i) => ({ o, i }))
+        .sort((a, b) => (b.o.orgVerified ? 1 : 0) - (a.o.orgVerified ? 1 : 0) || a.i - b.i)
+        .map(x => x.o);
+    }
+  }catch(e){ console.error(e); }
 }
 
 async function refreshMyPostings(){
@@ -1707,7 +1768,7 @@ function opportunityRowHtml(o, alreadyApplied, atApplicationLimit){
   return `
     <div class="opp-row">
       <span class="opp-sport">${escapeHtml(o.sport)}</span>
-      <div><div class="opp-title">${escapeHtml(o.title)}</div><div class="opp-meta">${escapeHtml(o.meta)}</div></div>
+      <div><div class="opp-title">${escapeHtml(o.title)}</div><div class="opp-meta">${o.orgName ? `<a href="org.html?id=${encodeURIComponent(o.orgId)}" target="_blank" rel="noopener" style="text-decoration:underline;">${escapeHtml(o.orgName)}</a>${o.orgVerified ? ' <span title="Verified organization" style="color:var(--turf); font-weight:700;">✓ Verified</span>' : ''} · ` : ''}${escapeHtml(o.meta)}</div></div>
       <span class="opp-budget">${escapeHtml(o.budget)}</span>
       <button
         class="btn ${alreadyApplied || blocked ? 'btn-outline-dark' : 'btn-gold'} btn-sm"
@@ -2080,6 +2141,59 @@ function leadsSectionHtml(){
   return `<div style="display:flex; flex-direction:column; gap:10px;">${leads.map(leadRowHtml).join('')}</div>`;
 }
 
+function orgInvitationsHtml(){
+  if(!orgInvitations.length){
+    return `<div class="card empty-state" style="padding:24px;"><div>No invitations yet. When an organization messages you or invites you to consult, it shows up here. A complete profile — sport, specialties, location and availability — helps them find you.</div></div>`;
+  }
+  return `<div style="display:flex; flex-direction:column; gap:10px;">${orgInvitations.map(i => `
+    <div class="card" style="padding:16px;">
+      <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;">
+        <div><b><a href="org.html?id=${encodeURIComponent(i.organization_id)}" target="_blank" rel="noopener" style="color:var(--turf);">${escapeHtml(i.orgName || 'An organization')}</a></b>
+          <span style="opacity:.7;"> · ${i.kind === 'consult' ? 'Invitation to consult' : 'Message'} · ${escapeHtml(new Date(i.created_at).toLocaleDateString())}</span></div>
+        <span style="font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;">${escapeHtml(i.status)}</span>
+      </div>
+      <div style="margin-top:8px; white-space:pre-wrap;">${escapeHtml(i.message)}</div>
+      ${i.response_message ? `<div style="margin-top:8px; padding:8px 10px; background:rgba(0,0,0,.05); border-radius:8px;"><b>Your reply:</b> ${escapeHtml(i.response_message)}</div>` : ''}
+      ${i.status === 'pending' ? `
+        <textarea data-org-inv-reply="${escapeHtml(i.id)}" rows="2" maxlength="1000" placeholder="Optional reply — e.g. how and when to connect" style="margin-top:10px;"></textarea>
+        <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary btn-sm" data-org-inv-act="accepted" data-id="${escapeHtml(i.id)}">${i.kind === 'consult' ? 'Accept' : 'Reply'}</button>
+          <button type="button" class="btn btn-outline-dark btn-sm" data-org-inv-act="declined" data-id="${escapeHtml(i.id)}">Decline</button>
+        </div>` : ''}
+    </div>`).join('')}</div>`;
+}
+
+async function refreshOrgInvitations(){
+  orgInvitations = [];
+  if(!currentUser) return;
+  const { data, error } = await sb.from('consult_invitations').select('*').eq('coach_id', currentUser.id).order('created_at', { ascending:false });
+  if(error){ if(error.code !== '42P01') console.error(error); return; }   // 42P01: organizations migration not run yet
+  const ids = [...new Set((data || []).map(i => i.organization_id))];
+  let names = {};
+  if(ids.length){
+    const { data:orgs } = await sb.from('organizations_public').select('id,organization_name').in('id', ids);
+    (orgs || []).forEach(o => names[o.id] = o.organization_name);
+  }
+  orgInvitations = (data || []).map(i => ({ ...i, orgName:names[i.organization_id] }));
+}
+
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('[data-org-inv-act]');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  const reply = document.querySelector(`[data-org-inv-reply="${CSS.escape(id)}"]`);
+  btn.disabled = true;
+  const { error } = await sb.from('consult_invitations').update({
+    status: btn.dataset.orgInvAct,
+    response_message: reply && reply.value.trim() ? reply.value.trim() : null,
+    responded_at: new Date().toISOString()
+  }).eq('id', id);
+  if(error){ showToast('Error: ' + error.message); btn.disabled = false; return; }
+  showToast(btn.dataset.orgInvAct === 'accepted' ? 'Sent' : 'Declined');
+  await refreshOrgInvitations();
+  renderRoot();
+});
+
 async function refreshLeads(){
   if(!currentUser){ leads = []; return; }
   const { data, error } = await sb.from('match_leads')
@@ -2148,6 +2262,7 @@ async function init(){
     await refreshCredentials();
     await refreshOpportunities();
     await refreshLeads();
+    await refreshOrgInvitations();
   }
   if(currentProfile && currentProfile.role === 'Client'){
     await refreshMyPostings();

@@ -310,7 +310,8 @@ function renderProfile(profile, credentials){
           <div class="avatar">${initials(profile.name)}</div>
           <div>
             <div class="display hero-name">${escapeHtml(profile.name)}</div>
-            <div class="hero-role">${escapeHtml(profile.role)} · ${escapeHtml(profile.sport)}</div>
+            <div class="hero-role">${escapeHtml(profile.role)} · ${escapeHtml(profile.sport)}${[profile.city, profile.state].filter(Boolean).length ? ' · ' + escapeHtml([profile.city, profile.state].filter(Boolean).join(', ')) : ''}</div>
+            ${profile.headline ? `<div style="margin-top:6px; opacity:.85;">${escapeHtml(profile.headline)}</div>` : ''}
             ${verifiedBadge}
           </div>
         </div>
@@ -321,8 +322,14 @@ function renderProfile(profile, credentials){
         <div class="card">
           <h2>About</h2>
           <div class="bio-text">${profile.bio ? escapeHtml(profile.bio) : 'This coach hasn’t added a bio yet.'}</div>
-          <div class="tags"><span class="tag">${escapeHtml(profile.sport)}</span><span class="tag">${escapeHtml(profile.role)}</span></div>
+          <div class="tags"><span class="tag">${escapeHtml(profile.sport)}</span><span class="tag">${escapeHtml(profile.role)}</span>${profile.years_experience != null ? `<span class="tag">${escapeHtml(profile.years_experience)} yrs experience</span>` : ''}${profile.availability === 'available' ? '<span class="tag">Available now</span>' : profile.availability === 'limited' ? '<span class="tag">Limited availability</span>' : ''}</div>
         </div>
+        ${(profile.certifications || profile.accomplishments) ? `
+        <div class="card">
+          <h2>Certifications &amp; Accomplishments</h2>
+          ${profile.certifications ? `<div class="bio-text"><b>Certifications:</b> ${escapeHtml(profile.certifications)}</div>` : ''}
+          ${profile.accomplishments ? `<div class="bio-text" style="margin-top:8px;"><b>Accomplishments:</b> ${escapeHtml(profile.accomplishments)}</div>` : ''}
+        </div>` : ''}
         ${profile.role === 'Coach' ? `
         <div class="card">
           <h2>Coaching Strengths &amp; Expertise</h2>

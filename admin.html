@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Credential Review — Remedy Coaching</title>
+<title>Admin Review — Remedy Coaching</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/png" href="https://remedycoachinggroup.com/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,14 +40,17 @@
 
 <header>
   <div class="wrap">
-    <h1 class="display" style="font-size:22px;">Credential Review</h1>
+    <h1 class="display" style="font-size:22px;">Admin Review</h1>
     <a href="dashboard.html" style="font-size:13px; color:var(--chalk-dim);">← Back to Dashboard</a>
   </div>
 </header>
 
 <main>
-  <div class="wrap" id="root">
-    <div class="card">Loading…</div>
+  <div class="wrap">
+    <h2 class="display" style="font-size:20px; color:var(--field); margin-bottom:12px;">Coach credentials</h2>
+    <div id="root"><div class="card">Loading…</div></div>
+    <h2 class="display" style="font-size:20px; color:var(--field); margin:34px 0 12px;">Organization verification</h2>
+    <div id="org-root"><div class="card">Loading…</div></div>
   </div>
 </main>
 
@@ -117,6 +120,52 @@ async function review(btn, action){
   }
 }
 
+function renderOrgs(requests){
+  const root = document.getElementById('org-root');
+  if(!requests.length){
+    root.innerHTML = `<div class="empty-state"><div class="display">All caught up</div><div>No organizations waiting for verification.</div></div>`;
+    return;
+  }
+  const row = (k, v) => v ? `<div style="margin-top:4px;"><span class="cred-meta">${k}:</span> ${escapeHtml(v)}</div>` : '';
+  root.innerHTML = requests.map(r => {
+    const o = r.organization || {};
+    return `<div class="card" data-org-req="${escapeHtml(r.id)}">
+      <div class="cred-title">${escapeHtml(o.organization_name || 'Unknown organization')}</div>
+      <div class="cred-meta">${escapeHtml(o.organization_type || '')}${o.city ? ' · ' + escapeHtml(o.city + (o.state ? ', ' + o.state : '')) : ''} · Submitted ${escapeHtml(new Date(r.created_at).toLocaleDateString())}</div>
+      ${row('Organization website', o.website)}${row('Organization email', o.email)}
+      ${row('Website provided', r.website_url)}${row('Email domain', r.email_domain)}${row('Social profile', r.social_url)}
+      ${row('Registration', r.registration_info)}${row('Athletic department', r.athletic_dept_info)}${row('School district', r.district_info)}
+      ${(r.documents || []).map(d => d.url ? `<div style="margin-top:6px;"><a href="${escapeHtml(d.url)}" target="_blank" rel="noopener">${escapeHtml(d.name)} ↗</a></div>` : `<div style="margin-top:6px; color:#b5453f;">${escapeHtml(d.name)} — link unavailable</div>`).join('')}
+      <div class="actions">
+        <textarea placeholder="Note to the organization (optional)" data-note></textarea>
+        <button class="btn btn-gold" data-org-approve>Verify</button>
+        <button class="btn btn-danger" data-org-reject>Decline</button>
+      </div>
+    </div>`;
+  }).join('');
+  root.querySelectorAll('[data-org-approve]').forEach(b => b.addEventListener('click', () => reviewOrg(b, 'approve')));
+  root.querySelectorAll('[data-org-reject]').forEach(b => b.addEventListener('click', () => reviewOrg(b, 'reject')));
+}
+
+async function reviewOrg(btn, action){
+  const card = btn.closest('[data-org-req]');
+  const reviewerNote = card.querySelector('[data-note]').value.trim();
+  card.querySelectorAll('button').forEach(b => b.disabled = true);
+  const { data: { session } } = await sb.auth.getSession();
+  const resp = await fetch('/api/admin-organizations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ requestId: card.dataset.orgReq, action, reviewerNote })
+  });
+  if(!resp.ok){
+    alert('Something went wrong. Please try again.');
+    card.querySelectorAll('button').forEach(b => b.disabled = false);
+    return;
+  }
+  card.remove();
+  if(!document.querySelector('[data-org-req]')) renderOrgs([]);
+}
+
 async function init(){
   const root = document.getElementById('root');
   const { data: { session } } = await sb.auth.getSession();
@@ -140,6 +189,16 @@ async function init(){
 
   const { credentials } = await resp.json();
   renderList(credentials);
+
+  const orgResp = await fetch('/api/admin-organizations', {
+    headers: { Authorization: `Bearer ${session.access_token}` }
+  });
+  if(orgResp.ok){
+    const { requests } = await orgResp.json();
+    renderOrgs(requests);
+  } else {
+    document.getElementById('org-root').innerHTML = `<div class="empty-state"><div>Couldn't load organization requests. Try refreshing.</div></div>`;
+  }
 }
 
 init();
